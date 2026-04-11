@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -10,7 +10,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
-@EventBusSubscriber(modid = LegendsOfTheStones.MODID)
+@EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementalWeaponTooltipHandler {
 
 	// === ПЕРЕВОДНЫЕ КЛЮЧИ ===

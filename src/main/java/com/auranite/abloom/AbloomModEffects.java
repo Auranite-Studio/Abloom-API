@@ -1,6 +1,6 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
-import com.auranite.legendsofthestones.effect.*;
+import com.auranite.abloom.effect.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -10,8 +10,8 @@ import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
-public class LegendsOfTheStonesMobEffects {
-    public static final DeferredRegister<MobEffect> REGISTRY = DeferredRegister.create(Registries.MOB_EFFECT, LegendsOfTheStones.MODID);
+public class AbloomModEffects {
+    public static final DeferredRegister<MobEffect> REGISTRY = DeferredRegister.create(Registries.MOB_EFFECT, AbloomMod.MODID);
     public static final DeferredHolder<MobEffect, MobEffect> BURNING = REGISTRY.register("burning", () -> new BurningEffect(0xFF5500));
     public static final DeferredHolder<MobEffect, MobEffect> WETNESS = REGISTRY.register("wetness", () -> new WetnessEffect(0x0080FF));
     public static final DeferredHolder<MobEffect, MobEffect> STUN = REGISTRY.register("stun", () -> new StunEffect(0x8B4513));

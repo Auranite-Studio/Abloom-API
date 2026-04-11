@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -39,7 +39,7 @@ public class ElementalProjectileRegistrations {
         // ✅ ТЕПЕРЬ МОЖНО ИСПОЛЬЗОВАТЬ .get() БЕЗ ОШИБОК
         registerCustomProjectiles();
 
-        LegendsOfTheStones.LOGGER.info("Registered {} elemental projectile types",
+        AbloomMod.LOGGER.info("Registered {} elemental projectile types",
                 ElementalProjectileRegistry.getRegisteredCount());
     }
 

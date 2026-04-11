@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import java.util.Arrays;
 import java.util.Optional;

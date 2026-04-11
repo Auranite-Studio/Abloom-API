@@ -3,9 +3,9 @@ loaderVersion="[4,)"
 license="GNU General Public License version 3 (GPLv3)"
 
 [[mods]]
-modId="lgstones"
+modId="abloom"
 version="0.1.0"
-displayName="Legends of the Stones"
+displayName="Abloom API"
 displayURL=""
 logoFile=""
 credits="Created by Auranite Studio"
@@ -15,20 +15,17 @@ description=""
 # Start of user code block mod configuration
 # End of user code block mod configuration
 
-[[mixins]]
-config = "lgstones.mixins.json"
-
 # Start of user code block custom mixins
 # End of user code block custom mixins
 
-[[dependencies.lgstones]]
+[[dependencies.abloom]]
 modId="neoforge"
 type="required"
 versionRange="[21.1.215,)"
 ordering="AFTER"
 side="BOTH"
 
-[[dependencies.lgstones]]
+[[dependencies.abloom]]
 modId="minecraft"
 type="required"
 versionRange="[1.21.1]"

@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -31,7 +31,7 @@ public class ElementResistanceManager {
 		);
 		existing.putAll(resistanceMap);
 
-		LegendsOfTheStones.LOGGER.debug("Registered resistance for {}: {}",
+		AbloomMod.LOGGER.debug("Registered resistance for {}: {}",
 				entityType.getDescriptionId(), resistanceMap);
 	}
 
@@ -41,7 +41,7 @@ public class ElementResistanceManager {
 	public static void loadFromTag(ElementType elementType, TagKey<EntityType<?>> tag,
 								   Resistance resistance, net.minecraft.core.HolderLookup.Provider lookupProvider) {
 		if (elementType == null || tag == null || resistance == null || lookupProvider == null) {
-			LegendsOfTheStones.LOGGER.warn("loadFromTag called with null params: element={}, tag={}, resistance={}, lookup={}",
+			AbloomMod.LOGGER.warn("loadFromTag called with null params: element={}, tag={}, resistance={}, lookup={}",
 					elementType, tag, resistance, lookupProvider != null);
 			return;
 		}
@@ -59,12 +59,12 @@ public class ElementResistanceManager {
 				resistanceMap.put(elementType, resistance);
 				count++;
 
-				LegendsOfTheStones.LOGGER.debug("  └─ Loaded {} for {} from tag {}",
+				AbloomMod.LOGGER.debug("  └─ Loaded {} for {} from tag {}",
 						resistance, entityType.getDescriptionId(), tag.location());
 			}
-			LegendsOfTheStones.LOGGER.info("Loaded {} entities from tag {} → {}", count, tag.location(), resistance);
+			AbloomMod.LOGGER.info("Loaded {} entities from tag {} → {}", count, tag.location(), resistance);
 		}, () -> {
-			LegendsOfTheStones.LOGGER.warn("Tag {} not found! Check your datapack.", tag.location());
+			AbloomMod.LOGGER.warn("Tag {} not found! Check your datapack.", tag.location());
 		});
 	}
 
@@ -82,7 +82,7 @@ public class ElementResistanceManager {
 		TAG_CHECKED_ENTITIES.put(entityType, true);
 
 		String elementLower = elementType.name().toLowerCase();
-		String modid = LegendsOfTheStones.MODID;
+		String modid = AbloomMod.MODID;
 
 		// ИСПРАВЛЕНО: используем entityType.is() вместо registry.getTag()
 		// Приоритет: Иммунитет > Резист > Слабость
@@ -90,25 +90,25 @@ public class ElementResistanceManager {
 		TagKey<EntityType<?>> immuneTag = createTag(modid, elementLower, "immune");
 		if (entityType.is(immuneTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.IMMUNE));
-			LegendsOfTheStones.LOGGER.debug("Lazy-loaded IMMUNE for {} ({})", entityType.getDescriptionId(), elementType);
+			AbloomMod.LOGGER.debug("Lazy-loaded IMMUNE for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
 		TagKey<EntityType<?>> resistTag = createTag(modid, elementLower, "resistance");
 		if (entityType.is(resistTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.HALF_RESIST));
-			LegendsOfTheStones.LOGGER.debug("Lazy-loaded RESIST for {} ({})", entityType.getDescriptionId(), elementType);
+			AbloomMod.LOGGER.debug("Lazy-loaded RESIST for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
 		TagKey<EntityType<?>> weaknessTag = createTag(modid, elementLower, "weakness");
 		if (entityType.is(weaknessTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.WEAKNESS));
-			LegendsOfTheStones.LOGGER.debug("Lazy-loaded WEAKNESS for {} ({})", entityType.getDescriptionId(), elementType);
+			AbloomMod.LOGGER.debug("Lazy-loaded WEAKNESS for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
-		LegendsOfTheStones.LOGGER.debug("No tag found for {} ({})", entityType.getDescriptionId(), elementType);
+		AbloomMod.LOGGER.debug("No tag found for {} ({})", entityType.getDescriptionId(), elementType);
 	}
 
 	private static TagKey<EntityType<?>> createTag(String modid, String element, String modifier) {
@@ -200,7 +200,7 @@ public class ElementResistanceManager {
 	public static void clearAllResistances() {
 		ENTITY_RESISTANCES.clear();
 		TAG_CHECKED_ENTITIES.clear();
-		LegendsOfTheStones.LOGGER.info("Cleared all element resistances");
+		AbloomMod.LOGGER.info("Cleared all element resistances");
 	}
 
 	public static int getRegisteredEntityCount() {
@@ -212,12 +212,12 @@ public class ElementResistanceManager {
 	}
 
 	public static void debugPrintRegistry() {
-		LegendsOfTheStones.LOGGER.info("=== RESISTANCE REGISTRY ===");
-		LegendsOfTheStones.LOGGER.info("Entities: {}, Entries: {}",
+		AbloomMod.LOGGER.info("=== RESISTANCE REGISTRY ===");
+		AbloomMod.LOGGER.info("Entities: {}, Entries: {}",
 				getRegisteredEntityCount(), getTotalResistanceEntries());
 
 		ENTITY_RESISTANCES.forEach((type, map) -> {
-			LegendsOfTheStones.LOGGER.info("  {} → {}", type.getDescriptionId(), map);
+			AbloomMod.LOGGER.info("  {} → {}", type.getDescriptionId(), map);
 		});
 	}
 

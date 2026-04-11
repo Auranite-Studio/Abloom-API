@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -31,7 +31,7 @@ public class ElementalWeaponUtils {
     public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
         ElementalWeaponRegistry.registerWeapon(vanillaItem, type, accumulationMultiplier);
-        LegendsOfTheStones.LOGGER.info("⚔️ Registered vanilla item {} as {} elemental (accum x{})",
+        AbloomMod.LOGGER.info("⚔️ Registered vanilla item {} as {} elemental (accum x{})",
                 BuiltInRegistries.ITEM.getKey(vanillaItem), type, accumulationMultiplier);
     }
 
@@ -51,10 +51,10 @@ public class ElementalWeaponUtils {
 
         if (itemOpt.isPresent()) {
             ElementalWeaponRegistry.registerWeapon(itemOpt.get(), type, accumulationMultiplier);
-            LegendsOfTheStones.LOGGER.info("⚔️ Registered {}:{} as {} elemental (accum x{})", modId, itemName, type, accumulationMultiplier);
+            AbloomMod.LOGGER.info("⚔️ Registered {}:{} as {} elemental (accum x{})", modId, itemName, type, accumulationMultiplier);
             return true;
         } else {
-            LegendsOfTheStones.LOGGER.warn("❌ Item not found: {}:{}", modId, itemName);
+            AbloomMod.LOGGER.warn("❌ Item not found: {}:{}", modId, itemName);
             return false;
         }
     }
@@ -78,7 +78,7 @@ public class ElementalWeaponUtils {
                 ElementalWeaponRegistry.registerWeapon(item, type, accumulationMultiplier);
             }
         }
-        LegendsOfTheStones.LOGGER.info("⚔️ Registered {} items as {} elemental (accum x{})", items.length, type, accumulationMultiplier);
+        AbloomMod.LOGGER.info("⚔️ Registered {} items as {} elemental (accum x{})", items.length, type, accumulationMultiplier);
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +19,7 @@ public class ElementResistanceRegistry {
 
     public static TagKey<EntityType<?>> createEntityTag(String element, String modifier) {
         return TagKey.create(Registries.ENTITY_TYPE,
-                ResourceLocation.fromNamespaceAndPath(LegendsOfTheStones.MODID,
+                ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID,
                         "element/" + element.toLowerCase() + "/" + modifier));
     }
 
@@ -28,7 +28,7 @@ public class ElementResistanceRegistry {
     // ═══════════════════════════════════════════════════════════
 
     public static void init(net.minecraft.core.HolderLookup.Provider lookupProvider) {
-        LegendsOfTheStones.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
+        AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
 
         try {
             for (ElementType elementType : ElementType.values()) {
@@ -56,16 +56,16 @@ public class ElementResistanceRegistry {
                 );
             }
 
-            LegendsOfTheStones.LOGGER.info("Element Resistance Registry initialized! Total: {} entities",
+            AbloomMod.LOGGER.info("Element Resistance Registry initialized! Total: {} entities",
                     ElementResistanceManager.getRegisteredEntityCount());
 
         } catch (Exception e) {
-            LegendsOfTheStones.LOGGER.error("Failed to initialize Element Resistance Registry!", e);
+            AbloomMod.LOGGER.error("Failed to initialize Element Resistance Registry!", e);
         }
     }
 
     public static void init() {
-        LegendsOfTheStones.LOGGER.info("Initializing Element Resistance Registry (Lazy tag loading)...");
+        AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Lazy tag loading)...");
     }
 
     // ═══════════════════════════════════════════════════════════

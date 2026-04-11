@@ -1,14 +1,12 @@
-package com.auranite.legendsofthestones.effect;
+package com.auranite.abloom.effect;
 
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
-public class WetnessEffect extends MobEffect {
-
-    public WetnessEffect(int color) {
+public class BreakEffect extends MobEffect {
+    public BreakEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
     }
-
     @Override
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;

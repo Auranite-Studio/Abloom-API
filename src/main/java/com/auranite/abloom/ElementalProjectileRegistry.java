@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -32,7 +32,7 @@ public class ElementalProjectileRegistry {
 
     // === ИНИЦИАЛИЗАЦИЯ ===
     public static void register(IEventBus modEventBus) {
-        LegendsOfTheStones.LOGGER.info("ElementalProjectileRegistry initialized");
+        AbloomMod.LOGGER.info("ElementalProjectileRegistry initialized");
     }
 
     // === РЕГИСТРАЦИЯ СНАРЯДОВ ===
@@ -42,12 +42,12 @@ public class ElementalProjectileRegistry {
      */
     public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier) {
         if (entityType == null || element == null) {
-            LegendsOfTheStones.LOGGER.warn("Cannot register null projectile type or element");
+            AbloomMod.LOGGER.warn("Cannot register null projectile type or element");
             return;
         }
         PROJECTILE_ELEMENT_MAP.put(entityType, element);
         PROJECTILE_ACCUM_MAP.put(entityType, accumulationMultiplier);
-        LegendsOfTheStones.LOGGER.debug("Registered projectile {} → {} (accum: x{})", entityType, element, accumulationMultiplier);
+        AbloomMod.LOGGER.debug("Registered projectile {} → {} (accum: x{})", entityType, element, accumulationMultiplier);
     }
 
     /**
@@ -55,12 +55,12 @@ public class ElementalProjectileRegistry {
      */
     public static void registerProjectileByClass(Class<? extends Entity> entityClass, ElementType element, float accumulationMultiplier) {
         if (entityClass == null || element == null) {
-            LegendsOfTheStones.LOGGER.warn("Cannot register null projectile class or element");
+            AbloomMod.LOGGER.warn("Cannot register null projectile class or element");
             return;
         }
         PROJECTILE_CLASS_MAP.put(entityClass, element);
         PROJECTILE_CLASS_ACCUM_MAP.put(entityClass, accumulationMultiplier);
-        LegendsOfTheStones.LOGGER.debug("Registered projectile class {} → {} (accum: x{})", entityClass.getSimpleName(), element, accumulationMultiplier);
+        AbloomMod.LOGGER.debug("Registered projectile class {} → {} (accum: x{})", entityClass.getSimpleName(), element, accumulationMultiplier);
     }
 
     // === ПОЛУЧЕНИЕ ЭЛЕМЕНТА ===
@@ -84,8 +84,8 @@ public class ElementalProjectileRegistry {
         }
 
         // 3. Проверка attachment
-        if (LegendsOfTheStonesAttachments.hasProjectileElement(entity)) {
-            return Optional.ofNullable(LegendsOfTheStonesAttachments.getProjectileElement(entity));
+        if (AbloomModAttachments.hasProjectileElement(entity)) {
+            return Optional.ofNullable(AbloomModAttachments.getProjectileElement(entity));
         }
 
         return Optional.empty();
@@ -135,7 +135,7 @@ public class ElementalProjectileRegistry {
         }
 
         if (elementToApply != null) {
-            LegendsOfTheStonesAttachments.setProjectileElement(projectile, elementToApply);
+            AbloomModAttachments.setProjectileElement(projectile, elementToApply);
             return true;
         }
 
@@ -193,7 +193,7 @@ public class ElementalProjectileRegistry {
                 shooter.getYHeadRot(), shooter.getXRot());
 
         if (forcedElement != null && !level.isClientSide) {
-            LegendsOfTheStonesAttachments.setProjectileElement(projectile, forcedElement);
+            AbloomModAttachments.setProjectileElement(projectile, forcedElement);
         }
 
         if (projectile instanceof net.minecraft.world.entity.projectile.Projectile proj) {

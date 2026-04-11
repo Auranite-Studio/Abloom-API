@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,10 +11,10 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class LegendsOfTheStonesAttachments {
+public class AbloomModAttachments {
 
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
-            DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, LegendsOfTheStones.MODID);
+            DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, AbloomMod.MODID);
 
     // === ATTACHMENT ДЛЯ НАКОПЛЕНИЯ ЭЛЕМЕНТОВ НА СУЩНОСТЯХ ===
     public static final Supplier<AttachmentType<Map<ElementType, Integer>>> ELEMENT_ACCUMULATOR =

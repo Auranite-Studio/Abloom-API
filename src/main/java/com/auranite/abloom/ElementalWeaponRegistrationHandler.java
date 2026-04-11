@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,7 +16,7 @@ public class ElementalWeaponRegistrationHandler {
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            LegendsOfTheStones.LOGGER.info("⚔️ Registering elemental weapons...");
+            AbloomMod.LOGGER.info("⚔️ Registering elemental weapons...");
 
             registerFireWeapons();
             registerPhysicalWeapons();
@@ -29,7 +29,7 @@ public class ElementalWeaponRegistrationHandler {
             registerNaturalWeapons();
             registerQuantumWeapons();
 
-            LegendsOfTheStones.LOGGER.info("✅ Elemental weapon registration complete! Total: {}",
+            AbloomMod.LOGGER.info("✅ Elemental weapon registration complete! Total: {}",
                     ElementalWeaponRegistry.getRegisteredCount());
         });
     }
@@ -45,7 +45,7 @@ public class ElementalWeaponRegistrationHandler {
         ElementalWeaponUtils.registerItem(Items.GOLDEN_SWORD, ElementType.PHYSICAL, 4f);
         ElementalWeaponUtils.registerItem(Items.IRON_SWORD, ElementType.PHYSICAL, 3f);
         ElementalWeaponUtils.registerItem(Items.STONE_SWORD, ElementType.PHYSICAL, 2f);
-        ElementalWeaponUtils.registerItem(Items.WOODEN_SWORD, ElementType.PHYSICAL, 1f);
+        ElementalWeaponUtils.registerItem(Items.WOODEN_SWORD, ElementType.PHYSICAL, 2f);
 
         ElementalWeaponUtils.registerItem(Items.NETHERITE_AXE, ElementType.PHYSICAL, 7f);
         ElementalWeaponUtils.registerItem(Items.DIAMOND_AXE, ElementType.PHYSICAL, 7f);
@@ -57,7 +57,7 @@ public class ElementalWeaponRegistrationHandler {
         ElementalWeaponUtils.registerItem(Items.CROSSBOW, ElementType.PHYSICAL, 7f);
         ElementalWeaponUtils.registerItem(Items.TRIDENT, ElementType.PHYSICAL, 4f);
         ElementalWeaponUtils.registerItem(Items.MACE, ElementType.PHYSICAL, 25f);
-        ElementalWeaponUtils.registerItem(Items.BOW, ElementType.PHYSICAL, 1f);
+        ElementalWeaponUtils.registerItem(Items.BOW, ElementType.PHYSICAL, 2f);
     }
 
     private static void registerWindWeapons() {

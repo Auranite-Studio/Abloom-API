@@ -1,10 +1,11 @@
-package com.auranite.legendsofthestones.effect;
+package com.auranite.abloom.effect;
 
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
-public class RiftEffect extends MobEffect {
-    public RiftEffect(int color) {
+public class WetnessEffect extends MobEffect {
+
+    public WetnessEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
     }
 

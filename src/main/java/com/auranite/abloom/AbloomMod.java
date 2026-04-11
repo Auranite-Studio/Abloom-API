@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -29,19 +29,19 @@ import java.util.Collection;
 import java.util.ArrayList;
 
 
-@Mod("lgstones")
-public class LegendsOfTheStones {
-    public static final Logger LOGGER = LogManager.getLogger(LegendsOfTheStones.class);
-    public static final String MODID = "lgstones";
+@Mod("abloom")
+public class AbloomMod {
+    public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
+    public static final String MODID = "abloom";
 
-    public LegendsOfTheStones(IEventBus modEventBus) {
+    public AbloomMod(IEventBus modEventBus) {
         // Start of user code block mod constructor
         // End of user code block mod constructor
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
         // Start of user code block mod init
-        LegendsOfTheStonesAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        LegendsOfTheStonesMobEffects.REGISTRY.register(modEventBus);
+        AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
+        AbloomModEffects.REGISTRY.register(modEventBus);
         ElementResistanceRegistry.init();
         ElementResistanceManager.debugPrintRegistry();
         ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();

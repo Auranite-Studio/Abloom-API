@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -138,12 +138,12 @@ public class ElementDamageDisplayManager {
         }
 
         if (cleanedCount > 0) {
-            LegendsOfTheStones.LOGGER.debug("ElementDamageDisplayManager: cleaned {} stale displays", cleanedCount);
+            AbloomMod.LOGGER.debug("ElementDamageDisplayManager: cleaned {} stale displays", cleanedCount);
         }
     }
 
     public void cleanupAllDisplays() {
-        LegendsOfTheStones.LOGGER.info("Force cleaning ALL element damage displays...");
+        AbloomMod.LOGGER.info("Force cleaning ALL element damage displays...");
 
         for (DisplayInfo info : ACTIVE_DAMAGE_DISPLAYS.values()) {
             if (info != null && info.display != null && !info.display.isRemoved()) {
@@ -160,7 +160,7 @@ public class ElementDamageDisplayManager {
         ACTIVE_STATUS_DISPLAYS.clear();
         ACTIVE_PHYSICS.clear();
 
-        LegendsOfTheStones.LOGGER.info("All element damage displays cleared successfully.");
+        AbloomMod.LOGGER.info("All element damage displays cleared successfully.");
     }
 
     public void clearActiveDisplays(LivingEntity entity) {
@@ -248,7 +248,7 @@ public class ElementDamageDisplayManager {
                 try {
                     safeRemoveDisplaySilent(display);
                 } catch (Exception e) {
-                    LegendsOfTheStones.LOGGER.warn("Failed to discard pending display: {}", e.getMessage());
+                    AbloomMod.LOGGER.warn("Failed to discard pending display: {}", e.getMessage());
                 }
             }
         }
@@ -278,7 +278,7 @@ public class ElementDamageDisplayManager {
 
         long duration = System.currentTimeMillis() - startTime;
         if (removedCount > 0) {
-            LegendsOfTheStones.LOGGER.info("Cleaned {} orphaned TextDisplay entities on world load in {}ms", removedCount, duration);
+            AbloomMod.LOGGER.info("Cleaned {} orphaned TextDisplay entities on world load in {}ms", removedCount, duration);
         }
     }
 
@@ -343,7 +343,7 @@ public class ElementDamageDisplayManager {
             schedulePhysicsUpdate(serverLevel, displayUuid);
 
             // ✅ Страховка с запасом +10 тиков
-            LegendsOfTheStones.queueServerWork(DAMAGE_NUMBER_LIFETIME + 10, () -> {
+            AbloomMod.queueServerWork(DAMAGE_NUMBER_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
                     TextDisplay d = (TextDisplay) serverLevel.getEntity(displayUuid);
                     if (d != null && !d.isRemoved()) safeRemoveDisplaySilent(d);
@@ -382,7 +382,7 @@ public class ElementDamageDisplayManager {
             schedulePhysicsUpdate(serverLevel, displayUuid);
 
             // ✅ Страховка с запасом +10 тиков
-            LegendsOfTheStones.queueServerWork(STATUS_TEXT_LIFETIME + 10, () -> {
+            AbloomMod.queueServerWork(STATUS_TEXT_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
                     TextDisplay d = (TextDisplay) serverLevel.getEntity(displayUuid);
                     if (d != null && !d.isRemoved()) safeRemoveDisplaySilent(d);
@@ -398,7 +398,7 @@ public class ElementDamageDisplayManager {
 
     // === ФИЗИКА И ЭФФЕКТЫ ===
     private void schedulePhysicsUpdate(ServerLevel level, UUID displayUuid) {
-        LegendsOfTheStones.queueServerWork(1, () -> {
+        AbloomMod.queueServerWork(1, () -> {
             TextDisplay display = (TextDisplay) level.getEntity(displayUuid);
             double[] physics = ACTIVE_PHYSICS.get(displayUuid);
             DisplayInfo info = ACTIVE_DAMAGE_DISPLAYS.get(displayUuid);
@@ -497,7 +497,7 @@ public class ElementDamageDisplayManager {
                     );
                 } catch (Exception e) {
                     // ✅ Ловим исключения сети, чтобы не спамить ERROR
-                    LegendsOfTheStones.LOGGER.debug("Failed to send remove packet for display {}: {}",
+                    AbloomMod.LOGGER.debug("Failed to send remove packet for display {}: {}",
                             display.getId(), e.getMessage());
                 }
             }
@@ -558,7 +558,7 @@ public class ElementDamageDisplayManager {
     private static TextDisplay createTextDisplay(ServerLevel level, double x, double y, double z, Component textComponent, int color, int maxLifetime) {
         TextDisplay display = EntityType.TEXT_DISPLAY.create(level);
         if (display == null) {
-            LegendsOfTheStones.LOGGER.error("Failed to create TextDisplay entity at ({}, {}, {})", x, y, z);
+            AbloomMod.LOGGER.error("Failed to create TextDisplay entity at ({}, {}, {})", x, y, z);
             return null;
         }
 

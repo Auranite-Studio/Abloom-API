@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-@EventBusSubscriber(modid = LegendsOfTheStones.MODID)
+@EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
 	// === КОНФИГУРАЦИЯ ===
@@ -145,26 +145,26 @@ public class ElementDamageHandler {
 
 		float damage = event.getNewDamage();
 
-		if (attacker != null && attacker.hasEffect(LegendsOfTheStonesMobEffects.SHOCK)) {
-			int amplifier = attacker.getEffect(LegendsOfTheStonesMobEffects.SHOCK).getAmplifier();
+		if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
+			int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
 			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
 			reduction = Math.max(0.1f, reduction);
 			damage *= reduction;
-			LegendsOfTheStones.LOGGER.debug("SHOCK on attacker {}: x{} multiplier applied",
+			AbloomMod.LOGGER.debug("SHOCK on attacker {}: x{} multiplier applied",
 					attacker.getName().getString(), reduction);
 		}
 
-		if (target.hasEffect(LegendsOfTheStonesMobEffects.RIFT)) {
-			int amplifier = target.getEffect(LegendsOfTheStonesMobEffects.RIFT).getAmplifier();
+		if (target.hasEffect(AbloomModEffects.RIFT)) {
+			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
 			float multiplier = 1.0f + (amplifier + 1) * 0.25f;
 			damage *= multiplier;
-			LegendsOfTheStones.LOGGER.debug("RIFT on target {}: x{} multiplier applied",
+			AbloomMod.LOGGER.debug("RIFT on target {}: x{} multiplier applied",
 					target.getName().getString(), multiplier);
 		}
 
-		if (target.hasEffect(LegendsOfTheStonesMobEffects.BLOOM)) {
+		if (target.hasEffect(AbloomModEffects.BLOOM)) {
 			damage *= 1.25f;
-			LegendsOfTheStones.LOGGER.debug("BLOOM on target {}: +25% universal vulnerability",
+			AbloomMod.LOGGER.debug("BLOOM on target {}: +25% universal vulnerability",
 					target.getName().getString());
 		}
 
@@ -191,7 +191,7 @@ public class ElementDamageHandler {
 			Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
 			if (projectileAccum.isPresent()) {
 				effectiveAccumMultiplier = projectileAccum.get();
-				LegendsOfTheStones.LOGGER.debug("Using projectile accum multiplier: x{} for {}",
+				AbloomMod.LOGGER.debug("Using projectile accum multiplier: x{} for {}",
 						effectiveAccumMultiplier, source.getDirectEntity().getType());
 			}
 		}
@@ -208,27 +208,27 @@ public class ElementDamageHandler {
 		}
 
 		// ✅ BLOOM: +25% к накоплению
-		if (target.hasEffect(LegendsOfTheStonesMobEffects.BLOOM)) {
+		if (target.hasEffect(AbloomModEffects.BLOOM)) {
 			effectiveAccumMultiplier *= 1.25f;
-			LegendsOfTheStones.LOGGER.debug("BLOOM on target {}: +25% accumulation (total x{})",
+			AbloomMod.LOGGER.debug("BLOOM on target {}: +25% accumulation (total x{})",
 					target.getName().getString(), effectiveAccumMultiplier);
 		}
 
 		// ✅ WETNESS: +100% к накоплению за уровень (для ЛЮБОГО элемента)
-		if (target.hasEffect(LegendsOfTheStonesMobEffects.WETNESS)) {
-			int amplifier = target.getEffect(LegendsOfTheStonesMobEffects.WETNESS).getAmplifier();
+		if (target.hasEffect(AbloomModEffects.WETNESS)) {
+			int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
 			float wetnessAccumBonus = 1.0f + (amplifier + 1) * 1.0f;
 			effectiveAccumMultiplier *= wetnessAccumBonus;
-			LegendsOfTheStones.LOGGER.debug("WETNESS on target {}: accum x{} (total x{})",
+			AbloomMod.LOGGER.debug("WETNESS on target {}: accum x{} (total x{})",
 					target.getName().getString(), wetnessAccumBonus, effectiveAccumMultiplier);
 		}
 
 		ElementResistanceManager.Resistance resistance = ElementResistanceManager.getResistance(target, type);
-		LegendsOfTheStones.LOGGER.debug("Resistance check: {} vs {} → {}", target.getType(), type, resistance);
+		AbloomMod.LOGGER.debug("Resistance check: {} vs {} → {}", target.getType(), type, resistance);
 
 		if (ElementResistanceManager.isImmune(target, type)) {
 			event.setNewDamage(0f);
-			LegendsOfTheStones.LOGGER.debug("{} is IMMUNE to {}! Damage set to 0",
+			AbloomMod.LOGGER.debug("{} is IMMUNE to {}! Damage set to 0",
 					target.getName().getString(), type);
 			return;
 		}
@@ -237,12 +237,12 @@ public class ElementDamageHandler {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
 
-		int pointsBefore = LegendsOfTheStonesAttachments.getPoints(target, type);
-		LegendsOfTheStonesAttachments.addPoints(target, type, pointsToAdd);
-		int pointsAfter = LegendsOfTheStonesAttachments.getPoints(target, type);
+		int pointsBefore = AbloomModAttachments.getPoints(target, type);
+		AbloomModAttachments.addPoints(target, type, pointsToAdd);
+		int pointsAfter = AbloomModAttachments.getPoints(target, type);
 		boolean thresholdReached = pointsAfter >= THRESHOLD;
 
-		LegendsOfTheStones.LOGGER.info("[Resonance] Target: {} | Element: {} | Multiplier: x{} | Points: {} +{} → {} | Breakthrough: {}",
+		AbloomMod.LOGGER.info("[Resonance] Target: {} | Element: {} | Multiplier: x{} | Points: {} +{} → {} | Breakthrough: {}",
 				target.getName().getString(), type, effectiveAccumMultiplier,
 				pointsBefore, pointsToAdd, pointsAfter, thresholdReached);
 
@@ -251,7 +251,7 @@ public class ElementDamageHandler {
 
 		if (thresholdReached) {
 			finalDamage = applyThresholdEffect(target, type, event, finalDamage);
-			LegendsOfTheStonesAttachments.resetPoints(target, type);
+			AbloomModAttachments.resetPoints(target, type);
 		}
 
 		event.setNewDamage(finalDamage);
@@ -290,7 +290,7 @@ public class ElementDamageHandler {
 	public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
 		if (!(event.getEntity() instanceof ServerPlayer player)) return;
 
-		LegendsOfTheStones.LOGGER.info("Player {} logged out. Cleaning their displays only.", player.getName().getString());
+		AbloomMod.LOGGER.info("Player {} logged out. Cleaning their displays only.", player.getName().getString());
 
 		if (displayManager != null) {
 			// ✅ Удаляем только дисплеи, связанные с этим игроком
@@ -312,7 +312,7 @@ public class ElementDamageHandler {
 	public static void onLevelUnload(LevelEvent.Unload event) {
 		if (!(event.getLevel() instanceof ServerLevel level)) return;
 
-		LegendsOfTheStones.LOGGER.debug("Level {} unloading. Stale displays will be cleaned by periodic cleanup.",
+		AbloomMod.LOGGER.debug("Level {} unloading. Stale displays will be cleaned by periodic cleanup.",
 				level.dimension().location());
 
 		// ✅ cleanupStaleDisplays() в тике уже проверяет level() у каждой сущности,
@@ -327,7 +327,7 @@ public class ElementDamageHandler {
 		int chunkZ = event.getChunk().getPos().z;
 		int markedCount = displayManager.cleanupDisplaysInChunk(level, chunkX, chunkZ);
 		if (markedCount > 0) {
-			LegendsOfTheStones.LOGGER.debug("Marked {} visual effects for removal from unloading chunk [{}, {}]",
+			AbloomMod.LOGGER.debug("Marked {} visual effects for removal from unloading chunk [{}, {}]",
 					markedCount, chunkX, chunkZ);
 		}
 	}
@@ -338,8 +338,8 @@ public class ElementDamageHandler {
 		if (directEntity != null) {
 			Optional<ElementType> registryElement = ElementalProjectileRegistry.getElementForEntity(directEntity);
 			if (registryElement.isPresent()) return registryElement.get();
-			if (LegendsOfTheStonesAttachments.hasProjectileElement(directEntity)) {
-				return LegendsOfTheStonesAttachments.getProjectileElement(directEntity);
+			if (AbloomModAttachments.hasProjectileElement(directEntity)) {
+				return AbloomModAttachments.getProjectileElement(directEntity);
 			}
 		}
 		Entity causingEntity = source.getEntity();
@@ -360,7 +360,7 @@ public class ElementDamageHandler {
 			ElementType vanillaType = ElementType.fromVanillaDamageType(msgId);
 			if (vanillaType != null) return vanillaType;
 		}
-		LegendsOfTheStones.LOGGER.debug("No matching ElementType for source: {}", source);
+		AbloomMod.LOGGER.debug("No matching ElementType for source: {}", source);
 		return null;
 	}
 
@@ -420,10 +420,10 @@ public class ElementDamageHandler {
 					ElementType type = typeEntry.getKey();
 					long lastTime = typeEntry.getValue();
 					if (currentTime - lastTime >= RESET_DELAY_TICKS) {
-						int pointsBefore = LegendsOfTheStonesAttachments.getPoints(livingEntity, type);
+						int pointsBefore = AbloomModAttachments.getPoints(livingEntity, type);
 						if (pointsBefore > 0) {
-							LegendsOfTheStonesAttachments.resetPoints(livingEntity, type);
-							LegendsOfTheStones.LOGGER.debug("Reset {} points for {} (inactive for {} ticks)", pointsBefore, type, RESET_DELAY_TICKS);
+							AbloomModAttachments.resetPoints(livingEntity, type);
+							AbloomMod.LOGGER.debug("Reset {} points for {} (inactive for {} ticks)", pointsBefore, type, RESET_DELAY_TICKS);
 						}
 						typeIterator.remove();
 					}
@@ -452,7 +452,7 @@ public class ElementDamageHandler {
 	private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
 		// ✅ ПРОВЕРКА ЛИМИТА ДИСПЛЕЕВ
 		if (!canSpawnDisplay()) {
-			LegendsOfTheStones.LOGGER.debug("Display limit reached ({}), skipping damage number for {}",
+			AbloomMod.LOGGER.debug("Display limit reached ({}), skipping damage number for {}",
 					MAX_ACTIVE_DISPLAYS, entity.getName().getString());
 			return;
 		}
@@ -478,7 +478,7 @@ public class ElementDamageHandler {
 	// === ПОРОГОВЫЕ ЭФФЕКТЫ ===
 	public static int getThreshold() { return THRESHOLD; }
 	public static void setThreshold(int threshold) {
-		LegendsOfTheStones.LOGGER.warn("setThreshold() deprecated - all types use THRESHOLD = 100");
+		AbloomMod.LOGGER.warn("setThreshold() deprecated - all types use THRESHOLD = 100");
 	}
 	public static void setDamageColor(ElementType type, int color) {
 		ElementDamageDisplayManager.setDamageColor(type, color);
@@ -488,10 +488,10 @@ public class ElementDamageHandler {
 	}
 
 	private static float applyThresholdEffect(LivingEntity target, ElementType type, LivingDamageEvent.Pre event, float currentDamage) {
-		LegendsOfTheStones.LOGGER.info("THRESHOLD REACHED! Entity: {}, Type: {}", target.getName().getString(), type);
+		AbloomMod.LOGGER.info("THRESHOLD REACHED! Entity: {}, Type: {}", target.getName().getString(), type);
 		return switch (type) {
 			case FIRE -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.BURNING, 200, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BURNING, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
 				yield currentDamage;
 			}
@@ -505,37 +505,37 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case WATER -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.WETNESS, 300, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 300, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
 				yield currentDamage;
 			}
 			case EARTH -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.STUN, 60, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 60, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
 				yield currentDamage;
 			}
 			case ICE -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.FREEZE, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
 				yield currentDamage;
 			}
 			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.SHOCK, 140, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 140, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
 				yield currentDamage;
 			}
 			case SOURCE -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.RIFT, 100, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 100, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
 				yield currentDamage;
 			}
 			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.BLOOM, 120, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 120, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
 				yield currentDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.BREAK, 100, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 100, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield currentDamage;
 			}
@@ -544,10 +544,10 @@ public class ElementDamageHandler {
 	}
 
 	private static float applyThresholdEffectWithDamage(LivingEntity target, ElementType type, float originalDamage) {
-		LegendsOfTheStones.LOGGER.info("THRESHOLD REACHED! Entity: {}, Type: {}", target.getName().getString(), type);
+		AbloomMod.LOGGER.info("THRESHOLD REACHED! Entity: {}, Type: {}", target.getName().getString(), type);
 		return switch (type) {
 			case FIRE -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.BURNING, 200, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BURNING, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
 				yield originalDamage;
 			}
@@ -561,37 +561,37 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case WATER -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.WETNESS, 300, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 300, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
 				yield originalDamage;
 			}
 			case EARTH -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.STUN, 60, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 60, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
 				yield originalDamage;
 			}
 			case ICE -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.FREEZE, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
 				yield originalDamage;
 			}
 			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.SHOCK, 140, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 140, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
 				yield originalDamage;
 			}
 			case SOURCE -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.RIFT, 100, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 100, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
 				yield originalDamage;
 			}
 			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.BLOOM, 120, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
 				yield originalDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(LegendsOfTheStonesMobEffects.BREAK, 100, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 100, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield originalDamage;
 			}
@@ -621,19 +621,19 @@ public class ElementDamageHandler {
 
 	private static void processDealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints) {
 		if (!(target.level() instanceof ServerLevel serverLevel)) {
-			LegendsOfTheStones.LOGGER.warn("dealElementDamage: not server level"); return;
+			AbloomMod.LOGGER.warn("dealElementDamage: not server level"); return;
 		}
 		if (!(target instanceof LivingEntity livingTarget)) {
-			LegendsOfTheStones.LOGGER.warn("dealElementDamage: target is not LivingEntity"); return;
+			AbloomMod.LOGGER.warn("dealElementDamage: target is not LivingEntity"); return;
 		}
 		if (ElementResistanceManager.isImmune(target, type)) {
-			LegendsOfTheStones.LOGGER.debug("{} is IMMUNE to {} (manual call)!", target.getName().getString(), type); return;
+			AbloomMod.LOGGER.debug("{} is IMMUNE to {} (manual call)!", target.getName().getString(), type); return;
 		}
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(LegendsOfTheStones.MODID, type.getDamageTypeId());
+		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
 		if (damageTypeHolder.isEmpty()) {
-			LegendsOfTheStones.LOGGER.error("Damage type NOT FOUND: {} - урон НЕ будет нанесён!", rl); return;
+			AbloomMod.LOGGER.error("Damage type NOT FOUND: {} - урон НЕ будет нанесён!", rl); return;
 		}
 		DamageSource source = new DamageSource(damageTypeHolder.get());
 		float finalDamage = amount;
@@ -651,16 +651,16 @@ public class ElementDamageHandler {
 		pointsToAdd = Math.round(pointsToAdd * weaponAccumMultiplier);
 
 		if (pointsToAdd > 0) {
-			int pointsBefore = LegendsOfTheStonesAttachments.getPoints(livingTarget, type);
-			LegendsOfTheStonesAttachments.addPoints(livingTarget, type, pointsToAdd);
-			int pointsAfter = LegendsOfTheStonesAttachments.getPoints(livingTarget, type);
+			int pointsBefore = AbloomModAttachments.getPoints(livingTarget, type);
+			AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
+			int pointsAfter = AbloomModAttachments.getPoints(livingTarget, type);
 			boolean thresholdReached = pointsAfter >= THRESHOLD;
-			LegendsOfTheStones.LOGGER.info("[Manual] Target: {} | Element: {} | WeaponAccum: x{} | Points: {} +{} → {} | Threshold: {} | Reached: {}",
+			AbloomMod.LOGGER.info("[Manual] Target: {} | Element: {} | WeaponAccum: x{} | Points: {} +{} → {} | Threshold: {} | Reached: {}",
 					livingTarget.getName().getString(), type, weaponAccumMultiplier, pointsBefore, pointsToAdd, pointsAfter, THRESHOLD, thresholdReached);
 			if (thresholdReached) {
 				finalDamage = applyThresholdEffectWithDamage(livingTarget, type, amount);
-				LegendsOfTheStonesAttachments.resetPoints(livingTarget, type);
-				LegendsOfTheStones.LOGGER.info("[Manual] THRESHOLD TRIGGERED! Reset points for {} on {}", type, livingTarget.getName().getString());
+				AbloomModAttachments.resetPoints(livingTarget, type);
+				AbloomMod.LOGGER.info("[Manual] THRESHOLD TRIGGERED! Reset points for {} on {}", type, livingTarget.getName().getString());
 			}
 			if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
 		} else {
@@ -683,19 +683,19 @@ public class ElementDamageHandler {
 
 	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier) {
 		if (!(target.level() instanceof ServerLevel serverLevel)) {
-			LegendsOfTheStones.LOGGER.warn("dealElementDamageWithAccum: not server level"); return;
+			AbloomMod.LOGGER.warn("dealElementDamageWithAccum: not server level"); return;
 		}
 		if (!(target instanceof LivingEntity livingTarget)) {
-			LegendsOfTheStones.LOGGER.warn("dealElementDamageWithAccum: target is not LivingEntity"); return;
+			AbloomMod.LOGGER.warn("dealElementDamageWithAccum: target is not LivingEntity"); return;
 		}
 		if (ElementResistanceManager.isImmune(target, type)) {
-			LegendsOfTheStones.LOGGER.debug("{} is IMMUNE to {} (manual call)!", target.getName().getString(), type); return;
+			AbloomMod.LOGGER.debug("{} is IMMUNE to {} (manual call)!", target.getName().getString(), type); return;
 		}
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(LegendsOfTheStones.MODID, type.getDamageTypeId());
+		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
 		if (damageTypeHolder.isEmpty()) {
-			LegendsOfTheStones.LOGGER.error("Damage type NOT FOUND: {}", rl); return;
+			AbloomMod.LOGGER.error("Damage type NOT FOUND: {}", rl); return;
 		}
 		DamageSource source = new DamageSource(damageTypeHolder.get());
 		float finalDamage = amount;
@@ -704,16 +704,16 @@ public class ElementDamageHandler {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * accumMultiplier);
 		if (pointsToAdd > 0) {
-			int pointsBefore = LegendsOfTheStonesAttachments.getPoints(livingTarget, type);
-			LegendsOfTheStonesAttachments.addPoints(livingTarget, type, pointsToAdd);
-			int pointsAfter = LegendsOfTheStonesAttachments.getPoints(livingTarget, type);
+			int pointsBefore = AbloomModAttachments.getPoints(livingTarget, type);
+			AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
+			int pointsAfter = AbloomModAttachments.getPoints(livingTarget, type);
 			boolean thresholdReached = pointsAfter >= THRESHOLD;
-			LegendsOfTheStones.LOGGER.info("[Manual] Target: {} | Element: {} | WeaponAccum: x{} | Points: {} +{} → {} | Threshold: {} | Reached: {}",
+			AbloomMod.LOGGER.info("[Manual] Target: {} | Element: {} | WeaponAccum: x{} | Points: {} +{} → {} | Threshold: {} | Reached: {}",
 					livingTarget.getName().getString(), type, accumMultiplier, pointsBefore, pointsToAdd, pointsAfter, THRESHOLD, thresholdReached);
 			if (thresholdReached) {
 				finalDamage = applyThresholdEffectWithDamage(livingTarget, type, amount);
-				LegendsOfTheStonesAttachments.resetPoints(livingTarget, type);
-				LegendsOfTheStones.LOGGER.info("[Manual] THRESHOLD TRIGGERED! Reset points for {} on {}", type, livingTarget.getName().getString());
+				AbloomModAttachments.resetPoints(livingTarget, type);
+				AbloomMod.LOGGER.info("[Manual] THRESHOLD TRIGGERED! Reset points for {} on {}", type, livingTarget.getName().getString());
 			}
 			if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
 		} else {
@@ -725,14 +725,14 @@ public class ElementDamageHandler {
 
 	public static void addElementPoints(LivingEntity entity, ElementType type, int points) {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(entity, type, points);
-		LegendsOfTheStonesAttachments.addPoints(entity, type, pointsToAdd);
+		AbloomModAttachments.addPoints(entity, type, pointsToAdd);
 		updateLastDamageTime(entity, type);
 	}
 	public static int getElementPoints(LivingEntity entity, ElementType type) {
-		return LegendsOfTheStonesAttachments.getPoints(entity, type);
+		return AbloomModAttachments.getPoints(entity, type);
 	}
 	public static void resetElementPoints(LivingEntity entity, ElementType type) {
-		LegendsOfTheStonesAttachments.resetPoints(entity, type);
+		AbloomModAttachments.resetPoints(entity, type);
 		synchronized (LAST_DAMAGE_LOCK) {
 			LAST_DAMAGE_TIME.computeIfPresent(entity.getId(), (id, map) -> {
 				map.remove(type); return map.isEmpty() ? null : map;
@@ -740,7 +740,7 @@ public class ElementDamageHandler {
 		}
 	}
 	public static void resetAllElementPoints(LivingEntity entity) {
-		for (ElementType type : ElementType.values()) LegendsOfTheStonesAttachments.resetPoints(entity, type);
+		for (ElementType type : ElementType.values()) AbloomModAttachments.resetPoints(entity, type);
 		synchronized (LAST_DAMAGE_LOCK) {
 			LAST_DAMAGE_TIME.remove(entity.getId());
 		}
@@ -756,8 +756,8 @@ public class ElementDamageHandler {
 	// === УТИЛИТЫ ДЛЯ СНАРЯДОВ ===
 	public static void markProjectileAsElemental(Entity projectile, ElementType type) {
 		if (projectile != null && !projectile.level().isClientSide) {
-			LegendsOfTheStonesAttachments.setProjectileElement(projectile, type);
-			LegendsOfTheStones.LOGGER.debug("Marked projectile {} as {}", projectile.getId(), type);
+			AbloomModAttachments.setProjectileElement(projectile, type);
+			AbloomMod.LOGGER.debug("Marked projectile {} as {}", projectile.getId(), type);
 		}
 	}
 
@@ -775,13 +775,13 @@ public class ElementDamageHandler {
 	private static void processApplyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
 		if (!(target.level() instanceof ServerLevel serverLevel) || !(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, elementalType)) {
-			LegendsOfTheStones.LOGGER.debug("{} is IMMUNE to {} (instant)", target.getName().getString(), elementalType); return;
+			AbloomMod.LOGGER.debug("{} is IMMUNE to {} (instant)", target.getName().getString(), elementalType); return;
 		}
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(LegendsOfTheStones.MODID, elementalType.getDamageTypeId());
+		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, elementalType.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
 		if (damageTypeHolder.isEmpty()) {
-			LegendsOfTheStones.LOGGER.error("Damage type NOT FOUND: {}", rl); return;
+			AbloomMod.LOGGER.error("Damage type NOT FOUND: {}", rl); return;
 		}
 		DamageSource dmgSource = new DamageSource(damageTypeHolder.get(), source, source);
 		float finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, elementalType, baseDamage);
@@ -789,15 +789,15 @@ public class ElementDamageHandler {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, elementalType, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * accumMultiplier);
 		if (pointsToAdd > 0) {
-			int before = LegendsOfTheStonesAttachments.getPoints(livingTarget, elementalType);
-			LegendsOfTheStonesAttachments.addPoints(livingTarget, elementalType, pointsToAdd);
-			int after = LegendsOfTheStonesAttachments.getPoints(livingTarget, elementalType);
+			int before = AbloomModAttachments.getPoints(livingTarget, elementalType);
+			AbloomModAttachments.addPoints(livingTarget, elementalType, pointsToAdd);
+			int after = AbloomModAttachments.getPoints(livingTarget, elementalType);
 			boolean thresholdReached = after >= THRESHOLD;
-			LegendsOfTheStones.LOGGER.info("[Instant] {} | {} | x{} | {} +{} → {} | Breakthrough: {}",
+			AbloomMod.LOGGER.info("[Instant] {} | {} | x{} | {} +{} → {} | Breakthrough: {}",
 					livingTarget.getName().getString(), elementalType, accumMultiplier, before, pointsToAdd, after, thresholdReached);
 			if (thresholdReached) {
 				finalDamage = applyThresholdEffectWithDamage(livingTarget, elementalType, baseDamage);
-				LegendsOfTheStonesAttachments.resetPoints(livingTarget, elementalType);
+				AbloomModAttachments.resetPoints(livingTarget, elementalType);
 			}
 		}
 		if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, elementalType);

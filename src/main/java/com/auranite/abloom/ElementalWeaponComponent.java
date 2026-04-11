@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;

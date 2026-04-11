@@ -1,4 +1,4 @@
-package com.auranite.legendsofthestones;
+package com.auranite.abloom;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +25,7 @@ public class ElementalWeaponRegistry {
 	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier) {
 		if (item == null || type == null) return;
 		WEAPON_DATA.put(item, new WeaponData(type, Math.max(0f, accumulationMultiplier)));
-		LegendsOfTheStones.LOGGER.debug("⚔️ Registered elemental weapon: {} → {} (accum: x{})",
+		AbloomMod.LOGGER.debug("⚔️ Registered elemental weapon: {} → {} (accum: x{})",
 				item.getDescriptionId(), type, accumulationMultiplier);
 	}
 

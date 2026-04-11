@@ -1,8 +1,8 @@
-package com.auranite.legendsofthestones.effect;
+package com.auranite.abloom.effect;
 
-import com.auranite.legendsofthestones.ElementDamageHandler;
-import com.auranite.legendsofthestones.ElementType;
-import com.auranite.legendsofthestones.LegendsOfTheStonesMobEffects;
+import com.auranite.abloom.ElementDamageHandler;
+import com.auranite.abloom.ElementType;
+import com.auranite.abloom.AbloomModEffects;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,7 +26,7 @@ public class FreezeEffect extends MobEffect {
         }
 
         // ✅ Получаем длительность через Holder
-        MobEffectInstance effectInstance = entity.getEffect(LegendsOfTheStonesMobEffects.FREEZE);
+        MobEffectInstance effectInstance = entity.getEffect(AbloomModEffects.FREEZE);
         if (effectInstance == null) {
             return false;
         }
