@@ -36,7 +36,7 @@ public class ElementalWeaponRegistrationHandler {
 
     private static void registerFireWeapons() {
         ElementalWeaponUtils.registerItem(Items.BLAZE_ROD, ElementType.FIRE, 3f);
-        ElementalWeaponUtils.registerItem(Items.BREEZE_ROD, ElementType.FIRE, 3f);
+        ElementalWeaponUtils.registerItem(Items.BREEZE_ROD, ElementType.WIND, 3f);
     }
 
     private static void registerPhysicalWeapons() {
