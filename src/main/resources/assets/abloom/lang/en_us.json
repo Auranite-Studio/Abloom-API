@@ -50,12 +50,12 @@
   "elemental.tooltip.source_void": "RIFT!",
   "elemental.tooltip.natural_bloom": "BLOOM!",
   "elemental.tooltip.quantum_flux": "BREAK!",
-  "effect.legendsofthestones.burning": "Burning",
-  "effect.legendsofthestones.wetness": "Wetness",
-  "effect.legendsofthestones.stun": "Stun",
-  "effect.legendsofthestones.freeze": "Freeze",
-  "effect.legendsofthestones.shock": "Shock",
-  "effect.legendsofthestones.rift": "Rift",
-  "effect.legendsofthestones.bloom": "Bloom",
-  "effect.legendsofthestones.break": "Break"
+  "effect.abloom.burning": "Burning",
+  "effect.abloom.wetness": "Wetness",
+  "effect.abloom.stun": "Stun",
+  "effect.abloom.freeze": "Freeze",
+  "effect.abloom.shock": "Shock",
+  "effect.abloom.rift": "Rift",
+  "effect.abloom.bloom": "Bloom",
+  "effect.abloom.break": "Break"
 }

@@ -50,12 +50,12 @@
   "elemental.tooltip.source_void": "РАЗЛОМ!",
   "elemental.tooltip.natural_bloom": "ЦВЕТЕНИЕ!",
   "elemental.tooltip.quantum_flux": "ПРОБИТИЕ!",
-  "effect.legendsofthestones.burning": "Горение",
-  "effect.legendsofthestones.wetness": "Влажность",
-  "effect.legendsofthestones.stun": "Оглушение",
-  "effect.legendsofthestones.freeze": "Заморозка",
-  "effect.legendsofthestones.shock": "Шок",
-  "effect.legendsofthestones.rift": "Раскол",
-  "effect.legendsofthestones.bloom": "Цветение",
-  "effect.legendsofthestones.break": "Пробитие"
+  "effect.abloom.burning": "Горение",
+  "effect.abloom.wetness": "Влажность",
+  "effect.abloom.stun": "Оглушение",
+  "effect.abloom.freeze": "Заморозка",
+  "effect.abloom.shock": "Шок",
+  "effect.abloom.rift": "Раскол",
+  "effect.abloom.bloom": "Цветение",
+  "effect.abloom.break": "Пробитие"
 }

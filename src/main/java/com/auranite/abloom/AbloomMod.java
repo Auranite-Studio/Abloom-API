@@ -42,6 +42,8 @@ public class AbloomMod {
         // Start of user code block mod init
         AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         AbloomModEffects.REGISTRY.register(modEventBus);
+        AbloomModItems.REGISTRY.register(modEventBus);
+        AbloomModTabs.REGISTRY.register(modEventBus);
         ElementResistanceRegistry.init();
         ElementResistanceManager.debugPrintRegistry();
         ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
