@@ -1,6 +1,4 @@
-/*
- *    MCreator note: This file will be REGENERATED on each build.
- */
+
 package com.auranite.abloom;
 
 import net.minecraft.world.item.BlockItem;
@@ -25,7 +23,7 @@ public class AbloomModItems {
     public static final DeferredItem<Item> NATURAL_STICK;
     public static final DeferredItem<Item> QUANTUM_STICK;
 
-    // Общие свойства для всех элементов
+
     private static final Item.Properties STICK_PROPS = new Item.Properties()
             .stacksTo(1)
             .rarity(Rarity.RARE);

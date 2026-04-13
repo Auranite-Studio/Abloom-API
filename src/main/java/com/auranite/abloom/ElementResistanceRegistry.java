@@ -13,9 +13,9 @@ public class ElementResistanceRegistry {
 
     private ElementResistanceRegistry() {}
 
-    // ═══════════════════════════════════════════════════════════
-    // СОЗДАНИЕ TAGKEY
-    // ═══════════════════════════════════════════════════════════
+
+
+
 
     public static TagKey<EntityType<?>> createEntityTag(String element, String modifier) {
         return TagKey.create(Registries.ENTITY_TYPE,
@@ -23,9 +23,9 @@ public class ElementResistanceRegistry {
                         "element/" + element.toLowerCase() + "/" + modifier));
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ИНИЦИАЛИЗАЦИЯ
-    // ═══════════════════════════════════════════════════════════
+
+
+
 
     public static void init(net.minecraft.core.HolderLookup.Provider lookupProvider) {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
@@ -68,9 +68,9 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Lazy tag loading)...");
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ПРОГРАММНАЯ РЕГИСТРАЦИЯ
-    // ═══════════════════════════════════════════════════════════
+
+
+
 
     @SafeVarargs
     public static void registerUniform(ElementType elementType, float resistance, EntityType<?>... entityTypes) {
@@ -108,20 +108,16 @@ public class ElementResistanceRegistry {
         ElementResistanceManager.registerResistance(entityType, new EnumMap<>(resistanceMap));
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // УТИЛИТЫ (Исправленные типы)
-    // ═══════════════════════════════════════════════════════════
 
-    /**
-     * Проверка по EntityType
-     */
+
+
+
+
     public static boolean hasResistances(EntityType<?> entityType) {
         return ElementResistanceManager.hasResistanceFor(entityType);
     }
 
-    /**
-     * Проверка по экземпляру Entity
-     */
+
     public static boolean hasResistances(Entity entity) {
         if (entity == null) return false;
         return ElementResistanceManager.hasResistanceFor(entity.getType());
@@ -143,9 +139,9 @@ public class ElementResistanceRegistry {
         ElementResistanceManager.debugPrintRegistry();
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // КОНСТАНТЫ
-    // ═══════════════════════════════════════════════════════════
+
+
+
 
     public static final class Tags {
         private Tags() {}

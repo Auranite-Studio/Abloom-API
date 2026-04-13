@@ -5,11 +5,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
-/**
- * 🔹 ОБРАБОТЧИК РЕГИСТРАЦИИ ЭЛЕМЕНТАЛЬНОГО ОРУЖИЯ 🔹
- *
- * Вызывается при инициализации мода для регистрации существующих предметов.
- */
+
 @EventBusSubscriber
 public class AbloomModElementalWeapons {
 

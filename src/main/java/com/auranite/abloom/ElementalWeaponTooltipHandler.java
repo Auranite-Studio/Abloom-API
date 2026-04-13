@@ -13,7 +13,7 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementalWeaponTooltipHandler {
 
-	// === ПЕРЕВОДНЫЕ КЛЮЧИ ===
+
 	private static final String KEY_ELEMENT_FIRE = "elemental.tooltip.fire";
 	private static final String KEY_ELEMENT_PHYSICAL = "elemental.tooltip.physical";
 	private static final String KEY_ELEMENT_WIND = "elemental.tooltip.wind";
@@ -36,11 +36,11 @@ public class ElementalWeaponTooltipHandler {
 		float accumMultiplier = ElementalWeaponUtils.getAccumulationMultiplier(stack);
 
 		if (type != null && accumMultiplier != 0.0f && accumMultiplier != 1.0f) {
-			// Название элемента с переводом и цветом
+
 			MutableComponent elementText = getElementText(type);
 			event.getToolTip().add(1, elementText);
 
-			// Множитель резонанса
+
 			MutableComponent accumText = Component.translatable(
 					KEY_ACCUM_MULTIPLIER,
 					String.format("%.1f", accumMultiplier)
@@ -50,9 +50,7 @@ public class ElementalWeaponTooltipHandler {
 		}
 	}
 
-	/**
-	 * Возвращает переводимый текст элемента с цветом.
-	 */
+
 	private static MutableComponent getElementText(ElementType type) {
 		MutableComponent text = switch (type) {
 			case FIRE -> Component.translatable(KEY_ELEMENT_FIRE);
@@ -72,9 +70,7 @@ public class ElementalWeaponTooltipHandler {
 		return text;
 	}
 
-	/**
-	 * Получает цвет для элемента.
-	 */
+
 	private static int getElementColor(ElementType type) {
 		return switch (type) {
 			case FIRE -> 0xFF5500;
@@ -91,10 +87,7 @@ public class ElementalWeaponTooltipHandler {
 		};
 	}
 
-	/**
-	 * Вспомогательный метод для получения сущности, на которую смотрит игрок.
-	 * (На данный момент не используется в этом классе, но может пригодиться в будущем)
-	 */
+
 	private static Entity getLookedEntity(net.minecraft.world.entity.player.Player player) {
 		if (player == null) return null;
 
