@@ -500,7 +500,7 @@ public class ElementDamageHandler {
 				yield currentDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 60, 1, false, true));
+				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 120, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield currentDamage;
 			}
@@ -510,32 +510,32 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case EARTH -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 60, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
 				yield currentDamage;
 			}
 			case ICE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 320, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
 				yield currentDamage;
 			}
 			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 140, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
 				yield currentDamage;
 			}
 			case SOURCE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 100, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
 				yield currentDamage;
 			}
 			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 120, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
 				yield currentDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 100, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 1, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield currentDamage;
 			}

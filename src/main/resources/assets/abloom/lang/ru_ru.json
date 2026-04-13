@@ -57,5 +57,16 @@
   "effect.abloom.shock": "Шок",
   "effect.abloom.rift": "Раскол",
   "effect.abloom.bloom": "Цветение",
-  "effect.abloom.break": "Пробитие"
+  "effect.abloom.break": "Пробитие",
+  "item_group.abloom.abloom_api": "Цветущий API",
+  "item.abloom.fire_stick": "Огненная палочка",
+  "item.abloom.physical_stick": "Физическая палочка",
+  "item.abloom.wind_stick": "Ветряная палочка",
+  "item.abloom.water_stick": "Водяная палочка",
+  "item.abloom.earth_stick": "Земляная палочка",
+  "item.abloom.ice_stick": "Ледяная палочка",
+  "item.abloom.electric_stick": "Электрическая палочка",
+  "item.abloom.source_stick": "Небесная палочка",
+  "item.abloom.natural_stick": "Природная палочка",
+  "item.abloom.quantum_stick": "Квантовая палочка"
 }

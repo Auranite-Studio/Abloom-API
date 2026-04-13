@@ -57,5 +57,17 @@
   "effect.abloom.shock": "Shock",
   "effect.abloom.rift": "Rift",
   "effect.abloom.bloom": "Bloom",
-  "effect.abloom.break": "Break"
+  "effect.abloom.break": "Break",
+  "item_group.abloom.abloom_api": "Abloom API",
+  "item.abloom.fire_stick": "Fire Stick",
+  "item.abloom.physical_stick": "Physical Stick",
+  "item.abloom.wind_stick": "Wind Stick",
+  "item.abloom.water_stick": "Water Stick",
+  "item.abloom.earth_stick": "Earth Stick",
+  "item.abloom.ice_stick": "Ice Stick",
+  "item.abloom.electric_stick": "Electric Stick",
+  "item.abloom.source_stick": "Source Stick",
+  "item.abloom.natural_stick": "Natural Stick",
+  "item.abloom.quantum_stick": "Quantum Stick"
+
 }
