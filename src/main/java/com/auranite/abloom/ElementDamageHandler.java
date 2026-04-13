@@ -31,15 +31,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
-
 	private static float baseAccumulation = 1.0f;
 	private static final int THRESHOLD = 100;
 	private static final int RESET_DELAY_TICKS = 300;
 
-
 	private static final Map<Integer, Long> DAMAGE_COOLDOWNS = new ConcurrentHashMap<>();
 	private static final int COOLDOWN_TICKS = 5;
-
 
 	private static final Map<Integer, Map<ElementType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
 	private static final Object LAST_DAMAGE_LOCK = new Object();
@@ -48,12 +45,9 @@ public class ElementDamageHandler {
 	private static int serverTickCounter = 0;
 	private static final int CLEANUP_INTERVAL = 100;
 
-
 	private static ElementDamageDisplayManager displayManager;
 
-
 	private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
-
 
 	private static final int MAX_ACTIVE_DISPLAYS = 500;
 	private static int currentDisplayCount = 0;
@@ -62,7 +56,6 @@ public class ElementDamageHandler {
 	public static void setDisplayManager(ElementDamageDisplayManager manager) {
 		displayManager = manager;
 	}
-
 
 	public static void initDamageColors() {
 		ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
@@ -76,7 +69,6 @@ public class ElementDamageHandler {
 		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
 	}
-
 
 	public static boolean canSpawnDisplay() {
 		synchronized (DISPLAY_COUNT_LOCK) {
@@ -102,47 +94,28 @@ public class ElementDamageHandler {
 		}
 	}
 
-
 	@SubscribeEvent
 	public static void onServerTick(ServerTickEvent.Pre event) {
 		currentServer = event.getServer();
-
-		if (displayManager != null) {
-			displayManager.processPendingRemovals();
-		}
-
+		if (displayManager != null) displayManager.processPendingRemovals();
 		serverTickCounter++;
 		if (serverTickCounter >= CLEANUP_INTERVAL) {
 			serverTickCounter = 0;
 			checkAndResetInactivePoints();
-			if (displayManager != null) {
-				displayManager.cleanupStaleDisplays();
-			}
+			if (displayManager != null) displayManager.cleanupStaleDisplays();
 		}
 	}
 
 	@SubscribeEvent
 	public static void onLivingHurt(LivingDamageEvent.Pre event) {
-
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-
-		try {
-			processLivingHurt(event);
-		} finally {
-			IS_PROCESSING_DAMAGE.set(false);
-		}
+		try { processLivingHurt(event); } finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
-
 
 	private static void processLivingHurt(LivingDamageEvent.Pre event) {
 		LivingEntity target = event.getEntity();
 		LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity e ? e : null;
-
-
-
-
-
 		float damage = event.getNewDamage();
 
 		if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
@@ -150,86 +123,43 @@ public class ElementDamageHandler {
 			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
 			reduction = Math.max(0.1f, reduction);
 			damage *= reduction;
-			AbloomMod.LOGGER.debug("SHOCK on attacker {}: x{} multiplier applied",
-					attacker.getName().getString(), reduction);
 		}
-
 		if (target.hasEffect(AbloomModEffects.RIFT)) {
 			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			float multiplier = 1.0f + (amplifier + 1) * 0.25f;
-			damage *= multiplier;
-			AbloomMod.LOGGER.debug("RIFT on target {}: x{} multiplier applied",
-					target.getName().getString(), multiplier);
+			damage *= 1.0f + (amplifier + 1) * 0.25f;
 		}
-
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
 			damage *= 1.25f;
-			AbloomMod.LOGGER.debug("BLOOM on target {}: +25% universal vulnerability",
-					target.getName().getString());
 		}
-
 		event.setNewDamage(damage);
-
-
-
-
 
 		DamageSource source = event.getSource();
 		ElementType type = getElementTypeFromSource(source);
-
 		if (type == null) {
-			if (canShowDamage(target)) {
-				spawnDamageNumber(target, event.getNewDamage(), null);
-			}
+			if (canShowDamage(target)) spawnDamageNumber(target, event.getNewDamage(), null);
 			return;
 		}
 
-
 		float effectiveAccumMultiplier = 1.0f;
-
 		if (source.getDirectEntity() != null) {
 			Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
-			if (projectileAccum.isPresent()) {
-				effectiveAccumMultiplier = projectileAccum.get();
-				AbloomMod.LOGGER.debug("Using projectile accum multiplier: x{} for {}",
-						effectiveAccumMultiplier, source.getDirectEntity().getType());
-			}
+			if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
 		}
-
 		if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
 			ItemStack weapon = attackerEntity.getMainHandItem();
 			float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
 			float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
-			if (componentAccum != 1.0f) {
-				effectiveAccumMultiplier = componentAccum;
-			} else if (weaponAccum != 1.0f) {
-				effectiveAccumMultiplier = weaponAccum;
-			}
+			if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
+			else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
 		}
-
-
-		if (target.hasEffect(AbloomModEffects.BLOOM)) {
-			effectiveAccumMultiplier *= 1.25f;
-			AbloomMod.LOGGER.debug("BLOOM on target {}: +25% accumulation (total x{})",
-					target.getName().getString(), effectiveAccumMultiplier);
-		}
-
-
+		if (target.hasEffect(AbloomModEffects.BLOOM)) effectiveAccumMultiplier *= 1.25f;
 		if (target.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-			float wetnessAccumBonus = 1.0f + (amplifier + 1) * 1.0f;
-			effectiveAccumMultiplier *= wetnessAccumBonus;
-			AbloomMod.LOGGER.debug("WETNESS on target {}: accum x{} (total x{})",
-					target.getName().getString(), wetnessAccumBonus, effectiveAccumMultiplier);
+			effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 1.0f;
 		}
-
-		ElementResistanceManager.Resistance resistance = ElementResistanceManager.getResistance(target, type);
-		AbloomMod.LOGGER.debug("Resistance check: {} vs {} → {}", target.getType(), type, resistance);
 
 		if (ElementResistanceManager.isImmune(target, type)) {
 			event.setNewDamage(0f);
-			AbloomMod.LOGGER.debug("{} is IMMUNE to {}! Damage set to 0",
-					target.getName().getString(), type);
 			return;
 		}
 
@@ -237,40 +167,27 @@ public class ElementDamageHandler {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
 
-		int pointsBefore = AbloomModAttachments.getPoints(target, type);
 		AbloomModAttachments.addPoints(target, type, pointsToAdd);
 		int pointsAfter = AbloomModAttachments.getPoints(target, type);
 		boolean thresholdReached = pointsAfter >= THRESHOLD;
 
-		AbloomMod.LOGGER.info("[Resonance] Target: {} | Element: {} | Multiplier: x{} | Points: {} +{} → {} | Breakthrough: {}",
-				target.getName().getString(), type, effectiveAccumMultiplier,
-				pointsBefore, pointsToAdd, pointsAfter, thresholdReached);
-
 		float finalDamage = event.getNewDamage();
 		finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
-
 		if (thresholdReached) {
 			finalDamage = applyThresholdEffect(target, type, event, finalDamage);
 			AbloomModAttachments.resetPoints(target, type);
 		}
-
 		event.setNewDamage(finalDamage);
-
-		if (canShowDamage(target)) {
-			spawnDamageNumber(target, finalDamage, type);
-		}
+		if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
 		updateLastDamageTime(target, type);
 	}
-
 
 	@SubscribeEvent
 	public static void onLivingDeath(LivingDeathEvent event) {
 		LivingEntity entity = event.getEntity();
 		clearActiveDisplays(entity);
 		DAMAGE_COOLDOWNS.remove(entity.getId());
-		synchronized (LAST_DAMAGE_LOCK) {
-			LAST_DAMAGE_TIME.remove(entity.getId());
-		}
+		synchronized (LAST_DAMAGE_LOCK) { LAST_DAMAGE_TIME.remove(entity.getId()); }
 	}
 
 	@SubscribeEvent
@@ -279,44 +196,22 @@ public class ElementDamageHandler {
 		if (entity instanceof LivingEntity livingEntity) {
 			clearActiveDisplays(livingEntity);
 			DAMAGE_COOLDOWNS.remove(entity.getId());
-			synchronized (LAST_DAMAGE_LOCK) {
-				LAST_DAMAGE_TIME.remove(entity.getId());
-			}
+			synchronized (LAST_DAMAGE_LOCK) { LAST_DAMAGE_TIME.remove(entity.getId()); }
 		}
 	}
-
 
 	@SubscribeEvent
 	public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
 		if (!(event.getEntity() instanceof ServerPlayer player)) return;
-
-		AbloomMod.LOGGER.info("Player {} logged out. Cleaning their displays only.", player.getName().getString());
-
-		if (displayManager != null) {
-
-			displayManager.clearActiveDisplays(player);
-		}
-
-
+		if (displayManager != null) displayManager.clearActiveDisplays(player);
 		int playerId = player.getId();
 		DAMAGE_COOLDOWNS.remove(playerId);
-		synchronized (LAST_DAMAGE_LOCK) {
-			LAST_DAMAGE_TIME.remove(playerId);
-		}
-
-
+		synchronized (LAST_DAMAGE_LOCK) { LAST_DAMAGE_TIME.remove(playerId); }
 	}
-
 
 	@SubscribeEvent
 	public static void onLevelUnload(LevelEvent.Unload event) {
 		if (!(event.getLevel() instanceof ServerLevel level)) return;
-
-		AbloomMod.LOGGER.debug("Level {} unloading. Stale displays will be cleaned by periodic cleanup.",
-				level.dimension().location());
-
-
-
 	}
 
 	@SubscribeEvent
@@ -325,22 +220,15 @@ public class ElementDamageHandler {
 		if (!(event.getLevel() instanceof ServerLevel level)) return;
 		int chunkX = event.getChunk().getPos().x;
 		int chunkZ = event.getChunk().getPos().z;
-		int markedCount = displayManager.cleanupDisplaysInChunk(level, chunkX, chunkZ);
-		if (markedCount > 0) {
-			AbloomMod.LOGGER.debug("Marked {} visual effects for removal from unloading chunk [{}, {}]",
-					markedCount, chunkX, chunkZ);
-		}
+		displayManager.cleanupDisplaysInChunk(level, chunkX, chunkZ);
 	}
-
 
 	private static ElementType getElementTypeFromSource(DamageSource source) {
 		Entity directEntity = source.getDirectEntity();
 		if (directEntity != null) {
 			Optional<ElementType> registryElement = ElementalProjectileRegistry.getElementForEntity(directEntity);
 			if (registryElement.isPresent()) return registryElement.get();
-			if (AbloomModAttachments.hasProjectileElement(directEntity)) {
-				return AbloomModAttachments.getProjectileElement(directEntity);
-			}
+			if (AbloomModAttachments.hasProjectileElement(directEntity)) return AbloomModAttachments.getProjectileElement(directEntity);
 		}
 		Entity causingEntity = source.getEntity();
 		if (causingEntity instanceof LivingEntity attacker) {
@@ -353,14 +241,11 @@ public class ElementDamageHandler {
 		String msgId = source.type().msgId();
 		if (msgId != null) {
 			for (ElementType type : ElementType.values()) {
-				if (type.getDamageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) {
-					return type;
-				}
+				if (type.getDamageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) return type;
 			}
 			ElementType vanillaType = ElementType.fromVanillaDamageType(msgId);
 			if (vanillaType != null) return vanillaType;
 		}
-		AbloomMod.LOGGER.debug("No matching ElementType for source: {}", source);
 		return null;
 	}
 
@@ -372,33 +257,22 @@ public class ElementDamageHandler {
 	}
 
 	public static ItemStack createElementalItem(net.minecraft.world.item.Item item, ElementType type, int count) {
-		ItemStack stack = new ItemStack(item, count);
-		return ElementalWeaponComponent.withElement(stack, type);
+		return ElementalWeaponComponent.withElement(new ItemStack(item, count), type);
 	}
 
 	public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, ElementType type, int count, float accumMultiplier) {
-		ItemStack stack = new ItemStack(item, count);
-		return ElementalWeaponComponent.withElementAndAccum(stack, type, accumMultiplier);
+		return ElementalWeaponComponent.withElementAndAccum(new ItemStack(item, count), type, accumMultiplier);
 	}
 
-
-
 	private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
-		int entityId = entity.getId();
-		long gameTime = entity.level().getGameTime();
-
 		synchronized (LAST_DAMAGE_LOCK) {
-			LAST_DAMAGE_TIME
-					.computeIfAbsent(entityId, k -> new EnumMap<>(ElementType.class))
-					.put(type, gameTime);
+			LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new EnumMap<>(ElementType.class)).put(type, entity.level().getGameTime());
 		}
 	}
 
 	private static void checkAndResetInactivePoints() {
 		if (currentServer == null) return;
 		long currentTime = currentServer.overworld().getGameTime();
-
-
 		synchronized (LAST_DAMAGE_LOCK) {
 			Iterator<Map.Entry<Integer, Map<ElementType, Long>>> entityIterator = LAST_DAMAGE_TIME.entrySet().iterator();
 			while (entityIterator.hasNext()) {
@@ -408,23 +282,14 @@ public class ElementDamageHandler {
 				LivingEntity livingEntity = null;
 				for (ServerLevel level : currentServer.getAllLevels()) {
 					Entity entity = level.getEntity(entityId);
-					if (entity instanceof LivingEntity le && le.isAlive()) {
-						livingEntity = le;
-						break;
-					}
+					if (entity instanceof LivingEntity le && le.isAlive()) { livingEntity = le; break; }
 				}
 				if (livingEntity == null) { entityIterator.remove(); continue; }
 				Iterator<Map.Entry<ElementType, Long>> typeIterator = typeTimes.entrySet().iterator();
 				while (typeIterator.hasNext()) {
 					Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
-					ElementType type = typeEntry.getKey();
-					long lastTime = typeEntry.getValue();
-					if (currentTime - lastTime >= RESET_DELAY_TICKS) {
-						int pointsBefore = AbloomModAttachments.getPoints(livingEntity, type);
-						if (pointsBefore > 0) {
-							AbloomModAttachments.resetPoints(livingEntity, type);
-							AbloomMod.LOGGER.debug("Reset {} points for {} (inactive for {} ticks)", pointsBefore, type, RESET_DELAY_TICKS);
-						}
+					if (currentTime - typeEntry.getValue() >= RESET_DELAY_TICKS) {
+						AbloomModAttachments.resetPoints(livingEntity, typeEntry.getKey());
 						typeIterator.remove();
 					}
 				}
@@ -434,29 +299,19 @@ public class ElementDamageHandler {
 	}
 
 	private static boolean canShowDamage(LivingEntity entity) {
-		int entityId = entity.getId();
 		long currentTime = entity.level().getGameTime();
-		if (DAMAGE_COOLDOWNS.containsKey(entityId)) {
-			long lastTime = DAMAGE_COOLDOWNS.get(entityId);
-			if (currentTime - lastTime < COOLDOWN_TICKS) return false;
-		}
-		DAMAGE_COOLDOWNS.put(entityId, currentTime);
+		Long lastTime = DAMAGE_COOLDOWNS.get(entity.getId());
+		if (lastTime != null && currentTime - lastTime < COOLDOWN_TICKS) return false;
+		DAMAGE_COOLDOWNS.put(entity.getId(), currentTime);
 		return true;
 	}
-
 
 	private static void clearActiveDisplays(LivingEntity entity) {
 		if (displayManager != null) displayManager.clearActiveDisplays(entity);
 	}
 
 	private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
-
-		if (!canSpawnDisplay()) {
-			AbloomMod.LOGGER.debug("Display limit reached ({}), skipping damage number for {}",
-					MAX_ACTIVE_DISPLAYS, entity.getName().getString());
-			return;
-		}
-
+		if (!canSpawnDisplay()) return;
 		if (displayManager != null) {
 			incrementDisplayCount();
 			displayManager.spawnDamageNumber(entity, amount, type);
@@ -464,22 +319,17 @@ public class ElementDamageHandler {
 	}
 
 	public static void spawnStatusText(LivingEntity entity, Component textComponent, int color) {
-		if (!canSpawnDisplay()) return;
-		if (displayManager != null) {
-			incrementDisplayCount();
-			displayManager.spawnStatusText(entity, textComponent, color);
-		}
+		if (!canSpawnDisplay() || displayManager == null) return;
+		incrementDisplayCount();
+		displayManager.spawnStatusText(entity, textComponent, color);
 	}
 
 	public static void spawnStatusText(LivingEntity entity, String text, int color) {
 		spawnStatusText(entity, Component.literal(text), color);
 	}
 
-
 	public static int getThreshold() { return THRESHOLD; }
-	public static void setThreshold(int threshold) {
-		AbloomMod.LOGGER.warn("setThreshold() deprecated - all types use THRESHOLD = 100");
-	}
+	public static void setThreshold(int threshold) {}
 	public static void setDamageColor(ElementType type, int color) {
 		ElementDamageDisplayManager.setDamageColor(type, color);
 	}
@@ -488,7 +338,6 @@ public class ElementDamageHandler {
 	}
 
 	private static float applyThresholdEffect(LivingEntity target, ElementType type, LivingDamageEvent.Pre event, float currentDamage) {
-		AbloomMod.LOGGER.info("THRESHOLD REACHED! Entity: {}, Type: {}", target.getName().getString(), type);
 		return switch (type) {
 			case FIRE -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.BURNING, 200, 0, false, true));
@@ -500,12 +349,12 @@ public class ElementDamageHandler {
 				yield currentDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 120, 1, false, true));
+				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield currentDamage;
 			}
 			case WATER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 300, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 300, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
 				yield currentDamage;
 			}
@@ -520,7 +369,7 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
 				yield currentDamage;
 			}
@@ -530,12 +379,12 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
 				yield currentDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 1, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield currentDamage;
 			}
@@ -544,7 +393,6 @@ public class ElementDamageHandler {
 	}
 
 	private static float applyThresholdEffectWithDamage(LivingEntity target, ElementType type, float originalDamage) {
-		AbloomMod.LOGGER.info("THRESHOLD REACHED! Entity: {}, Type: {}", target.getName().getString(), type);
 		return switch (type) {
 			case FIRE -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.BURNING, 200, 0, false, true));
@@ -556,7 +404,7 @@ public class ElementDamageHandler {
 				yield originalDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 60, 1, false, true));
+				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 60, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield originalDamage;
 			}
@@ -599,45 +447,59 @@ public class ElementDamageHandler {
 		};
 	}
 
-
 	public static void setBaseAccumulation(float value) { baseAccumulation = value; }
 	public static float getBaseAccumulation() { return baseAccumulation; }
 
 	public static void dealElementDamage(Entity target, ElementType type, float amount) {
-		dealElementDamage(target, type, amount, 0);
+		dealElementDamage(target, type, amount, 0, null);
 	}
-
-
 	public static void dealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints) {
+		dealElementDamage(target, type, amount, accumulationPoints, null);
+	}
+	public static void dealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints, Entity attacker) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-
-		try {
-			processDealElementDamage(target, type, amount, accumulationPoints);
-		} finally {
-			IS_PROCESSING_DAMAGE.set(false);
-		}
+		try { processDealElementDamage(target, type, amount, accumulationPoints, attacker); }
+		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
-	private static void processDealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints) {
-		if (!(target.level() instanceof ServerLevel serverLevel)) {
-			AbloomMod.LOGGER.warn("dealElementDamage: not server level"); return;
-		}
-		if (!(target instanceof LivingEntity livingTarget)) {
-			AbloomMod.LOGGER.warn("dealElementDamage: target is not LivingEntity"); return;
-		}
-		if (ElementResistanceManager.isImmune(target, type)) {
-			AbloomMod.LOGGER.debug("{} is IMMUNE to {} (manual call)!", target.getName().getString(), type); return;
-		}
+	private static void processDealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints, Entity attacker) {
+		if (!(target.level() instanceof ServerLevel serverLevel)) return;
+		if (!(target instanceof LivingEntity livingTarget)) return;
+		if (ElementResistanceManager.isImmune(target, type)) return;
+
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
 		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
-		if (damageTypeHolder.isEmpty()) {
-			AbloomMod.LOGGER.error("Damage type NOT FOUND: {} - урон НЕ будет нанесён!", rl); return;
+		if (damageTypeHolder.isEmpty()) return;
+
+		DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
+		Entity sourceEntity = source.getEntity();
+
+		float damageMultiplier = 1.0f;
+		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
+			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
+			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			damageMultiplier *= Math.max(0.1f, reduction);
 		}
-		DamageSource source = new DamageSource(damageTypeHolder.get());
+
+		float accumBonus = 1.0f;
+		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
+			damageMultiplier *= 1.25f;
+			accumBonus *= 1.25f;
+		}
+		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+		}
+		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
+			accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
+		}
+
 		float finalDamage = amount;
 		finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
+		finalDamage *= damageMultiplier;
 
 		float weaponAccumMultiplier = 1.0f;
 		int basePoints;
@@ -648,19 +510,14 @@ public class ElementDamageHandler {
 			basePoints = (accumulationPoints > 0) ? accumulationPoints : (int) baseAccumulation;
 		}
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * weaponAccumMultiplier);
+		pointsToAdd = Math.round(pointsToAdd * weaponAccumMultiplier * accumBonus);
 
 		if (pointsToAdd > 0) {
-			int pointsBefore = AbloomModAttachments.getPoints(livingTarget, type);
 			AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
-			int pointsAfter = AbloomModAttachments.getPoints(livingTarget, type);
-			boolean thresholdReached = pointsAfter >= THRESHOLD;
-			AbloomMod.LOGGER.info("[Manual] Target: {} | Element: {} | WeaponAccum: x{} | Points: {} +{} → {} | Threshold: {} | Reached: {}",
-					livingTarget.getName().getString(), type, weaponAccumMultiplier, pointsBefore, pointsToAdd, pointsAfter, THRESHOLD, thresholdReached);
+			boolean thresholdReached = AbloomModAttachments.getPoints(livingTarget, type) >= THRESHOLD;
 			if (thresholdReached) {
 				finalDamage = applyThresholdEffectWithDamage(livingTarget, type, amount);
 				AbloomModAttachments.resetPoints(livingTarget, type);
-				AbloomMod.LOGGER.info("[Manual] THRESHOLD TRIGGERED! Reset points for {} on {}", type, livingTarget.getName().getString());
 			}
 			if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
 		} else {
@@ -671,49 +528,63 @@ public class ElementDamageHandler {
 	}
 
 	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier) {
+		dealElementDamageWithAccum(target, type, amount, accumMultiplier, null);
+	}
+	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-
-		try {
-			processDealElementDamageWithAccum(target, type, amount, accumMultiplier);
-		} finally {
-			IS_PROCESSING_DAMAGE.set(false);
-		}
+		try { processDealElementDamageWithAccum(target, type, amount, accumMultiplier, attacker); }
+		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
-	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier) {
-		if (!(target.level() instanceof ServerLevel serverLevel)) {
-			AbloomMod.LOGGER.warn("dealElementDamageWithAccum: not server level"); return;
-		}
-		if (!(target instanceof LivingEntity livingTarget)) {
-			AbloomMod.LOGGER.warn("dealElementDamageWithAccum: target is not LivingEntity"); return;
-		}
-		if (ElementResistanceManager.isImmune(target, type)) {
-			AbloomMod.LOGGER.debug("{} is IMMUNE to {} (manual call)!", target.getName().getString(), type); return;
-		}
+	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+		if (!(target.level() instanceof ServerLevel serverLevel)) return;
+		if (!(target instanceof LivingEntity livingTarget)) return;
+		if (ElementResistanceManager.isImmune(target, type)) return;
+
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
 		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
-		if (damageTypeHolder.isEmpty()) {
-			AbloomMod.LOGGER.error("Damage type NOT FOUND: {}", rl); return;
+		if (damageTypeHolder.isEmpty()) return;
+
+		DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
+		Entity sourceEntity = source.getEntity();
+
+		float damageMultiplier = 1.0f;
+		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
+			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
+			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			damageMultiplier *= Math.max(0.1f, reduction);
 		}
-		DamageSource source = new DamageSource(damageTypeHolder.get());
+
+		float accumBonus = 1.0f;
+		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
+			damageMultiplier *= 1.25f;
+			accumBonus *= 1.25f;
+		}
+		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+		}
+		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
+			accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
+		}
+
 		float finalDamage = amount;
 		finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
+		finalDamage *= damageMultiplier;
+
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * accumMultiplier);
+		pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+
 		if (pointsToAdd > 0) {
-			int pointsBefore = AbloomModAttachments.getPoints(livingTarget, type);
 			AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
-			int pointsAfter = AbloomModAttachments.getPoints(livingTarget, type);
-			boolean thresholdReached = pointsAfter >= THRESHOLD;
-			AbloomMod.LOGGER.info("[Manual] Target: {} | Element: {} | WeaponAccum: x{} | Points: {} +{} → {} | Threshold: {} | Reached: {}",
-					livingTarget.getName().getString(), type, accumMultiplier, pointsBefore, pointsToAdd, pointsAfter, THRESHOLD, thresholdReached);
+			boolean thresholdReached = AbloomModAttachments.getPoints(livingTarget, type) >= THRESHOLD;
 			if (thresholdReached) {
 				finalDamage = applyThresholdEffectWithDamage(livingTarget, type, amount);
 				AbloomModAttachments.resetPoints(livingTarget, type);
-				AbloomMod.LOGGER.info("[Manual] THRESHOLD TRIGGERED! Reset points for {} on {}", type, livingTarget.getName().getString());
 			}
 			if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
 		} else {
@@ -724,8 +595,7 @@ public class ElementDamageHandler {
 	}
 
 	public static void addElementPoints(LivingEntity entity, ElementType type, int points) {
-		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(entity, type, points);
-		AbloomModAttachments.addPoints(entity, type, pointsToAdd);
+		AbloomModAttachments.addPoints(entity, type, ElementResistanceManager.calculateAccumulationPoints(entity, type, points));
 		updateLastDamageTime(entity, type);
 	}
 	public static int getElementPoints(LivingEntity entity, ElementType type) {
@@ -734,68 +604,76 @@ public class ElementDamageHandler {
 	public static void resetElementPoints(LivingEntity entity, ElementType type) {
 		AbloomModAttachments.resetPoints(entity, type);
 		synchronized (LAST_DAMAGE_LOCK) {
-			LAST_DAMAGE_TIME.computeIfPresent(entity.getId(), (id, map) -> {
-				map.remove(type); return map.isEmpty() ? null : map;
-			});
+			LAST_DAMAGE_TIME.computeIfPresent(entity.getId(), (id, map) -> { map.remove(type); return map.isEmpty() ? null : map; });
 		}
 	}
 	public static void resetAllElementPoints(LivingEntity entity) {
 		for (ElementType type : ElementType.values()) AbloomModAttachments.resetPoints(entity, type);
-		synchronized (LAST_DAMAGE_LOCK) {
-			LAST_DAMAGE_TIME.remove(entity.getId());
-		}
+		synchronized (LAST_DAMAGE_LOCK) { LAST_DAMAGE_TIME.remove(entity.getId()); }
 	}
 	public static int getAccumulationProgress(LivingEntity entity, ElementType type) {
-		int points = getElementPoints(entity, type);
-		return THRESHOLD > 0 ? (points * 100) / THRESHOLD : 0;
+		return THRESHOLD > 0 ? (AbloomModAttachments.getPoints(entity, type) * 100) / THRESHOLD : 0;
 	}
 	public static ElementResistanceManager.Resistance getEntityResistance(Entity entity, ElementType type) {
 		return ElementResistanceManager.getResistance(entity, type);
 	}
 
-
 	public static void markProjectileAsElemental(Entity projectile, ElementType type) {
 		if (projectile != null && !projectile.level().isClientSide) {
 			AbloomModAttachments.setProjectileElement(projectile, type);
-			AbloomMod.LOGGER.debug("Marked projectile {} as {}", projectile.getId(), type);
 		}
 	}
 
 	public static void applyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-
-		try {
-			processApplyElementalDamageInstant(target, source, elementalType, baseDamage, accumMultiplier);
-		} finally {
-			IS_PROCESSING_DAMAGE.set(false);
-		}
+		try { processApplyElementalDamageInstant(target, source, elementalType, baseDamage, accumMultiplier); }
+		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
 	private static void processApplyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
 		if (!(target.level() instanceof ServerLevel serverLevel) || !(target instanceof LivingEntity livingTarget)) return;
-		if (ElementResistanceManager.isImmune(target, elementalType)) {
-			AbloomMod.LOGGER.debug("{} is IMMUNE to {} (instant)", target.getName().getString(), elementalType); return;
-		}
+		if (ElementResistanceManager.isImmune(target, elementalType)) return;
+
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
 		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, elementalType.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
-		if (damageTypeHolder.isEmpty()) {
-			AbloomMod.LOGGER.error("Damage type NOT FOUND: {}", rl); return;
-		}
+		if (damageTypeHolder.isEmpty()) return;
+
 		DamageSource dmgSource = new DamageSource(damageTypeHolder.get(), source, source);
+		Entity sourceEntity = dmgSource.getEntity();
+
+		float damageMultiplier = 1.0f;
+		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
+			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
+			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			damageMultiplier *= Math.max(0.1f, reduction);
+		}
+
+		float accumBonus = 1.0f;
+		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
+			damageMultiplier *= 1.25f;
+			accumBonus *= 1.25f;
+		}
+		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+		}
+		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
+			accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
+		}
+
 		float finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, elementalType, baseDamage);
+		finalDamage *= damageMultiplier;
+
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, elementalType, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * accumMultiplier);
+		pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+
 		if (pointsToAdd > 0) {
-			int before = AbloomModAttachments.getPoints(livingTarget, elementalType);
 			AbloomModAttachments.addPoints(livingTarget, elementalType, pointsToAdd);
-			int after = AbloomModAttachments.getPoints(livingTarget, elementalType);
-			boolean thresholdReached = after >= THRESHOLD;
-			AbloomMod.LOGGER.info("[Instant] {} | {} | x{} | {} +{} → {} | Breakthrough: {}",
-					livingTarget.getName().getString(), elementalType, accumMultiplier, before, pointsToAdd, after, thresholdReached);
-			if (thresholdReached) {
+			if (AbloomModAttachments.getPoints(livingTarget, elementalType) >= THRESHOLD) {
 				finalDamage = applyThresholdEffectWithDamage(livingTarget, elementalType, baseDamage);
 				AbloomModAttachments.resetPoints(livingTarget, elementalType);
 			}
