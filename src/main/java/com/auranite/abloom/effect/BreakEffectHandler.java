@@ -16,7 +16,6 @@ public class BreakEffectHandler {
         LivingEntity target = event.getEntity();
 
         if (target.hasEffect(AbloomModEffects.BREAK)) {
-            AbloomMod.LOGGER.debug("BREAK on {}: 100% armor ignored, raw damage = {}",
                     target.getName().getString(), event.getAmount());
         }
     }

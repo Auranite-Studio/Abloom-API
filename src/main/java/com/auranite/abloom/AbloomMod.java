@@ -3,8 +3,6 @@ package com.auranite.abloom;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
@@ -31,15 +29,11 @@ import java.util.ArrayList;
 
 @Mod("abloom")
 public class AbloomMod {
-    public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
 
     public AbloomMod(IEventBus modEventBus) {
-        // Start of user code block mod constructor
-        // End of user code block mod constructor
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
-        // Start of user code block mod init
         AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
@@ -51,23 +45,19 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
-        // End of user code block mod init
     }
     @SubscribeEvent
     public void onLevelLoad(LevelEvent.Load event) {
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            // ✅ Важно: используем execute() для гарантии загрузки чанков
             serverLevel.getServer().execute(() -> {
                 try {
                     ElementDamageDisplayManager.cleanupOrphanedDisplaysOnWorldLoad(serverLevel);
                 } catch (Exception e) {
-                    LOGGER.error("Failed to cleanup orphaned displays", e);
                 }
             });
         }
     }
 
-    // === SELF-DESTRUCT ТИК (каждый тик сервера) ===
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Pre event) {
         MinecraftServer server = event.getServer();
@@ -76,13 +66,10 @@ public class AbloomMod {
                 try {
                     ElementDamageDisplayManager.tickSelfDestructDisplays(level);
                 } catch (Exception e) {
-                    LOGGER.warn("Error in self-destruct tick for level {}", level.dimension().location(), e);
                 }
             }
         }
     }
-    // Start of user code block mod methods
-    // End of user code block mod methods
     private static boolean networkingRegistered = false;
     private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
 
@@ -109,11 +96,6 @@ public class AbloomMod {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
     }
-
-    /**
-     * Периодическая очистка "зомби" дисплеев (на случай если цель исчезла без смерти и т.п.).
-     * Запускается раз в секунду (20 тиков).
-     */
 
 
     @SubscribeEvent

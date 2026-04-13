@@ -43,13 +43,11 @@ public enum ElementType {
 
     public static ElementType fromVanillaDamageType(String damageTypeId) {
         if (damageTypeId == null || damageTypeId.isEmpty()) {
-            AbloomMod.LOGGER.warn("DamageType ID is null or empty, defaulting to PHYSICAL");
             return PHYSICAL;
         }
 
         String id = normalizeDamageTypeId(damageTypeId);
 
-        AbloomMod.LOGGER.debug("Mapped DamageType '{}' -> normalized '{}'", damageTypeId, id);
 
         return switch (id) {
 
@@ -117,9 +115,8 @@ public enum ElementType {
                  "void",
                  "outside_border" -> QUANTUM;
 
-            // ===== DEFAULT =====
+            
             default -> {
-                AbloomMod.LOGGER.debug("Unknown DamageType '{}', defaulting to PHYSICAL", id);
                 yield PHYSICAL;
             }
         };

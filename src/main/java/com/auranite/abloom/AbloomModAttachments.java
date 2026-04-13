@@ -16,13 +16,13 @@ public class AbloomModAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, AbloomMod.MODID);
 
-    // === ATTACHMENT ДЛЯ НАКОПЛЕНИЯ ЭЛЕМЕНТОВ НА СУЩНОСТЯХ ===
+    
     public static final Supplier<AttachmentType<Map<ElementType, Integer>>> ELEMENT_ACCUMULATOR =
             ATTACHMENT_TYPES.register("element_accumulator", () ->
                     AttachmentType.<Map<ElementType, Integer>>builder(() -> new EnumMap<>(ElementType.class)).build()
             );
 
-    // === ATTACHMENT ДЛЯ ЭЛЕМЕНТА СНАРЯДА ===
+    
     public static final Supplier<AttachmentType<ElementType>> PROJECTILE_ELEMENT =
             ATTACHMENT_TYPES.register("projectile_element", () ->
                     AttachmentType.<ElementType>builder(() -> null).build()
@@ -32,7 +32,7 @@ public class AbloomModAttachments {
         ATTACHMENT_TYPES.register(modEventBus);
     }
 
-    // === МЕТОДЫ ДЛЯ ELEMENT_ACCUMULATOR ===
+    
 
     public static Map<ElementType, Integer> getAccumulator(LivingEntity entity) {
         return entity.getData(ELEMENT_ACCUMULATOR.get());
@@ -63,7 +63,7 @@ public class AbloomModAttachments {
         getAccumulator(entity).clear();
     }
 
-    // === МЕТОДЫ ДЛЯ PROJECTILE_ELEMENT ===
+    
 
     public static void setProjectileElement(Entity entity, ElementType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
@@ -83,14 +83,8 @@ public class AbloomModAttachments {
         return element != null;
     }
 
-    // ✅ ИСПРАВЛЕНО: Не используем setData с null (вызывает краш!)
-    // Attachments автоматически очищаются при удалении сущности
     public static void clearProjectileElement(Entity entity) {
-        // No-op - attachment будет очищен автоматически при удалении сущности
-        // Попытка установить null через setData() вызывает NullPointerException
         if (entity != null && !entity.level().isClientSide) {
-            // Можно логировать для отладки, но не вызывать setData(null)
-            // LegendsOfTheStones.LOGGER.debug("Clearing projectile element for entity {}", entity.getId());
         }
     }
 }

@@ -14,14 +14,14 @@ public class ElementResistanceManager {
 
 	private static final Map<EntityType<?>, Map<ElementType, Resistance>> ENTITY_RESISTANCES = new ConcurrentHashMap<>();
 
-	// Отслеживаем, какие EntityType уже прошли проверку тегов
+	
 	private static final Map<EntityType<?>, Boolean> TAG_CHECKED_ENTITIES = new ConcurrentHashMap<>();
 
 	private ElementResistanceManager() {}
 
-	// ═══════════════════════════════════════════════════════════
-	// РЕГИСТРАЦИЯ
-	// ═══════════════════════════════════════════════════════════
+	
+	
+	
 
 	public static void registerResistance(EntityType<?> entityType, Map<ElementType, Resistance> resistanceMap) {
 		if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
@@ -31,17 +31,13 @@ public class ElementResistanceManager {
 		);
 		existing.putAll(resistanceMap);
 
-		AbloomMod.LOGGER.debug("Registered resistance for {}: {}",
 				entityType.getDescriptionId(), resistanceMap);
 	}
 
-	/**
-	 * Загрузка из тега через HolderLookup (ОБЯЗАТЕЛЬНО для кастомных тегов при старте!)
-	 */
+	
 	public static void loadFromTag(ElementType elementType, TagKey<EntityType<?>> tag,
 								   Resistance resistance, net.minecraft.core.HolderLookup.Provider lookupProvider) {
 		if (elementType == null || tag == null || resistance == null || lookupProvider == null) {
-			AbloomMod.LOGGER.warn("loadFromTag called with null params: element={}, tag={}, resistance={}, lookup={}",
 					elementType, tag, resistance, lookupProvider != null);
 			return;
 		}
@@ -59,23 +55,20 @@ public class ElementResistanceManager {
 				resistanceMap.put(elementType, resistance);
 				count++;
 
-				AbloomMod.LOGGER.debug("  └─ Loaded {} for {} from tag {}",
 						resistance, entityType.getDescriptionId(), tag.location());
 			}
-			AbloomMod.LOGGER.info("Loaded {} entities from tag {} → {}", count, tag.location(), resistance);
 		}, () -> {
-			AbloomMod.LOGGER.warn("Tag {} not found! Check your datapack.", tag.location());
 		});
 	}
 
-	// ═══════════════════════════════════════════════════════════
-	// ЛЕНИВАЯ ЗАГРУЗКА (ИСПРАВЛЕНО: используем entityType.is())
-	// ═══════════════════════════════════════════════════════════
+	
+	
+	
 
 	private static void tryLazyLoadFromTags(EntityType<?> entityType, ElementType elementType) {
 		if (entityType == null || elementType == null) return;
 
-		// Проверяем, не загружали ли уже теги для этой сущности
+		
 		if (TAG_CHECKED_ENTITIES.getOrDefault(entityType, false)) {
 			return;
 		}
@@ -84,31 +77,27 @@ public class ElementResistanceManager {
 		String elementLower = elementType.name().toLowerCase();
 		String modid = AbloomMod.MODID;
 
-		// ИСПРАВЛЕНО: используем entityType.is() вместо registry.getTag()
-		// Приоритет: Иммунитет > Резист > Слабость
+		
+		
 
 		TagKey<EntityType<?>> immuneTag = createTag(modid, elementLower, "immune");
 		if (entityType.is(immuneTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.IMMUNE));
-			AbloomMod.LOGGER.debug("Lazy-loaded IMMUNE for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
 		TagKey<EntityType<?>> resistTag = createTag(modid, elementLower, "resistance");
 		if (entityType.is(resistTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.HALF_RESIST));
-			AbloomMod.LOGGER.debug("Lazy-loaded RESIST for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
 		TagKey<EntityType<?>> weaknessTag = createTag(modid, elementLower, "weakness");
 		if (entityType.is(weaknessTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.WEAKNESS));
-			AbloomMod.LOGGER.debug("Lazy-loaded WEAKNESS for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
-		AbloomMod.LOGGER.debug("No tag found for {} ({})", entityType.getDescriptionId(), elementType);
 	}
 
 	private static TagKey<EntityType<?>> createTag(String modid, String element, String modifier) {
@@ -116,9 +105,9 @@ public class ElementResistanceManager {
 				ResourceLocation.fromNamespaceAndPath(modid, "element/" + element + "/" + modifier));
 	}
 
-	// ═══════════════════════════════════════════════════════════
-	// ПОЛУЧЕНИЕ СОПРОТИВЛЕНИЙ
-	// ═══════════════════════════════════════════════════════════
+	
+	
+	
 
 	public static Resistance getResistance(Entity entity, ElementType type) {
 		if (entity == null || type == null) return Resistance.ZERO;
@@ -141,9 +130,9 @@ public class ElementResistanceManager {
 		return res != null ? res : Resistance.ZERO;
 	}
 
-	// ═══════════════════════════════════════════════════════════
-	// УТИЛИТЫ
-	// ═══════════════════════════════════════════════════════════
+	
+	
+	
 
 	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
 		Resistance resistance = getResistance(entity, type);
@@ -193,14 +182,13 @@ public class ElementResistanceManager {
 		return res != null && res != Resistance.ZERO;
 	}
 
-	// ═══════════════════════════════════════════════════════════
-	// УПРАВЛЕНИЕ КЕШЕМ
-	// ═══════════════════════════════════════════════════════════
+	
+	
+	
 
 	public static void clearAllResistances() {
 		ENTITY_RESISTANCES.clear();
 		TAG_CHECKED_ENTITIES.clear();
-		AbloomMod.LOGGER.info("Cleared all element resistances");
 	}
 
 	public static int getRegisteredEntityCount() {
@@ -212,18 +200,15 @@ public class ElementResistanceManager {
 	}
 
 	public static void debugPrintRegistry() {
-		AbloomMod.LOGGER.info("=== RESISTANCE REGISTRY ===");
-		AbloomMod.LOGGER.info("Entities: {}, Entries: {}",
 				getRegisteredEntityCount(), getTotalResistanceEntries());
 
 		ENTITY_RESISTANCES.forEach((type, map) -> {
-			AbloomMod.LOGGER.info("  {} → {}", type.getDescriptionId(), map);
 		});
 	}
 
-	// ═══════════════════════════════════════════════════════════
-	// RECORD: Resistance
-	// ═══════════════════════════════════════════════════════════
+	
+	
+	
 
 	public record Resistance(float accumulationResistance, float damageResistance) {
 		public static final Resistance ZERO = new Resistance(0.0f, 0.0f);

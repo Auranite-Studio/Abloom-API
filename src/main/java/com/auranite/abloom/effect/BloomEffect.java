@@ -20,12 +20,12 @@ public class BloomEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        // ✅ Выполнять логику только на сервере
+        
         if (entity.level().isClientSide) {
             return true;
         }
 
-        // ✅ Получаем длительность через Holder
+        
         MobEffectInstance effectInstance = entity.getEffect(AbloomModEffects.BLOOM);
         if (effectInstance == null) {
             return false;
