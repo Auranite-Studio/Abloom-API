@@ -7,13 +7,13 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
  * Класс для регистрации элементальных снарядов.
  * Регистрация выполняется в FMLCommonSetupEvent, когда все сущности уже доступны.
  */
-public class ElementalProjectileRegistrations {
+public class AbloomModElementalProjectiles {
 
     /**
      * Метод для вызова через modEventBus.addListener()
      */
     public static void onCommonSetup(final FMLCommonSetupEvent event) {
-        event.enqueueWork(ElementalProjectileRegistrations::registerAll);
+        event.enqueueWork(AbloomModElementalProjectiles::registerAll);
     }
 
     /**

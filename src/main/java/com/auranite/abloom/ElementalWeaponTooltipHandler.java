@@ -83,7 +83,7 @@ public class ElementalWeaponTooltipHandler {
 			case WATER -> 0x0080FF;
 			case EARTH -> 0x8B4513;
 			case ICE -> 0x00BFFF;
-			case ELECTRIC -> 0x9932CC;
+			case ELECTRIC -> 0xFF19FF;
 			case SOURCE -> 0xFF5C77;
 			case NATURAL -> 0x32CD32;
 			case QUANTUM -> 0x9400D3;

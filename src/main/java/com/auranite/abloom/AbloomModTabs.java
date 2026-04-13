@@ -11,8 +11,22 @@ import net.minecraft.core.registries.Registries;
 
 public class AbloomModTabs {
     public static final DeferredRegister<CreativeModeTab> REGISTRY = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AbloomMod.MODID);
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> STONES = REGISTRY.register("abloom_api",
-            () -> CreativeModeTab.builder().title(Component.translatable("item_group.abloom.abloom_api")).icon(() -> new ItemStack(Items.STICK)).displayItems((parameters, tabData) -> {
-                tabData.accept(AbloomModItems.FIRE_STICK.get());
-            }).build());
+
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> ABLOOM_TAB = REGISTRY.register("abloom_api",
+            () -> CreativeModeTab.builder()
+                    .title(Component.translatable("item_group.abloom.abloom_api"))
+                    .icon(() -> new ItemStack(Items.STICK))
+                    .displayItems((parameters, tabData) -> {
+                        tabData.accept(AbloomModItems.FIRE_STICK.get());
+                        tabData.accept(AbloomModItems.PHYSICAL_STICK.get());
+                        tabData.accept(AbloomModItems.WIND_STICK.get());
+                        tabData.accept(AbloomModItems.WATER_STICK.get());
+                        tabData.accept(AbloomModItems.EARTH_STICK.get());
+                        tabData.accept(AbloomModItems.ICE_STICK.get());
+                        tabData.accept(AbloomModItems.ELECTRIC_STICK.get());
+                        tabData.accept(AbloomModItems.SOURCE_STICK.get());
+                        tabData.accept(AbloomModItems.NATURAL_STICK.get());
+                        tabData.accept(AbloomModItems.QUANTUM_STICK.get());
+                    })
+                    .build());
 }

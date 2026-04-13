@@ -71,7 +71,7 @@ public class ElementDamageHandler {
 		ElementDamageDisplayManager.registerDamageColor(ElementType.WATER, 0x0080FF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.EARTH, 0x8B4513);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.ICE, 0x00BFFF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, 0x9932CC);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, 0xFF19FF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.SOURCE, 0xFF5C77);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);

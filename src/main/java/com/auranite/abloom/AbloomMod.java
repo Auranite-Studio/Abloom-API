@@ -50,7 +50,7 @@ public class AbloomMod {
         ElementDamageHandler.setDisplayManager(displayManager);
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
-        modEventBus.addListener(ElementalProjectileRegistrations::onCommonSetup);
+        modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         // End of user code block mod init
     }
     @SubscribeEvent
