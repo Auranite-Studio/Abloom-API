@@ -1,9 +1,7 @@
 package com.auranite.abloom.effect;
-
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
-
 public class BurningEffect extends MobEffect {
     public BurningEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
@@ -12,7 +10,6 @@ public class BurningEffect extends MobEffect {
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
     }
-
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         if (!entity.isOnFire()) {

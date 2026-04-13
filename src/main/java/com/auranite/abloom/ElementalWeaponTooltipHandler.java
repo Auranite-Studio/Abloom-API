@@ -1,5 +1,4 @@
 package com.auranite.abloom;
-
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.Entity;
@@ -9,11 +8,8 @@ import net.minecraft.world.phys.HitResult;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
-
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementalWeaponTooltipHandler {
-
-	// === ПЕРЕВОДНЫЕ КЛЮЧИ ===
 	private static final String KEY_ELEMENT_FIRE = "elemental.tooltip.fire";
 	private static final String KEY_ELEMENT_PHYSICAL = "elemental.tooltip.physical";
 	private static final String KEY_ELEMENT_WIND = "elemental.tooltip.wind";
@@ -25,22 +21,15 @@ public class ElementalWeaponTooltipHandler {
 	private static final String KEY_ELEMENT_NATURAL = "elemental.tooltip.natural";
 	private static final String KEY_ELEMENT_QUANTUM = "elemental.tooltip.quantum";
 	private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
-
 	private static final String KEY_ACCUM_MULTIPLIER = "elemental.tooltip.accum_multiplier";
-
 	@SubscribeEvent
 	public static void onItemTooltip(ItemTooltipEvent event) {
 		ItemStack stack = event.getItemStack();
-
 		ElementType type = ElementalWeaponUtils.getElementType(stack);
 		float accumMultiplier = ElementalWeaponUtils.getAccumulationMultiplier(stack);
-
 		if (type != null && accumMultiplier != 0.0f && accumMultiplier != 1.0f) {
-			// Название элемента с переводом и цветом
 			MutableComponent elementText = getElementText(type);
 			event.getToolTip().add(1, elementText);
-
-			// Множитель резонанса
 			MutableComponent accumText = Component.translatable(
 					KEY_ACCUM_MULTIPLIER,
 					String.format("%.1f", accumMultiplier)
@@ -49,10 +38,6 @@ public class ElementalWeaponTooltipHandler {
 			event.getToolTip().add(Component.literal(" ").append(accumText));
 		}
 	}
-
-	/**
-	 * Возвращает переводимый текст элемента с цветом.
-	 */
 	private static MutableComponent getElementText(ElementType type) {
 		MutableComponent text = switch (type) {
 			case FIRE -> Component.translatable(KEY_ELEMENT_FIRE);
@@ -67,14 +52,9 @@ public class ElementalWeaponTooltipHandler {
 			case QUANTUM -> Component.translatable(KEY_ELEMENT_QUANTUM);
 			default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
 		};
-
 		text.setStyle(text.getStyle().withColor(getElementColor(type)));
 		return text;
 	}
-
-	/**
-	 * Получает цвет для элемента.
-	 */
 	private static int getElementColor(ElementType type) {
 		return switch (type) {
 			case FIRE -> 0xFF5500;
@@ -90,20 +70,12 @@ public class ElementalWeaponTooltipHandler {
 			default -> 0xFFFFFF;
 		};
 	}
-
-	/**
-	 * Вспомогательный метод для получения сущности, на которую смотрит игрок.
-	 * (На данный момент не используется в этом классе, но может пригодиться в будущем)
-	 */
 	private static Entity getLookedEntity(net.minecraft.world.entity.player.Player player) {
 		if (player == null) return null;
-
 		HitResult hitResult = player.pick(5.0, 0.0f, false);
-
 		if (hitResult instanceof EntityHitResult entityHitResult) {
 			return entityHitResult.getEntity();
 		}
-
 		return null;
 	}
 }

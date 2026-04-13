@@ -1,5 +1,4 @@
 package com.auranite.abloom;
-
 import com.auranite.abloom.effect.*;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.effect.MobEffect;
@@ -9,7 +8,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
-
 public class AbloomModEffects {
     public static final DeferredRegister<MobEffect> REGISTRY = DeferredRegister.create(Registries.MOB_EFFECT, AbloomMod.MODID);
     public static final DeferredHolder<MobEffect, MobEffect> BURNING = REGISTRY.register("burning", () -> new BurningEffect(0xFF5500));
@@ -20,7 +18,6 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> BREAK = REGISTRY.register("break", () -> new BreakEffect(0x9400D3));
     public static final DeferredHolder<MobEffect, MobEffect> BLOOM = REGISTRY.register("bloom", () -> new BloomEffect(0x32CD32));
     public static final DeferredHolder<MobEffect, MobEffect> RIFT = REGISTRY.register("rift", () -> new RiftEffect(0xFF5C77));
-
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         MobEffectInstance effectInstance = event.getEffectInstance();
@@ -28,7 +25,6 @@ public class AbloomModEffects {
             expireEffects(event.getEntity(), effectInstance);
         }
     }
-
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event) {
         MobEffectInstance effectInstance = event.getEffectInstance();
@@ -36,7 +32,6 @@ public class AbloomModEffects {
             expireEffects(event.getEntity(), effectInstance);
         }
     }
-
     private static void expireEffects(Entity entity, MobEffectInstance effectInstance) {
     }
 }

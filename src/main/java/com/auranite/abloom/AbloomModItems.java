@@ -1,8 +1,4 @@
-/*
- *    MCreator note: This file will be REGENERATED on each build.
- */
 package com.auranite.abloom;
-
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
@@ -10,10 +6,8 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-
 public class AbloomModItems {
     public static final DeferredRegister.Items REGISTRY = DeferredRegister.createItems(AbloomMod.MODID);
-
     public static final DeferredItem<Item> FIRE_STICK;
     public static final DeferredItem<Item> PHYSICAL_STICK;
     public static final DeferredItem<Item> WIND_STICK;
@@ -24,12 +18,9 @@ public class AbloomModItems {
     public static final DeferredItem<Item> SOURCE_STICK;
     public static final DeferredItem<Item> NATURAL_STICK;
     public static final DeferredItem<Item> QUANTUM_STICK;
-
-    // Общие свойства для всех элементов
     private static final Item.Properties STICK_PROPS = new Item.Properties()
             .stacksTo(1)
             .rarity(Rarity.RARE);
-
     static {
         FIRE_STICK     = REGISTRY.register("fire_stick", () -> new Item(STICK_PROPS));
         PHYSICAL_STICK = REGISTRY.register("physical_stick", () -> new Item(STICK_PROPS));
@@ -42,11 +33,9 @@ public class AbloomModItems {
         NATURAL_STICK  = REGISTRY.register("natural_stick", () -> new Item(STICK_PROPS));
         QUANTUM_STICK  = REGISTRY.register("quantum_stick", () -> new Item(STICK_PROPS));
     }
-
     private static DeferredItem<Item> block(DeferredHolder<Block, Block> block) {
         return block(block, new Item.Properties());
     }
-
     private static DeferredItem<Item> block(DeferredHolder<Block, Block> block, Item.Properties properties) {
         return REGISTRY.register(block.getId().getPath(), () -> new BlockItem(block.get(), properties));
     }

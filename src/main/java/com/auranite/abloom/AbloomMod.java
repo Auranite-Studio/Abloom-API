@@ -1,11 +1,7 @@
 package com.auranite.abloom;
-
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -15,31 +11,22 @@ import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.bus.api.IEventBus;
-
 import net.minecraft.util.Tuple;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.FriendlyByteBuf;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Map;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.ArrayList;
-
-
 @Mod("abloom")
 public class AbloomMod {
-    public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
-
     public AbloomMod(IEventBus modEventBus) {
-        // Start of user code block mod constructor
-        // End of user code block mod constructor
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
-        // Start of user code block mod init
         AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
@@ -51,23 +38,17 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
-        // End of user code block mod init
     }
     @SubscribeEvent
     public void onLevelLoad(LevelEvent.Load event) {
         if (event.getLevel() instanceof ServerLevel serverLevel) {
-            // ✅ Важно: используем execute() для гарантии загрузки чанков
             serverLevel.getServer().execute(() -> {
                 try {
                     ElementDamageDisplayManager.cleanupOrphanedDisplaysOnWorldLoad(serverLevel);
-                } catch (Exception e) {
-                    LOGGER.error("Failed to cleanup orphaned displays", e);
-                }
+                } catch (Exception e) {}
             });
         }
     }
-
-    // === SELF-DESTRUCT ТИК (каждый тик сервера) ===
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Pre event) {
         MinecraftServer server = event.getServer();
@@ -75,47 +56,31 @@ public class AbloomMod {
             for (ServerLevel level : server.getAllLevels()) {
                 try {
                     ElementDamageDisplayManager.tickSelfDestructDisplays(level);
-                } catch (Exception e) {
-                    LOGGER.warn("Error in self-destruct tick for level {}", level.dimension().location(), e);
-                }
+                } catch (Exception e) {}
             }
         }
     }
-    // Start of user code block mod methods
-    // End of user code block mod methods
     private static boolean networkingRegistered = false;
     private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
-
     private record NetworkMessage<T extends CustomPacketPayload>(StreamCodec<? extends FriendlyByteBuf, T> reader,
                                                                  IPayloadHandler<T> handler) {
     }
-
     public static <T extends CustomPacketPayload> void addNetworkMessage(CustomPacketPayload.Type<T> id, StreamCodec<? extends FriendlyByteBuf, T> reader, IPayloadHandler<T> handler) {
         if (networkingRegistered)
             throw new IllegalStateException("Cannot register new network messages after networking has been registered");
         MESSAGES.put(id, new NetworkMessage<>(reader, handler));
     }
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void registerNetworking(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(MODID);
         MESSAGES.forEach((id, networkMessage) -> registrar.playBidirectional(id, ((NetworkMessage) networkMessage).reader(), ((NetworkMessage) networkMessage).handler()));
         networkingRegistered = true;
     }
-
     private static final Collection<Tuple<Runnable, Integer>> workQueue = new ConcurrentLinkedQueue<>();
-
     public static void queueServerWork(int tick, Runnable action) {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
     }
-
-    /**
-     * Периодическая очистка "зомби" дисплеев (на случай если цель исчезла без смерти и т.п.).
-     * Запускается раз в секунду (20 тиков).
-     */
-
-
     @SubscribeEvent
     public void tick(ServerTickEvent.Post event) {
         List<Tuple<Runnable, Integer>> actions = new ArrayList<>();
