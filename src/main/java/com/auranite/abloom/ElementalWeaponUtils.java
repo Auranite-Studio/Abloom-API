@@ -14,15 +14,15 @@ public class ElementalWeaponUtils {
     private ElementalWeaponUtils() {}
 
 
-    public static void registerItem(Item vanillaItem, ElementType type) {
-        registerItem(vanillaItem, type, 1.0f);
+    public static void registerItem(Item item, ElementType type) {
+        registerItem(item, type, 1.0f);
     }
 
 
     public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
         ElementalWeaponRegistry.registerWeapon(vanillaItem, type, accumulationMultiplier);
-        AbloomMod.LOGGER.info("⚔️ Registered vanilla item {} as {} elemental (accum x{})",
+        AbloomMod.LOGGER.info("⚔️ Registered item {} as {} elemental (accum x{})",
                 BuiltInRegistries.ITEM.getKey(vanillaItem), type, accumulationMultiplier);
     }
 
