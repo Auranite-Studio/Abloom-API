@@ -117,7 +117,7 @@ public enum ElementType {
                  "void",
                  "outside_border" -> QUANTUM;
 
-            // ===== DEFAULT =====
+
             default -> {
                 AbloomMod.LOGGER.debug("Unknown DamageType '{}', defaulting to PHYSICAL", id);
                 yield PHYSICAL;

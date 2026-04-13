@@ -22,33 +22,33 @@ import java.util.function.Predicate;
 
 public class ElementDamageDisplayManager {
 
-    // === КОНСТАНТЫ ОТОБРАЖЕНИЯ ===
+
     private static final int DAMAGE_NUMBER_LIFETIME = 30;
     private static final int STATUS_TEXT_LIFETIME = 50;
     private static final byte FLAG_SEE_THROUGH = 2;
 
-    // === ТЕГИ ДЛЯ ОЧИСТКИ (Vanilla Entity Tags) ===
+
     public static final String CLEANUP_TAG = "lots:cleanup_on_load";
     public static final String SELF_DESTRUCT_TAG = "lots:self_destruct";
 
-    // === КЛЮЧИ NBT ДЛЯ SELF-DESTRUCT ===
+
     private static final String NBT_MAX_LIFETIME = "lots:max_lifetime";
     private static final String NBT_AGE = "lots:age";
 
-    // === ФИЗИКА ДЛЯ УРОНА ===
+
     private static final double DAMAGE_GRAVITY = -0.02;
     private static final double DAMAGE_INITIAL_VELOCITY_Y = 0.18;
     private static final double HORIZONTAL_DRIFT = 0.02;
 
-    // === ФИЗИКА ДЛЯ СТАТУСА (без падения) ===
+
     private static final double STATUS_FLOAT_AMPLITUDE = 0.02;
     private static final double STATUS_FLOAT_SPEED = 0.15;
     private static final int INTERPOLATION_DURATION = 3;
 
-    // === ЗАПАС ВРЕМЕНИ ДЛЯ SELF-DESTRUCT (в тиках) ===
+
     private static final int SELF_DESTRUCT_BUFFER = 20;
 
-    // === ВСПОМОГАТЕЛЬНЫЙ КЛАСС ===
+
     private static class DisplayInfo {
         final TextDisplay display;
         final int targetEntityId;
@@ -61,16 +61,16 @@ public class ElementDamageDisplayManager {
         }
     }
 
-    // === ХРАНИЛИЩА ===
+
     private static final Map<UUID, DisplayInfo> ACTIVE_DAMAGE_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<UUID, DisplayInfo> ACTIVE_STATUS_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
     private static final Map<UUID, double[]> ACTIVE_PHYSICS = new ConcurrentHashMap<>();
 
-    // ✅ Списки для отложенного удаления
+
     private static final CopyOnWriteArrayList<TextDisplay> PENDING_REMOVALS = new CopyOnWriteArrayList<>();
 
-    // === ЦВЕТА ===
+
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
     }
@@ -88,7 +88,7 @@ public class ElementDamageDisplayManager {
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
     }
 
-    // === ОЧИСТКА ===
+
 
     public void cleanupStaleDisplays() {
         int cleanedCount = 0;
@@ -255,18 +255,15 @@ public class ElementDamageDisplayManager {
         PENDING_REMOVALS.clear();
     }
 
-    // === ОЧИСТКА "ОСИРОВЕВШИХ" ДИСПЛЕЕВ ПРИ ЗАГРУЗКЕ МИРА ===
-    /**
-     * Вызывается при загрузке ServerLevel через server.execute() для гарантии загрузки чанков.
-     * ✅ ИСПРАВЛЕНО: Используем getTags().contains() вместо hasTag() для совместимости с 1.19-1.20
-     */
+
+
     public static void cleanupOrphanedDisplaysOnWorldLoad(ServerLevel level) {
         if (level == null) return;
 
         long startTime = System.currentTimeMillis();
         int removedCount = 0;
 
-        // ✅ Совместимый Predicate для 1.19-1.20
+
         Predicate<Entity> hasCleanupTag = e -> e.getTags().contains(CLEANUP_TAG) && !e.isRemoved();
 
         for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasCleanupTag)) {
@@ -282,15 +279,12 @@ public class ElementDamageDisplayManager {
         }
     }
 
-    // === SELF-DESTRUCT МЕХАНИЗМ (последний рубеж защиты) ===
-    /**
-     * Вызывается каждый тик сервера для всех уровней.
-     * Проверяет TextDisplay с флагом self_destruct и удаляет их по истечении времени.
-     */
+
+
     public static void tickSelfDestructDisplays(ServerLevel level) {
         if (level == null) return;
 
-        // ✅ Совместимый Predicate для 1.19-1.20
+
         Predicate<Entity> hasSelfDestruct = e -> {
             CompoundTag tag = e.getPersistentData();
             return tag.getBoolean(SELF_DESTRUCT_TAG) && !e.isRemoved();
@@ -311,7 +305,7 @@ public class ElementDamageDisplayManager {
         }
     }
 
-    // === СПАВН ===
+
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
         int entityId = entity.getId();
@@ -342,7 +336,7 @@ public class ElementDamageDisplayManager {
 
             schedulePhysicsUpdate(serverLevel, displayUuid);
 
-            // ✅ Страховка с запасом +10 тиков
+
             AbloomMod.queueServerWork(DAMAGE_NUMBER_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
                     TextDisplay d = (TextDisplay) serverLevel.getEntity(displayUuid);
@@ -381,7 +375,7 @@ public class ElementDamageDisplayManager {
 
             schedulePhysicsUpdate(serverLevel, displayUuid);
 
-            // ✅ Страховка с запасом +10 тиков
+
             AbloomMod.queueServerWork(STATUS_TEXT_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
                     TextDisplay d = (TextDisplay) serverLevel.getEntity(displayUuid);
@@ -396,7 +390,7 @@ public class ElementDamageDisplayManager {
         spawnStatusText(entity, Component.literal(text), color);
     }
 
-    // === ФИЗИКА И ЭФФЕКТЫ ===
+
     private void schedulePhysicsUpdate(ServerLevel level, UUID displayUuid) {
         AbloomMod.queueServerWork(1, () -> {
             TextDisplay display = (TextDisplay) level.getEntity(displayUuid);
@@ -404,7 +398,7 @@ public class ElementDamageDisplayManager {
             DisplayInfo info = ACTIVE_DAMAGE_DISPLAYS.get(displayUuid);
             if (info == null) info = ACTIVE_STATUS_DISPLAYS.get(displayUuid);
 
-            // Если сущности или физики нет — очищаем и выходим
+
             if (display == null || display.isRemoved() || physics == null) {
                 cleanupDisplayResources(displayUuid);
                 return;
@@ -416,7 +410,7 @@ public class ElementDamageDisplayManager {
             int originalColor = (int) physics[5];
             double floatPhase = physics[6];
 
-            // === ОБНОВЛЕНИЕ: СТАТУС ===
+
             if (info != null && info.isStatus) {
                 floatPhase += STATUS_FLOAT_SPEED;
                 physics[6] = floatPhase;
@@ -440,7 +434,7 @@ public class ElementDamageDisplayManager {
                 }
 
             }
-            // === ОБНОВЛЕНИЕ: УРОН ===
+
             else {
                 physics[1] += DAMAGE_GRAVITY;
                 display.setPos(display.getX() + physics[0], display.getY() + physics[1], display.getZ() + physics[2]);
@@ -465,28 +459,26 @@ public class ElementDamageDisplayManager {
                 }
             }
 
-            // === ЕДИНОЕ МЕСТО УДАЛЕНИЯ ===
+
             if (ticksAlive >= maxTicks) {
                 safeRemoveDisplay(level, displayUuid, display, info);
                 return;
             }
 
-            // Рекурсия
+
             if (!display.isRemoved()) {
                 schedulePhysicsUpdate(level, displayUuid);
             }
         });
     }
 
-    // === ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ УДАЛЕНИЯ ===
 
-    /**
-     * Безопасное удаление с отправкой пакета клиенту
-     */
+
+
     private void safeRemoveDisplay(ServerLevel level, UUID displayUuid, TextDisplay display, DisplayInfo info) {
         display.removeTag(CLEANUP_TAG);
 
-        // ✅ Проверяем, что сущность ещё в мире и канал активен
+
         if (!display.isRemoved() && display.level() != null) {
             var chunkSource = level.getChunkSource();
             if (chunkSource != null) {
@@ -496,7 +488,7 @@ public class ElementDamageDisplayManager {
                             new ClientboundRemoveEntitiesPacket(display.getId())
                     );
                 } catch (Exception e) {
-                    // ✅ Ловим исключения сети, чтобы не спамить ERROR
+
                     AbloomMod.LOGGER.debug("Failed to send remove packet for display {}: {}",
                             display.getId(), e.getMessage());
                 }
@@ -506,13 +498,11 @@ public class ElementDamageDisplayManager {
 
         cleanupDisplayResources(displayUuid);
     }
-    /**
-     * Тихое удаление (без UUID) для случаев очистки/страховки
-     */
+
     private void safeRemoveDisplaySilent(TextDisplay display) {
         if (display == null || display.isRemoved() || display.level() == null) return;
 
-        // ✅ Удаляем vanilla-тег
+
         display.removeTag(CLEANUP_TAG);
 
         ServerLevel level = (ServerLevel) display.level();
@@ -523,28 +513,23 @@ public class ElementDamageDisplayManager {
         display.discard();
     }
 
-    /**
-     * Очистка коллекций менеджера
-     */
+
     private void cleanupDisplayResources(UUID uuid) {
         ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
         ACTIVE_STATUS_DISPLAYS.remove(uuid);
         ACTIVE_PHYSICS.remove(uuid);
     }
 
-    // === СОЗДАНИЕ ===
 
-    /**
-     * Рекурсивно помечает сущность и всех её пассажиров тегами очистки.
-     * ✅ Использует vanilla entity tags вместо PersistentData
-     */
+
+
     private static void markForCleanup(Entity entity, int maxLifetime) {
         if (entity == null) return;
 
-        // ✅ Vanilla-тег для очистки при загрузке мира (совместимо с 1.19+)
+
         entity.addTag(CLEANUP_TAG);
 
-        // ✅ NBT-данные для self-destruct механизма
+
         CompoundTag tag = entity.getPersistentData();
         tag.putBoolean(SELF_DESTRUCT_TAG, true);
         tag.putInt(NBT_MAX_LIFETIME, maxLifetime);
@@ -576,7 +561,7 @@ public class ElementDamageDisplayManager {
         display.setTransformationInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDelay(0);
 
-        // ✅ МЕТКА ДЛЯ ОЧИСТКИ: vanilla-тег + NBT для self-destruct
+
         markForCleanup(display, maxLifetime);
 
         return display;
