@@ -1,43 +1,22 @@
-```
-# Compiled and build artifacts
-*.class
-*.o
-*.obj
-*.out
-*.dll
-*.so
-*.a
-
-# Dependencies
-lib/
-libs/
-dependency/
-dependencies/
-
-# Build system
-build/
-target/
+# Gradle build system ignores
 .gradle/
-*.jar
-*.war
-*.ear
+.eclipse/
+build/
 
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-*.swo
-
-# Editors
-.vscode/
+# Other IDE related folders
 .idea/
+.settings/
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
+# MCreator workspace
+.mcreator/
 
-# System files
-.DS_Store
-Thumbs.db
-```
+# Minecraft client/server files
+run/
+runs/
+
+# MacOS system files
+.DS_STORE
+
+# Other Files (In Eclipse)
+.classpath
+.project
