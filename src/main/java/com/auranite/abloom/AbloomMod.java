@@ -46,6 +46,9 @@ public class AbloomMod {
         modContainer.registerConfig(ModConfig.Type.CLIENT, AbloomConfig.CLIENT_SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, AbloomConfig.SERVER_SPEC);
 
+        modEventBus.addListener(AbloomConfig::onConfigLoad);
+        modEventBus.addListener(AbloomConfig::onConfigReload);
+
         AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
