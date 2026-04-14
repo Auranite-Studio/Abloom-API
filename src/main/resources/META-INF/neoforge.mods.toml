@@ -32,7 +32,8 @@ versionRange="[1.21.1]"
 ordering="AFTER"
 side="BOTH"
 
-
+[[mixins]]
+config = "abloom.mixins.json"
 
 # Start of user code block dependencies configuration
 # End of user code block dependencies configuration
