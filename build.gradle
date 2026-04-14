@@ -9,7 +9,7 @@ base.archivesName = "Legends-of-the-Stones"
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = "21.1.215"
+    version = "26.1.2.10-beta"
 
     runs {
         client {
