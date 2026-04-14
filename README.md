@@ -1,122 +1,122 @@
-# Документация мода Abloom API
+# Abloom API Mod Documentation
 
-## Обзор
+## Overview
 
-**Abloom API** — это библиотечный мод для NeoForge (версия 21.1.215+, Minecraft 1.21.x), который добавляет систему элементального урона, накопления элементальной энергии и пороговых эффектов. Мод предоставляет инфраструктуру для создания оружия со стихийными свойствами, снарядов и системы сопротивлений для мобов.
+**Abloom API** is a library mod for NeoForge (version 21.1.215+, Minecraft 1.21.x) that adds an elemental damage system, elemental energy accumulation, and threshold effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, and a resistance system for mobs.
 
 ---
 
-## Основные возможности
+## Key Features
 
-### 1. Система элементов
+### 1. Element System
 
-Мод определяет 10 типов элементов:
+The mod defines 10 element types:
 
-| Элемент | ID урона | Цвет урона |
+| Element | Damage ID | Damage Color |
 |---------|----------|------------|
-| FIRE (Огонь) | `fire_dmg` | #FF5500 |
-| PHYSICAL (Физический) | `physical_dmg` | #FFAA00 |
-| WIND (Ветер) | `wind_dmg` | #00FFFF |
-| EARTH (Земля) | `earth_dmg` | #8B4513 |
-| WATER (Вода) | `water_dmg` | #0080FF |
-| ICE (Лёд) | `ice_dmg` | #00BFFF |
-| ELECTRIC (Электричество) | `electric_dmg` | #FF19FF |
-| SOURCE (Исходный) | `source_dmg` | #FF5C77 |
-| NATURAL (Природный) | `natural_dmg` | #32CD32 |
-| QUANTUM (Квантовый) | `quantum_dmg` | #9400D3 |
+| FIRE | `fire_dmg` | #FF5500 |
+| PHYSICAL | `physical_dmg` | #FFAA00 |
+| WIND | `wind_dmg` | #00FFFF |
+| EARTH | `earth_dmg` | #8B4513 |
+| WATER | `water_dmg` | #0080FF |
+| ICE | `ice_dmg` | #00BFFF |
+| ELECTRIC | `electric_dmg` | #FF19FF |
+| SOURCE | `source_dmg` | #FF5C77 |
+| NATURAL | `natural_dmg` | #32CD32 |
+| QUANTUM | `quantum_dmg` | #9400D3 |
 
-### 2. Механика накопления (Accumulation)
+### 2. Accumulation Mechanics
 
-- При получении урона от элемента цель накапливает очки этого элемента
-- Базовое значение накопления: **1 очко резонанса за удар**
-- Порог активации: **100 очков резонанса**
-- При достижении порога срабатывает специальный эффект, и очки резонанса сбрасываются
-- Накопление сбрасывается через **300 тиков** (15 секунд) без получения урона этого типа
+- When taking damage from an element, the target accumulates points of that element
+- Base accumulation value: **1 resonance point per hit**
+- Activation threshold: **100 resonance points**
+- When the threshold is reached, a special effect triggers and resonance points are reset
+- Accumulation resets after **300 ticks** (15 seconds) without receiving damage of that type
 
-### 3. Пороговые эффекты
+### 3. Threshold Effects
 
-При достижении 100 очков накопления резонанса:
+When reaching 100 accumulation resonance points:
 
-| Элемент | Эффект |
+| Element | Effect |
 |---------|--------|
-| **FIRE** | Поджигание цели (эффект Burning) |
-| **PHYSICAL** | Критический урон (x5) |
-| **WIND** | Левитация на 6 секунд |
-| **WATER** | Наложение эффекта Wetness |
-| **EARTH** | Оглушение (Stun) на 6 секунд |
-| **ICE** | Заморозка (Freeze) на 16 секунд |
-| **ELECTRIC** | Шок (Shock) на 10 секунд |
-| **SOURCE** | Эффект Rift (усиление получаемого урона) |
-| **NATURAL** | Эффект Break |
-| **QUANTUM** | Телепортация в случайное место |
+| **FIRE** | Ignites the target (Burning effect) |
+| **PHYSICAL** | Critical damage (x5) |
+| **WIND** | Levitation for 6 seconds |
+| **WATER** | Applies Wetness effect |
+| **EARTH** | Stun for 6 seconds |
+| **ICE** | Freeze for 16 seconds |
+| **ELECTRIC** | Shock for 10 seconds |
+| **SOURCE** | Rift effect (increases damage taken) |
+| **NATURAL** | Break effect |
+| **QUANTUM** | Teleports to a random location |
 
 ---
 
-## API для разработчиков
+## Developer API
 
-### Регистрация элементального оружия
+### Registering Elemental Weapons
 
-#### Способ 1: Через ElementalWeaponRegistry
+#### Method 1: Via ElementalWeaponRegistry
 
 ```java
 import com.auranite.abloom.ElementalWeaponRegistry;
 import com.auranite.abloom.ElementType;
 import net.minecraft.world.item.Item;
 
-// Регистрация с количеством накопления по умолчанию (1.0 очка за удар)
+// Register with default accumulation amount (1.0 point per hit)
 ElementalWeaponRegistry.registerWeapon(myItem, ElementType.FIRE);
 
-// Регистрация с кастомным количеством накопления
+// Register with custom accumulation amount
 ElementalWeaponRegistry.registerWeapon(myItem, ElementType.ICE, 2.5f);
 ```
 
-#### Способ 2: Через компонент данных (Data Component)
+#### Method 2: Via Data Component
 
 ```java
 import com.auranite.abloom.ElementalWeaponComponent;
 import com.auranite.abloom.ElementType;
 import net.minecraft.world.item.ItemStack;
 
-// Создание элементального предмета
+// Create an elemental item
 ItemStack stack = new ItemStack(myItem);
 ElementalWeaponComponent.withElement(stack, ElementType.ELECTRIC);
 
-// Создание с кастомным количеством накопления
+// Create with custom accumulation amount
 ElementalWeaponComponent.withElementAndAccum(stack, ElementType.WATER, 1.5f);
 
-// Получение элемента из предмета
+// Get element from item
 Optional<ElementType> element = ElementalWeaponComponent.getElement(stack);
 
-// Проверка наличия элемента
+// Check if item has an element
 boolean hasElement = ElementalWeaponComponent.hasElement(stack);
 ```
 
-### Регистрация элементальных снарядов
+### Registering Elemental Projectiles
 
 ```java
 import com.auranite.abloom.ElementalProjectileRegistry;
 import com.auranite.abloom.ElementType;
 import net.minecraft.world.entity.EntityType;
 
-// Регистрация по типу сущности
+// Register by entity type
 ElementalProjectileRegistry.registerProjectile(
     EntityType.ARROW,
     ElementType.FIRE,
-    1.5f  // количество очков накопления
+    1.5f  // accumulation points amount
 );
 
-// Регистрация по классу сущности
+// Register by entity class
 ElementalProjectileRegistry.registerProjectileByClass(
     MyCustomArrow.class,
     ElementType.ICE,
-    2.0f  // количество очков накопления
+    2.0f  // accumulation points amount
 );
 
-// Включение наследования элемента от стрелка
+// Enable element inheritance from shooter
 ElementalProjectileRegistry.setInheritElementFromShooter(true);
 ```
 
-#### Создание и запуск снаряда
+#### Creating and Launching Projectiles
 
 ```java
 import com.auranite.abloom.ElementalProjectileRegistry;
@@ -124,33 +124,33 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntityType;
 
-// Создание снаряда с элементом от оружия стрелка
+// Create projectile with element from shooter's weapon
 ElementalProjectileRegistry.createAndLaunchElementalProjectile(
     serverLevel,
     shooter,
     EntityType.ARROW,
-    1.5f,  // скорость
-    1.0f   // неточность
+    1.5f,  // velocity
+    1.0f   // inaccuracy
 );
 
-// Создание снаряда с принудительным элементом
+// Create projectile with forced element
 ElementalProjectileRegistry.createElementalProjectileWithOverride(
     serverLevel,
     shooter,
     EntityType.SNOWBALL,
-    ElementType.FIRE,  // принудительный элемент
+    ElementType.FIRE,  // forced element
     1.5f,
     1.0f
 );
 ```
 
-### Настройка сопротивлений элементов
+### Configuring Element Resistances
 
-#### Через теги (рекомендуется)
+#### Via Tags (Recommended)
 
-Создайте JSON-файлы тегов в `data/abloom/tags/entity_type/element/<element>/`:
+Create JSON tag files in `data/abloom/tags/entity_type/element/<element>/`:
 
-**Пример: `data/abloom/tags/entity_type/element/fire/immune.json`**
+**Example: `data/abloom/tags/entity_type/element/fire/immune.json`**
 ```json
 {
   "values": [
@@ -160,7 +160,7 @@ ElementalProjectileRegistry.createElementalProjectileWithOverride(
 }
 ```
 
-**Пример: `data/abloom/tags/entity_type/element/ice/weakness.json`**
+**Example: `data/abloom/tags/entity_type/element/ice/weakness.json`**
 ```json
 {
   "values": [
@@ -170,35 +170,35 @@ ElementalProjectileRegistry.createElementalProjectileWithOverride(
 }
 ```
 
-Доступные модификаторы:
-- `immune` — полный иммунитет (урон = 0, накопление = 0)
-- `resistance` — сопротивление (урон × 0.5, накопление × 0.5)
-- `weakness` — слабость (урон × 1.5, накопление × 1.5)
+Available modifiers:
+- `immune` — full immunity (damage = 0, accumulation = 0)
+- `resistance` — resistance (damage × 0.5, accumulation × 0.5)
+- `weakness` — weakness (damage × 1.5, accumulation × 1.5)
 
-#### Программная регистрация
+#### Programmatic Registration
 
 ```java
 import com.auranite.abloom.ElementResistanceRegistry;
 import com.auranite.abloom.ElementType;
 import net.minecraft.world.entity.EntityType;
 
-// Регистрация иммунитета для нескольких типов сущностей
+// Register immunity for multiple entity types
 ElementResistanceRegistry.registerUniform(
     ElementType.FIRE,
-    0.0f,  // сопротивление накоплению
-    0.0f,  // сопротивление урону
+    0.0f,  // accumulation resistance
+    0.0f,  // damage resistance
     EntityType.BLAZE,
     EntityType.MAGMA_CUBE
 );
 
-// Регистрация слабости
+// Register weakness
 ElementResistanceRegistry.registerSingleUniform(
     EntityType.ZOMBIE,
     ElementType.FIRE,
-    1.5f  // количество очков накопления
+    1.5f  // accumulation points amount
 );
 
-// Регистрация кастомных сопротивлений
+// Register custom resistances
 Map<ElementType, ElementResistanceManager.Resistance> resistances = new EnumMap<>(ElementType.class);
 resistances.put(ElementType.FIRE, new ElementResistanceManager.Resistance(0.5f, 0.5f));
 resistances.put(ElementType.ICE, new ElementResistanceManager.Resistance(1.5f, 1.0f));
@@ -206,7 +206,7 @@ resistances.put(ElementType.ICE, new ElementResistanceManager.Resistance(1.5f, 1
 ElementResistanceRegistry.registerMultiple(EntityType.CREEPER, resistances);
 ```
 
-### Применение элементального урона программно
+### Applying Elemental Damage Programmatically
 
 ```java
 import com.auranite.abloom.ElementDamageHandler;
@@ -214,50 +214,50 @@ import com.auranite.abloom.ElementType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
-// Создание элементального урона от источника
+// Apply elemental damage from source
 ElementDamageHandler.applyElementalDamageWithSource(
-    targetEntity,      // цель
-    sourceEntity,      // источник урона
-    5.0f,              // базовый урон
-    ElementType.FIRE,  // тип элемента
-    1.5f               // количество очков накопления
+    targetEntity,      // target
+    sourceEntity,      // damage source
+    5.0f,              // base damage
+    ElementType.FIRE,  // element type
+    1.5f               // accumulation points amount
 );
 ```
 
-### Работа с эффектами состояния
+### Working with Status Effects
 
-Мод добавляет 8 новых эффектов:
+The mod adds 8 new effects:
 
-| Эффект | ID | Цвет | Описание |
-|--------|----|------|----------|
-| BURNING | `burning` | #FF5500 | Поджигает цель каждую секунду |
-| WETNESS | `wetness` | #0080FF | Увеличивает накопление резонанса |
-| STUN | `stun` | #8B4513 | Оглушает цель |
-| FREEZE | `freeze` | #00BFFF | Замораживает и замедляет |
-| SHOCK | `shock` | #FF19FF | Снижает урон, наносимый целью |
-| BREAK | `break` | #9400D3 | Специальный эффект разрушения |
-| BLOOM | `bloom` | #32CD32 | Увеличивает получаемое накопление и урон |
-| RIFT | `rift` | #FF5C77 | Увеличивает получаемый урон |
+| Effect | ID | Color | Description |
+|--------|----|------|-------------|
+| BURNING | `burning` | #FF5500 | Ignites target every second |
+| WETNESS | `wetness` | #0080FF | Increases resonance accumulation |
+| STUN | `stun` | #8B4513 | Stuns the target |
+| FREEZE | `freeze` | #00BFFF | Freezes and slows down |
+| SHOCK | `shock` | #FF19FF | Reduces damage dealt by target |
+| BREAK | `break` | #9400D3 | Special destruction effect |
+| BLOOM | `bloom` | #32CD32 | Increases accumulation and damage received |
+| RIFT | `rift` | #FF5C77 | Increases damage taken |
 
-#### Получение эффекта
+#### Applying Effects
 
 ```java
 import com.auranite.abloom.AbloomModEffects;
 import net.minecraft.world.effect.MobEffectInstance;
 
-// Добавление эффекта
+// Add effect
 entity.addEffect(new MobEffectInstance(
     AbloomModEffects.BURNING,
-    200,  // длительность в тиках (10 секунд)
-    0,    // усилитель
-    false, // показывать частицы
-    true   // скрыть иконку
+    200,  // duration in ticks (10 seconds)
+    0,    // amplifier
+    false, // show particles
+    true   // hide icon
 ));
 ```
 
-### Вспомогательные методы
+### Helper Methods
 
-#### Получение элемента из источника урона
+#### Getting Element from Damage Source
 
 ```java
 import com.auranite.abloom.ElementDamageHandler;
@@ -266,7 +266,7 @@ import net.minecraft.world.damagesource.DamageSource;
 ElementType type = ElementDamageHandler.getElementTypeFromSource(damageSource);
 ```
 
-#### Получение элемента из предмета
+#### Getting Element from Item
 
 ```java
 import com.auranite.abloom.ElementDamageHandler;
@@ -275,58 +275,58 @@ import net.minecraft.world.item.ItemStack;
 ElementType type = ElementDamageHandler.getElementTypeFromItem(itemStack);
 ```
 
-#### Создание цветных всплывающих чисел урона
+#### Spawning Colored Damage Numbers
 
 ```java
 import com.auranite.abloom.ElementDamageHandler;
 import net.minecraft.world.entity.LivingEntity;
 
-// Спавн числа урона
+// Spawn damage number
 ElementDamageHandler.spawnDamageNumber(entity, 15.5f, ElementType.FIRE);
 
-// Спавн текстового статуса
+// Spawn status text
 ElementDamageHandler.spawnStatusText(entity, "Overheating!", 0xFF5500);
 ```
 
 ---
 
-## Конфигурация и настройка
+## Configuration and Customization
 
-### Изменение базовых параметров
+### Changing Base Parameters
 
 ```java
 import com.auranite.abloom.ElementDamageHandler;
 import com.auranite.abloom.ElementType;
 
-// Изменение цвета урона для элемента
+// Change damage color for element
 ElementDamageHandler.setDamageColor(ElementType.FIRE, 0xFF0000);
 
-// Получение всех цветов урона
+// Get all damage colors
 Map<ElementType, Integer> colors = ElementDamageHandler.getAllDamageColors();
 
-// Получение текущего порога активации
-int threshold = ElementDamageHandler.getThreshold();  // по умолчанию 100
+// Get current activation threshold
+int threshold = ElementDamageHandler.getThreshold();  // default 100
 ```
 
-### Очереди задач сервера
+### Server Task Queues
 
 ```java
 import com.auranite.abloom.AbloomMod;
 
-// Выполнение задачи через N тиков
+// Execute task after N ticks
 AbloomMod.queueServerWork(20, () -> {
-    // код выполняется через 1 секунду (20 тиков)
+    // code executes after 1 second (20 ticks)
 });
 ```
 
 ---
 
-## Интеграция с другими модами
+## Integration with Other Mods
 
-### Добавление элементальных свойств к предметам из других модов
+### Adding Elemental Properties to Items from Other Mods
 
 ```java
-// В методе onCommonSetup или аналогичном
+// In onCommonSetup method or similar
 ElementalWeaponRegistry.registerWeapon(
     ModItems.SWORD_FROM_OTHER_MOD,
     ElementType.ELECTRIC,
@@ -334,11 +334,11 @@ ElementalWeaponRegistry.registerWeapon(
 );
 ```
 
-### Настройка сопротивлений для мобов из других модов
+### Configuring Resistances for Mobs from Other Mods
 
 ```java
-// Через теги (рекомендуется)
-// Создайте файл: data/abloom/tags/entity_type/element/fire/immune.json
+// Via tags (recommended)
+// Create file: data/abloom/tags/entity_type/element/fire/immune.json
 {
   "values": [
     "othermod:fire_elemental",
@@ -349,9 +349,9 @@ ElementalWeaponRegistry.registerWeapon(
 
 ---
 
-## Примеры использования
+## Usage Examples
 
-### Создание элементального меча
+### Creating an Elemental Sword
 
 ```java
 public class ModItems {
@@ -365,14 +365,14 @@ public class ModItems {
                     SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f)
                 )
             );
-            // Регистрация как огненного оружия с количеством накопления 1.5 очка
+            // Register as fire weapon with 1.5 accumulation points
             ElementalWeaponRegistry.registerWeapon(sword, ElementType.FIRE, 1.5f);
             return sword;
         });
 }
 ```
 
-### Создание магического посоха со снарядами
+### Creating a Magic Staff with Projectiles
 
 ```java
 public class MagicStaffItem extends Item {
@@ -381,7 +381,7 @@ public class MagicStaffItem extends Item {
         if (!level.isClientSide() && player instanceof LivingEntity living) {
             ServerLevel serverLevel = (ServerLevel) level;
 
-            // Запуск огненного шара
+            // Launch fireball
             ElementalProjectileRegistry.createAndLaunchElementalProjectile(
                 serverLevel,
                 living,
@@ -398,18 +398,18 @@ public class MagicStaffItem extends Item {
 }
 ```
 
-### Босс с элементальными сопротивлениями
+### Boss with Elemental Resistances
 
 ```java
 public class CustomBoss extends Monster {
     public CustomBoss(EntityType<? extends Monster> type, Level level) {
         super(type, level);
 
-        // Регистрация сопротивлений при создании
+        // Register resistances on creation
         ElementResistanceRegistry.registerMultiple(this.getType(), Map.of(
-            ElementType.FIRE, new ElementResistanceManager.Resistance(0.0f, 0.0f),  // иммунитет
-            ElementType.ICE, new ElementResistanceManager.Resistance(2.0f, 1.5f),   // слабость
-            ElementType.PHYSICAL, new ElementResistanceManager.Resistance(0.5f, 0.7f) // сопротивление
+            ElementType.FIRE, new ElementResistanceManager.Resistance(0.0f, 0.0f),  // immunity
+            ElementType.ICE, new ElementResistanceManager.Resistance(2.0f, 1.5f),   // weakness
+            ElementType.PHYSICAL, new ElementResistanceManager.Resistance(0.5f, 0.7f) // resistance
         ));
     }
 }
@@ -417,17 +417,17 @@ public class CustomBoss extends Monster {
 
 ---
 
-## Отладка
+## Debugging
 
 ```java
 import com.auranite.abloom.ElementResistanceRegistry;
 import com.auranite.abloom.ElementalWeaponRegistry;
 import com.auranite.abloom.ElementalProjectileRegistry;
 
-// Вывод информации о зарегистрированных сопротивлениях
+// Print information about registered resistances
 ElementResistanceRegistry.debugPrint();
 
-// Получение количества зарегистрированных объектов
+// Get count of registered objects
 int weapons = ElementalWeaponRegistry.getRegisteredCount();
 int projectiles = ElementalProjectileRegistry.getRegisteredCount();
 ```
