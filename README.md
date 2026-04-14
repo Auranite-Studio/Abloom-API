@@ -1,12 +1,8 @@
-# Документация мода A'Bloom (Legends of the Stones)
+# Документация мода Abloom API
 
 ## Обзор
 
-**A'Bloom** — это библиотечный мод для NeoForge (версия 21.1.215+, Minecraft 1.21.x), который добавляет систему элементального урона, накопления элементальной энергии и пороговых эффектов. Мод предоставляет инфраструктуру для создания оружия со стихийными свойствами, снарядов и системы сопротивлений для мобов.
-
-**Версия мода:** 0.1.0
-**ID мода:** `abloom`
-**Требуемая версия Java:** 21
+**Abloom API** — это библиотечный мод для NeoForge (версия 21.1.215+, Minecraft 1.21.x), который добавляет систему элементального урона, накопления элементальной энергии и пороговых эффектов. Мод предоставляет инфраструктуру для создания оружия со стихийными свойствами, снарядов и системы сопротивлений для мобов.
 
 ---
 
@@ -32,14 +28,14 @@
 ### 2. Механика накопления (Accumulation)
 
 - При получении урона от элемента цель накапливает очки этого элемента
-- Базовое значение накопления: **1.0 очка за удар**
-- Порог активации: **100 очков**
-- При достижении порога срабатывает специальный эффект, и очки сбрасываются
+- Базовое значение накопления: **1 очко резонанса за удар**
+- Порог активации: **100 очков резонанса**
+- При достижении порога срабатывает специальный эффект, и очки резонанса сбрасываются
 - Накопление сбрасывается через **300 тиков** (15 секунд) без получения урона этого типа
 
 ### 3. Пороговые эффекты
 
-При достижении 100 очков накопления:
+При достижении 100 очков накопления резонанса:
 
 | Элемент | Эффект |
 |---------|--------|
@@ -67,10 +63,10 @@ import com.auranite.abloom.ElementalWeaponRegistry;
 import com.auranite.abloom.ElementType;
 import net.minecraft.world.item.Item;
 
-// Регистрация с множителем накопления по умолчанию (1.0x)
+// Регистрация с количеством накопления по умолчанию (1.0 очка за удар)
 ElementalWeaponRegistry.registerWeapon(myItem, ElementType.FIRE);
 
-// Регистрация с кастомным множителем накопления
+// Регистрация с кастомным количеством накопления
 ElementalWeaponRegistry.registerWeapon(myItem, ElementType.ICE, 2.5f);
 ```
 
@@ -85,7 +81,7 @@ import net.minecraft.world.item.ItemStack;
 ItemStack stack = new ItemStack(myItem);
 ElementalWeaponComponent.withElement(stack, ElementType.ELECTRIC);
 
-// Создание с множителем накопления
+// Создание с кастомным количеством накопления
 ElementalWeaponComponent.withElementAndAccum(stack, ElementType.WATER, 1.5f);
 
 // Получение элемента из предмета
@@ -106,14 +102,14 @@ import net.minecraft.world.entity.EntityType;
 ElementalProjectileRegistry.registerProjectile(
     EntityType.ARROW,
     ElementType.FIRE,
-    1.5f  // множитель накопления
+    1.5f  // количество очков накопления
 );
 
 // Регистрация по классу сущности
 ElementalProjectileRegistry.registerProjectileByClass(
     MyCustomArrow.class,
     ElementType.ICE,
-    2.0f
+    2.0f  // количество очков накопления
 );
 
 // Включение наследования элемента от стрелка
@@ -175,9 +171,9 @@ ElementalProjectileRegistry.createElementalProjectileWithOverride(
 ```
 
 Доступные модификаторы:
-- `immune` — полный иммунитет (урон = 0)
-- `resistance` — сопротивление (урон × 0.5)
-- `weakness` — слабость (накопление × 1.5)
+- `immune` — полный иммунитет (урон = 0, накопление = 0)
+- `resistance` — сопротивление (урон × 0.5, накопление × 0.5)
+- `weakness` — слабость (урон × 1.5, накопление × 1.5)
 
 #### Программная регистрация
 
@@ -199,10 +195,10 @@ ElementResistanceRegistry.registerUniform(
 ElementResistanceRegistry.registerSingleUniform(
     EntityType.ZOMBIE,
     ElementType.FIRE,
-    1.5f  // множитель накопления
+    1.5f  // количество очков накопления
 );
 
-// Регистрация сложных сопротивлений
+// Регистрация кастомных сопротивлений
 Map<ElementType, ElementResistanceManager.Resistance> resistances = new EnumMap<>(ElementType.class);
 resistances.put(ElementType.FIRE, new ElementResistanceManager.Resistance(0.5f, 0.5f));
 resistances.put(ElementType.ICE, new ElementResistanceManager.Resistance(1.5f, 1.0f));
@@ -224,7 +220,7 @@ ElementDamageHandler.applyElementalDamageWithSource(
     sourceEntity,      // источник урона
     5.0f,              // базовый урон
     ElementType.FIRE,  // тип элемента
-    1.5f               // множитель накопления
+    1.5f               // количество очков накопления
 );
 ```
 
@@ -235,7 +231,7 @@ ElementDamageHandler.applyElementalDamageWithSource(
 | Эффект | ID | Цвет | Описание |
 |--------|----|------|----------|
 | BURNING | `burning` | #FF5500 | Поджигает цель каждую секунду |
-| WETNESS | `wetness` | #0080FF | Увеличивает накопление электричества |
+| WETNESS | `wetness` | #0080FF | Увеличивает накопление резонанса |
 | STUN | `stun` | #8B4513 | Оглушает цель |
 | FREEZE | `freeze` | #00BFFF | Замораживает и замедляет |
 | SHOCK | `shock` | #FF19FF | Снижает урон, наносимый целью |
@@ -353,19 +349,6 @@ ElementalWeaponRegistry.registerWeapon(
 
 ---
 
-## События и хуки
-
-Мод использует следующие события NeoForge:
-
-- `LivingDamageEvent.Pre` — обработка урона перед применением
-- `LivingDeathEvent` — очистка при смерти сущности
-- `EntityLeaveLevelEvent` — очистка при уходе сущности
-- `PlayerEvent.PlayerLoggedOutEvent` — очистка при выходе игрока
-- `ServerTickEvent.Pre` — обновление таймеров и очистка
-- `ChunkDataEvent.Save` — очистка дисплеев урона при выгрузке чанка
-
----
-
 ## Примеры использования
 
 ### Создание элементального меча
@@ -382,7 +365,7 @@ public class ModItems {
                     SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f)
                 )
             );
-            // Регистрация как огненного оружия с x1.5 накоплением
+            // Регистрация как огненного оружия с количеством накопления 1.5 очка
             ElementalWeaponRegistry.registerWeapon(sword, ElementType.FIRE, 1.5f);
             return sword;
         });
@@ -448,15 +431,3 @@ ElementResistanceRegistry.debugPrint();
 int weapons = ElementalWeaponRegistry.getRegisteredCount();
 int projectiles = ElementalProjectileRegistry.getRegisteredCount();
 ```
-
----
-
-## Лицензия
-
-Информацию о лицензии см. в файле `LICENSE` в корне репозитория.
-
-## Поддержка
-
-- **GitHub:** [репозиторий проекта]
-- **Версия NeoForge:** 21.1.215+
-- **Версия Minecraft:** 1.21.x
