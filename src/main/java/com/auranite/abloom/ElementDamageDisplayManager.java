@@ -42,7 +42,6 @@ public class ElementDamageDisplayManager {
 
     private static final int SELF_DESTRUCT_BUFFER = 20;
 
-    // --> Константы для эффекта BREAK: пульсация на базе исходного цвета
     private static final double BREAK_SHIMMER_SPEED = 0.3;
     private static final float BREAK_SHIMMER_INTENSITY = 0.6f;
 
