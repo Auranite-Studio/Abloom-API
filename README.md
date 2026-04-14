@@ -39,16 +39,16 @@ When reaching 100 accumulation resonance points:
 
 | Element | Effect |
 |---------|--------|
-| **FIRE** | Ignites the target (Burning effect) |
-| **PHYSICAL** | Critical damage (x5) |
-| **WIND** | Levitation for 6 seconds |
-| **WATER** | Applies Wetness effect |
-| **EARTH** | Stun for 6 seconds |
-| **ICE** | Freeze for 16 seconds |
-| **ELECTRIC** | Shock for 10 seconds |
-| **SOURCE** | Rift effect (increases damage taken) |
-| **NATURAL** | Break effect |
-| **QUANTUM** | Teleports to a random location |
+| **PHYSICAL** | Physical resonance explosion, deals 500% damage to the target |
+| **FIRE** | Fire resonance explosion, applies Burning effect for 10 seconds |
+| **WIND** | Wind resonance explosion, applies Levitation effect for 6 seconds |
+| **WATER** | Water resonance explosion, applies Wetness effect for 15 seconds (increases resonance accumulation on target by 100%) |
+| **EARTH** | Earth resonance explosion, applies Stun effect for 6 seconds (target cannot deal damage or move) |
+| **ICE** | Ice resonance explosion, applies Freeze effect for 12 seconds |
+| **ELECTRIC** | Electric resonance explosion, applies Shock effect for 10 seconds (target deals 20% less damage) |
+| **SOURCE** | Source resonance explosion, applies Rift effect for 10 seconds (damage taken by target increased by 20%) |
+| **NATURAL** | Natural resonance explosion, applies Bloom effect for 8 seconds (target takes 1 damage per second and receives 20% universal vulnerability) |
+| **QUANTUM** | Quantum resonance explosion, applies Penetration effect for 8 seconds (all damage to target ignores its defense) |
 
 ---
 
@@ -84,11 +84,11 @@ ElementalWeaponComponent.withElement(stack, ElementType.ELECTRIC);
 // Create with custom accumulation amount
 ElementalWeaponComponent.withElementAndAccum(stack, ElementType.WATER, 1.5f);
 
-// Get element from item
-Optional<ElementType> element = ElementalWeaponComponent.getElement(stack);
+        // Get element from item
+        Optional<ElementType> element = ElementalWeaponComponent.getElement(stack);
 
-// Check if item has an element
-boolean hasElement = ElementalWeaponComponent.hasElement(stack);
+        // Check if item has an element
+        boolean hasElement = ElementalWeaponComponent.hasElement(stack);
 ```
 
 ### Registering Elemental Projectiles
@@ -100,15 +100,15 @@ import net.minecraft.world.entity.EntityType;
 
 // Register by entity type
 ElementalProjectileRegistry.registerProjectile(
-    EntityType.ARROW,
-    ElementType.FIRE,
+        EntityType.ARROW,
+        ElementType.FIRE,
     1.5f  // accumulation points amount
 );
 
 // Register by entity class
 ElementalProjectileRegistry.registerProjectileByClass(
-    MyCustomArrow.class,
-    ElementType.ICE,
+        MyCustomArrow.class,
+        ElementType.ICE,
     2.0f  // accumulation points amount
 );
 
@@ -126,21 +126,21 @@ import net.minecraft.world.entity.EntityType;
 
 // Create projectile with element from shooter's weapon
 ElementalProjectileRegistry.createAndLaunchElementalProjectile(
-    serverLevel,
-    shooter,
-    EntityType.ARROW,
+        serverLevel,
+        shooter,
+        EntityType.ARROW,
     1.5f,  // velocity
-    1.0f   // inaccuracy
+                1.0f   // inaccuracy
 );
 
 // Create projectile with forced element
 ElementalProjectileRegistry.createElementalProjectileWithOverride(
-    serverLevel,
-    shooter,
-    EntityType.SNOWBALL,
-    ElementType.FIRE,  // forced element
+        serverLevel,
+        shooter,
+        EntityType.SNOWBALL,
+        ElementType.FIRE,  // forced element
     1.5f,
-    1.0f
+                1.0f
 );
 ```
 
@@ -184,26 +184,26 @@ import net.minecraft.world.entity.EntityType;
 
 // Register immunity for multiple entity types
 ElementResistanceRegistry.registerUniform(
-    ElementType.FIRE,
+        ElementType.FIRE,
     0.0f,  // accumulation resistance
-    0.0f,  // damage resistance
-    EntityType.BLAZE,
-    EntityType.MAGMA_CUBE
-);
+            0.0f,  // damage resistance
+        EntityType.BLAZE,
+        EntityType.MAGMA_CUBE
+        );
 
 // Register weakness
 ElementResistanceRegistry.registerSingleUniform(
-    EntityType.ZOMBIE,
-    ElementType.FIRE,
+        EntityType.ZOMBIE,
+        ElementType.FIRE,
     1.5f  // accumulation points amount
 );
 
 // Register custom resistances
 Map<ElementType, ElementResistanceManager.Resistance> resistances = new EnumMap<>(ElementType.class);
 resistances.put(ElementType.FIRE, new ElementResistanceManager.Resistance(0.5f, 0.5f));
-resistances.put(ElementType.ICE, new ElementResistanceManager.Resistance(1.5f, 1.0f));
+        resistances.put(ElementType.ICE, new ElementResistanceManager.Resistance(1.5f, 1.0f));
 
-ElementResistanceRegistry.registerMultiple(EntityType.CREEPER, resistances);
+        ElementResistanceRegistry.registerMultiple(EntityType.CREEPER, resistances);
 ```
 
 ### Applying Elemental Damage Programmatically
@@ -216,10 +216,10 @@ import net.minecraft.world.item.ItemStack;
 
 // Apply elemental damage from source
 ElementDamageHandler.applyElementalDamageWithSource(
-    targetEntity,      // target
-    sourceEntity,      // damage source
+        targetEntity,      // target
+        sourceEntity,      // damage source
     5.0f,              // base damage
-    ElementType.FIRE,  // element type
+        ElementType.FIRE,  // element type
     1.5f               // accumulation points amount
 );
 ```
@@ -247,11 +247,11 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 // Add effect
 entity.addEffect(new MobEffectInstance(
-    AbloomModEffects.BURNING,
+                         AbloomModEffects.BURNING,
     200,  // duration in ticks (10 seconds)
-    0,    // amplifier
-    false, // show particles
-    true   // hide icon
+                         0,    // amplifier
+                         false, // show particles
+                         true   // hide icon
 ));
 ```
 
@@ -315,8 +315,8 @@ import com.auranite.abloom.AbloomMod;
 
 // Execute task after N ticks
 AbloomMod.queueServerWork(20, () -> {
-    // code executes after 1 second (20 ticks)
-});
+        // code executes after 1 second (20 ticks)
+        });
 ```
 
 ---
@@ -328,8 +328,8 @@ AbloomMod.queueServerWork(20, () -> {
 ```java
 // In onCommonSetup method or similar
 ElementalWeaponRegistry.registerWeapon(
-    ModItems.SWORD_FROM_OTHER_MOD,
-    ElementType.ELECTRIC,
+        ModItems.SWORD_FROM_OTHER_MOD,
+        ElementType.ELECTRIC,
     1.2f
 );
 ```
@@ -340,11 +340,11 @@ ElementalWeaponRegistry.registerWeapon(
 // Via tags (recommended)
 // Create file: data/abloom/tags/entity_type/element/fire/immune.json
 {
-  "values": [
-    "othermod:fire_elemental",
-    "othermod:lava_golem"
-  ]
-}
+        "values": [
+        "othermod:fire_elemental",
+        "othermod:lava_golem"
+        ]
+        }
 ```
 
 ---
@@ -356,19 +356,19 @@ ElementalWeaponRegistry.registerWeapon(
 ```java
 public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
-        DeferredRegister.create(Registries.ITEM, "mymod");
+            DeferredRegister.create(Registries.ITEM, "mymod");
 
     public static final DeferredHolder<Item, Item> FIRE_SWORD =
-        ITEMS.register("fire_sword", () -> {
-            Item sword = new SwordItem(Tiers.DIAMOND,
-                new Item.Properties().attributes(
-                    SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f)
-                )
-            );
-            // Register as fire weapon with 1.5 accumulation points
-            ElementalWeaponRegistry.registerWeapon(sword, ElementType.FIRE, 1.5f);
-            return sword;
-        });
+            ITEMS.register("fire_sword", () -> {
+                Item sword = new SwordItem(Tiers.DIAMOND,
+                        new Item.Properties().attributes(
+                                SwordItem.createAttributes(Tiers.DIAMOND, 3, -2.4f)
+                        )
+                );
+                // Register as fire weapon with 1.5 accumulation points
+                ElementalWeaponRegistry.registerWeapon(sword, ElementType.FIRE, 1.5f);
+                return sword;
+            });
 }
 ```
 
@@ -383,15 +383,15 @@ public class MagicStaffItem extends Item {
 
             // Launch fireball
             ElementalProjectileRegistry.createAndLaunchElementalProjectile(
-                serverLevel,
-                living,
-                EntityType.FIREBALL,
-                1.8f,
-                0.5f
+                    serverLevel,
+                    living,
+                    EntityType.FIREBALL,
+                    1.8f,
+                    0.5f
             );
 
             player.getItemInHand(hand).hurtAndBreak(1, living,
-                EquipmentSlot.MAINHAND);
+                    EquipmentSlot.MAINHAND);
         }
         return InteractionResultHolder.success(player.getItemInHand(hand));
     }
@@ -407,9 +407,9 @@ public class CustomBoss extends Monster {
 
         // Register resistances on creation
         ElementResistanceRegistry.registerMultiple(this.getType(), Map.of(
-            ElementType.FIRE, new ElementResistanceManager.Resistance(0.0f, 0.0f),  // immunity
-            ElementType.ICE, new ElementResistanceManager.Resistance(2.0f, 1.5f),   // weakness
-            ElementType.PHYSICAL, new ElementResistanceManager.Resistance(0.5f, 0.7f) // resistance
+                ElementType.FIRE, new ElementResistanceManager.Resistance(0.0f, 0.0f),  // immunity
+                ElementType.ICE, new ElementResistanceManager.Resistance(2.0f, 1.5f),   // weakness
+                ElementType.PHYSICAL, new ElementResistanceManager.Resistance(0.5f, 0.7f) // resistance
         ));
     }
 }

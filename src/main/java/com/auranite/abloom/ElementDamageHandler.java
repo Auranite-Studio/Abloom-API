@@ -364,7 +364,7 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case ICE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 320, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
 				yield currentDamage;
 			}
@@ -419,7 +419,7 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case ICE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 320, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
 				yield originalDamage;
 			}
