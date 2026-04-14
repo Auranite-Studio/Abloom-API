@@ -48,7 +48,7 @@ When reaching 100 accumulation resonance points:
 | **ELECTRIC** | Electric resonance explosion, applies Shock effect for 10 seconds (target deals 20% less damage) |
 | **SOURCE** | Source resonance explosion, applies Rift effect for 10 seconds (damage taken by target increased by 20%) |
 | **NATURAL** | Natural resonance explosion, applies Bloom effect for 8 seconds (target takes 1 damage per second and receives 20% universal vulnerability) |
-| **QUANTUM** | Quantum resonance explosion, applies Penetration effect for 8 seconds (all damage to target ignores its defense) |
+| **QUANTUM** | Quantum resonance explosion, applies Break effect for 8 seconds (all damage to target ignores its defense) |
 
 ---
 
@@ -222,37 +222,6 @@ ElementDamageHandler.applyElementalDamageWithSource(
         ElementType.FIRE,  // element type
     1.5f               // accumulation points amount
 );
-```
-
-### Working with Status Effects
-
-The mod adds 8 new effects:
-
-| Effect | ID | Color | Description |
-|--------|----|------|-------------|
-| BURNING | `burning` | #FF5500 | Ignites target every second |
-| WETNESS | `wetness` | #0080FF | Increases resonance accumulation |
-| STUN | `stun` | #8B4513 | Stuns the target |
-| FREEZE | `freeze` | #00BFFF | Freezes and slows down |
-| SHOCK | `shock` | #FF19FF | Reduces damage dealt by target |
-| BREAK | `break` | #9400D3 | Special destruction effect |
-| BLOOM | `bloom` | #32CD32 | Increases accumulation and damage received |
-| RIFT | `rift` | #FF5C77 | Increases damage taken |
-
-#### Applying Effects
-
-```java
-import com.auranite.abloom.AbloomModEffects;
-import net.minecraft.world.effect.MobEffectInstance;
-
-// Add effect
-entity.addEffect(new MobEffectInstance(
-                         AbloomModEffects.BURNING,
-    200,  // duration in ticks (10 seconds)
-                         0,    // amplifier
-                         false, // show particles
-                         true   // hide icon
-));
 ```
 
 ### Helper Methods
