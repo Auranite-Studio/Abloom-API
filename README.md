@@ -25,15 +25,15 @@ The mod defines 10 element types:
 | NATURAL | `natural_dmg` | #32CD32 |
 | QUANTUM | `quantum_dmg` | #9400D3 |
 
-### 2. Accumulation Mechanics
+### 2. Resonance Accumulation Mechanics
 
-- When taking damage from an element, the target accumulates points of that element
+- When taking damage from an element, the target accumulates resonance points of that element
 - Base accumulation value: **1 resonance point per hit**
 - Activation threshold: **100 resonance points**
 - When the threshold is reached, a special effect triggers and resonance points are reset
 - Accumulation resets after **300 ticks** (15 seconds) without receiving damage of that type
 
-### 3. Threshold Effects
+### 3. Resonance Effects
 
 When reaching 100 accumulation resonance points:
 
