@@ -22,32 +22,29 @@ import java.util.function.Predicate;
 
 public class ElementDamageDisplayManager {
 
-
     private static final int DAMAGE_NUMBER_LIFETIME = 30;
     private static final int STATUS_TEXT_LIFETIME = 50;
     private static final byte FLAG_SEE_THROUGH = 2;
 
-
     public static final String CLEANUP_TAG = "lots:cleanup_on_load";
     public static final String SELF_DESTRUCT_TAG = "lots:self_destruct";
 
-
     private static final String NBT_MAX_LIFETIME = "lots:max_lifetime";
     private static final String NBT_AGE = "lots:age";
-
 
     private static final double DAMAGE_GRAVITY = -0.02;
     private static final double DAMAGE_INITIAL_VELOCITY_Y = 0.18;
     private static final double HORIZONTAL_DRIFT = 0.02;
 
-
     private static final double STATUS_FLOAT_AMPLITUDE = 0.02;
     private static final double STATUS_FLOAT_SPEED = 0.15;
     private static final int INTERPOLATION_DURATION = 3;
 
-
     private static final int SELF_DESTRUCT_BUFFER = 20;
 
+    // --> Константы для эффекта BREAK: пульсация на базе исходного цвета
+    private static final double BREAK_SHIMMER_SPEED = 0.3;
+    private static final float BREAK_SHIMMER_INTENSITY = 0.6f;
 
     private static class DisplayInfo {
         final TextDisplay display;
@@ -61,15 +58,12 @@ public class ElementDamageDisplayManager {
         }
     }
 
-
     private static final Map<UUID, DisplayInfo> ACTIVE_DAMAGE_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<UUID, DisplayInfo> ACTIVE_STATUS_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
     private static final Map<UUID, double[]> ACTIVE_PHYSICS = new ConcurrentHashMap<>();
 
-
     private static final CopyOnWriteArrayList<TextDisplay> PENDING_REMOVALS = new CopyOnWriteArrayList<>();
-
 
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
@@ -87,8 +81,6 @@ public class ElementDamageDisplayManager {
         if (type == null) return 0xFFFFFF;
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
     }
-
-
 
     public void cleanupStaleDisplays() {
         int cleanedCount = 0;
@@ -255,14 +247,11 @@ public class ElementDamageDisplayManager {
         PENDING_REMOVALS.clear();
     }
 
-
-
     public static void cleanupOrphanedDisplaysOnWorldLoad(ServerLevel level) {
         if (level == null) return;
 
         long startTime = System.currentTimeMillis();
         int removedCount = 0;
-
 
         Predicate<Entity> hasCleanupTag = e -> e.getTags().contains(CLEANUP_TAG) && !e.isRemoved();
 
@@ -279,11 +268,8 @@ public class ElementDamageDisplayManager {
         }
     }
 
-
-
     public static void tickSelfDestructDisplays(ServerLevel level) {
         if (level == null) return;
-
 
         Predicate<Entity> hasSelfDestruct = e -> {
             CompoundTag tag = e.getPersistentData();
@@ -305,11 +291,12 @@ public class ElementDamageDisplayManager {
         }
     }
 
-
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
         int entityId = entity.getId();
         int color = getDamageColor(type);
+
+        boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
 
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
         double offsetZ = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
@@ -332,10 +319,19 @@ public class ElementDamageDisplayManager {
 
             double randomX = (serverLevel.random.nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
             double randomZ = (serverLevel.random.nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
-            ACTIVE_PHYSICS.put(displayUuid, new double[]{randomX, DAMAGE_INITIAL_VELOCITY_Y, randomZ, 0, DAMAGE_NUMBER_LIFETIME, color, 0});
+
+            ACTIVE_PHYSICS.put(displayUuid, new double[]{
+                    randomX,                      // [0] drift X
+                    DAMAGE_INITIAL_VELOCITY_Y,    // [1] velocity Y
+                    randomZ,                      // [2] drift Z
+                    0,                            // [3] ticks alive
+                    DAMAGE_NUMBER_LIFETIME,       // [4] max ticks
+                    color,                        // [5] original color
+                    0,                            // [6] phase (reserved)
+                    hasBreak ? 1.0 : 0.0          // [7] isBreak flag
+            });
 
             schedulePhysicsUpdate(serverLevel, displayUuid);
-
 
             AbloomMod.queueServerWork(DAMAGE_NUMBER_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
@@ -371,10 +367,19 @@ public class ElementDamageDisplayManager {
             ACTIVE_STATUS_DISPLAYS.put(displayUuid, new DisplayInfo(display, entityId, true));
 
             double randomPhase = serverLevel.random.nextDouble() * Math.PI * 2;
-            ACTIVE_PHYSICS.put(displayUuid, new double[]{0, 0, 0, 0, STATUS_TEXT_LIFETIME, color, randomPhase});
+
+            ACTIVE_PHYSICS.put(displayUuid, new double[]{
+                    0,                              // [0] drift X (unused)
+                    0,                              // [1] velocity Y (unused)
+                    0,                              // [2] drift Z (unused)
+                    0,                              // [3] ticks alive
+                    STATUS_TEXT_LIFETIME,           // [4] max ticks
+                    color,                          // [5] original color
+                    randomPhase,                    // [6] float phase
+                    0.0                             // [7] isBreak flag (always 0 for status)
+            });
 
             schedulePhysicsUpdate(serverLevel, displayUuid);
-
 
             AbloomMod.queueServerWork(STATUS_TEXT_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
@@ -390,14 +395,12 @@ public class ElementDamageDisplayManager {
         spawnStatusText(entity, Component.literal(text), color);
     }
 
-
     private void schedulePhysicsUpdate(ServerLevel level, UUID displayUuid) {
         AbloomMod.queueServerWork(1, () -> {
             TextDisplay display = (TextDisplay) level.getEntity(displayUuid);
             double[] physics = ACTIVE_PHYSICS.get(displayUuid);
             DisplayInfo info = ACTIVE_DAMAGE_DISPLAYS.get(displayUuid);
             if (info == null) info = ACTIVE_STATUS_DISPLAYS.get(displayUuid);
-
 
             if (display == null || display.isRemoved() || physics == null) {
                 cleanupDisplayResources(displayUuid);
@@ -409,7 +412,7 @@ public class ElementDamageDisplayManager {
             int maxTicks = (int) physics[4];
             int originalColor = (int) physics[5];
             double floatPhase = physics[6];
-
+            boolean isBreak = physics[7] == 1.0;
 
             if (info != null && info.isStatus) {
                 floatPhase += STATUS_FLOAT_SPEED;
@@ -433,11 +436,29 @@ public class ElementDamageDisplayManager {
                     display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(shimmerColor).withBold(true)));
                 }
 
-            }
+            } else {
 
-            else {
                 physics[1] += DAMAGE_GRAVITY;
                 display.setPos(display.getX() + physics[0], display.getY() + physics[1], display.getZ() + physics[2]);
+
+                int finalColor;
+
+                if (isBreak) {
+                    double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0; // 0.0 -> 1.0 -> 0.0
+
+                    int r = (originalColor >> 16) & 0xFF;
+                    int g = (originalColor >> 8) & 0xFF;
+                    int b = originalColor & 0xFF;
+
+                    int shimmerR = (int) (r + (255 - r) * pulse * BREAK_SHIMMER_INTENSITY);
+                    int shimmerG = (int) (g + (255 - g) * pulse * BREAK_SHIMMER_INTENSITY);
+                    int shimmerB = (int) (b + (255 - b) * pulse * BREAK_SHIMMER_INTENSITY);
+
+                    finalColor = (shimmerR << 16) | (shimmerG << 8) | shimmerB;
+
+                } else {
+                    finalColor = originalColor;
+                }
 
                 int fadeStartTick = (int) (maxTicks * 0.7);
                 if (ticksAlive >= fadeStartTick) {
@@ -446,25 +467,24 @@ public class ElementDamageDisplayManager {
                     float alpha = 1.0f - (currentFadeTick / (float) fadeTicks);
                     alpha = Math.max(0.0f, Math.min(1.0f, alpha));
 
-                    Component currentText = display.getText();
-                    if (currentText != null) {
-                        int r = (originalColor >> 16) & 0xFF;
-                        int g = (originalColor >> 8) & 0xFF;
-                        int b = originalColor & 0xFF;
-                        int a = (int) (alpha * 255);
-                        int colorWithAlpha = (a << 24) | (r << 16) | (g << 8) | b;
+                    int r = (finalColor >> 16) & 0xFF;
+                    int g = (finalColor >> 8) & 0xFF;
+                    int b = finalColor & 0xFF;
 
-                        display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(colorWithAlpha).withBold(true)));
-                    }
+                    int a = (int) (alpha * 255);
+                    finalColor = (a << 24) | (r << 16) | (g << 8) | b;
+                }
+
+                Component currentText = display.getText();
+                if (currentText != null) {
+                    display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(finalColor).withBold(true)));
                 }
             }
-
 
             if (ticksAlive >= maxTicks) {
                 safeRemoveDisplay(level, displayUuid, display, info);
                 return;
             }
-
 
             if (!display.isRemoved()) {
                 schedulePhysicsUpdate(level, displayUuid);
@@ -472,12 +492,8 @@ public class ElementDamageDisplayManager {
         });
     }
 
-
-
-
     private void safeRemoveDisplay(ServerLevel level, UUID displayUuid, TextDisplay display, DisplayInfo info) {
         display.removeTag(CLEANUP_TAG);
-
 
         if (!display.isRemoved() && display.level() != null) {
             var chunkSource = level.getChunkSource();
@@ -488,7 +504,6 @@ public class ElementDamageDisplayManager {
                             new ClientboundRemoveEntitiesPacket(display.getId())
                     );
                 } catch (Exception e) {
-
                     AbloomMod.LOGGER.debug("Failed to send remove packet for display {}: {}",
                             display.getId(), e.getMessage());
                 }
@@ -502,7 +517,6 @@ public class ElementDamageDisplayManager {
     private void safeRemoveDisplaySilent(TextDisplay display) {
         if (display == null || display.isRemoved() || display.level() == null) return;
 
-
         display.removeTag(CLEANUP_TAG);
 
         ServerLevel level = (ServerLevel) display.level();
@@ -513,22 +527,16 @@ public class ElementDamageDisplayManager {
         display.discard();
     }
 
-
     private void cleanupDisplayResources(UUID uuid) {
         ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
         ACTIVE_STATUS_DISPLAYS.remove(uuid);
         ACTIVE_PHYSICS.remove(uuid);
     }
 
-
-
-
     private static void markForCleanup(Entity entity, int maxLifetime) {
         if (entity == null) return;
 
-
         entity.addTag(CLEANUP_TAG);
-
 
         CompoundTag tag = entity.getPersistentData();
         tag.putBoolean(SELF_DESTRUCT_TAG, true);
@@ -560,7 +568,6 @@ public class ElementDamageDisplayManager {
         display.setPosRotInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDelay(0);
-
 
         markForCleanup(display, maxLifetime);
 
