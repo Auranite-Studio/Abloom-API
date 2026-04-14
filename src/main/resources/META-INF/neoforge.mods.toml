@@ -4,19 +4,13 @@ license="GNU General Public License version 3 (GPLv3)"
 
 [[mods]]
 modId="abloom"
-version="0.1.0"
+version="1.0.0-beta1"
 displayName="Abloom API"
 displayURL=""
 logoFile=""
 credits="Created by Auranite Studio"
 authors=""
-description=""
-
-# Start of user code block mod configuration
-# End of user code block mod configuration
-
-# Start of user code block custom mixins
-# End of user code block custom mixins
+description="Abloom API is a library mod for NeoForge that adds an elemental damage system, elemental energy accumulation, and threshold effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, and a resistance system for mobs."
 
 [[dependencies.abloom]]
 modId="neoforge"
@@ -34,6 +28,3 @@ side="BOTH"
 
 [[mixins]]
 config = "abloom.mixins.json"
-
-# Start of user code block dependencies configuration
-# End of user code block dependencies configuration

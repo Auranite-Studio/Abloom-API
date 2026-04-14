@@ -14,7 +14,7 @@
   "death.attack.water_dmg": "%1$s died",
   "death.attack.water_dmg.player": "%1$s died whilst trying to escape %2$s",
   "death.attack.water_dmg.item": "%1$s was killed by %2$s using %3$s",
-  "tooltip.elemental_resonance": "Efficiency of Resonance Accumulation: %.1f",
+  "elemental.tooltip.accum_multiplier": "Efficiency of Resonance Accumulation: %.1f",
   "elemental.tooltip.fire": "Fire DMG",
   "elemental.tooltip.physical": "Physical DMG",
   "elemental.tooltip.overheating": "OVERHEATING!",

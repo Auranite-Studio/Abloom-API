@@ -16,7 +16,7 @@
   "death.attack.water_dmg.item": "%1$s was killed by %2$s using %3$s",
   "elemental.tooltip.accum_multiplier": "Скорость накопления резонанса: %.1f",
   "elemental.tooltip.fire": "Огненный урон",
-  "elemental.tooltip.physical": "Физичнский урон",
+  "elemental.tooltip.physical": "Физический урон",
   "elemental.tooltip.overheating": "ПЕРЕГРЕВ!",
   "elemental.tooltip.crit_dmg": "КРИТ. УРОН 500%!",
   "elemental.tooltip.wind_whirlwind": "ПОРЫВ!",
@@ -42,7 +42,7 @@
   "death.attack.quantum_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.ice": "Ледяной урон",
   "elemental.tooltip.electric": "Электрический урон",
-  "elemental.tooltip.source": "Небесный урон",
+  "elemental.tooltip.source": "Урон источника",
   "elemental.tooltip.natural": "Природный урон",
   "elemental.tooltip.quantum": "Квантовый урон",
   "elemental.tooltip.ice_freeze": "ЗАМОРОЗКА!",
@@ -66,7 +66,7 @@
   "item.abloom.earth_stick": "Земляная палочка",
   "item.abloom.ice_stick": "Ледяная палочка",
   "item.abloom.electric_stick": "Электрическая палочка",
-  "item.abloom.source_stick": "Небесная палочка",
+  "item.abloom.source_stick": "Палочка источника",
   "item.abloom.natural_stick": "Природная палочка",
   "item.abloom.quantum_stick": "Квантовая палочка"
 }
