@@ -1,7 +1,10 @@
 package com.auranite.abloom;
 
+import com.auranite.abloom.config.AbloomConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -34,11 +37,14 @@ public class AbloomMod {
     public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
 
-    public AbloomMod(IEventBus modEventBus) {
+    public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
 
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
+
+        modContainer.registerConfig(ModConfig.Type.CLIENT, AbloomConfig.CLIENT_SPEC);
+        modContainer.registerConfig(ModConfig.Type.SERVER, AbloomConfig.SERVER_SPEC);
 
         AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         AbloomModEffects.REGISTRY.register(modEventBus);

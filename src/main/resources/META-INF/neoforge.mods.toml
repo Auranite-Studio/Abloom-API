@@ -4,7 +4,7 @@ license="GNU General Public License version 3 (GPLv3)"
 
 [[mods]]
 modId="abloom"
-version="1.0.0-beta1"
+version="1.0.0-beta.1+1.21.1-neoforge"
 displayName="Abloom API"
 displayURL=""
 logoFile=""
