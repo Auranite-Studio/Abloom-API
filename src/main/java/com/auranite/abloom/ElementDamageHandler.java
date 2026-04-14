@@ -120,16 +120,16 @@ public class ElementDamageHandler {
 
 		if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			reduction = Math.max(0.1f, reduction);
 			damage *= reduction;
 		}
 		if (target.hasEffect(AbloomModEffects.RIFT)) {
 			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damage *= 1.0f + (amplifier + 1) * 0.25f;
+			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
-			damage *= 1.25f;
+			damage *= 1.20f;
 		}
 		event.setNewDamage(damage);
 
@@ -404,7 +404,7 @@ public class ElementDamageHandler {
 				yield originalDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 60, 0, false, true));
+				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield originalDamage;
 			}
@@ -414,32 +414,32 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case EARTH -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 60, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
 				yield originalDamage;
 			}
 			case ICE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 320, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
 				yield originalDamage;
 			}
 			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 140, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
 				yield originalDamage;
 			}
 			case SOURCE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 100, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
 				yield originalDamage;
 			}
 			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 120, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
 				yield originalDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 100, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield originalDamage;
 			}
