@@ -42,7 +42,7 @@
   "death.attack.quantum_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.ice": "Ледяной урон",
   "elemental.tooltip.electric": "Электрический урон",
-  "elemental.tooltip.source": "Урон источника",
+  "elemental.tooltip.energy": "Энергетический урон",
   "elemental.tooltip.natural": "Природный урон",
   "elemental.tooltip.quantum": "Квантовый урон",
   "elemental.tooltip.ice_freeze": "ЗАМОРОЗКА!",
@@ -66,7 +66,7 @@
   "item.abloom.earth_stick": "Земляная палочка",
   "item.abloom.ice_stick": "Ледяная палочка",
   "item.abloom.electric_stick": "Электрическая палочка",
-  "item.abloom.source_stick": "Палочка источника",
+  "item.abloom.energy_stick": "Энергетическая палочка",
   "item.abloom.natural_stick": "Природная палочка",
   "item.abloom.quantum_stick": "Квантовая палочка"
 }

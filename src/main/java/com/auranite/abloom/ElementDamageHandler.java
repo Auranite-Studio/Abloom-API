@@ -59,13 +59,13 @@ public class ElementDamageHandler {
 
 	public static void initDamageColors() {
 		ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xFFAA00);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.WIND, 0x00FFFF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.WATER, 0x0080FF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.EARTH, 0x8B4513);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.ICE, 0x00BFFF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, 0xFF19FF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.SOURCE, 0xFF5C77);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ENERGY, 0xFFFF00);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
 	}
@@ -345,7 +345,7 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case PHYSICAL -> {
-				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xFFAA00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xC0C0C0);
 				yield currentDamage * 5.0f;
 			}
 			case WIND -> {
@@ -370,12 +370,12 @@ public class ElementDamageHandler {
 			}
 			case ELECTRIC -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
 				yield currentDamage;
 			}
-			case SOURCE -> {
+			case ENERGY -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0xFFFF00);
 				yield currentDamage;
 			}
 			case NATURAL -> {
@@ -400,7 +400,7 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case PHYSICAL -> {
-				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xFFAA00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xC0C0C0);
 				yield originalDamage * 5.0f;
 			}
 			case WIND -> {
@@ -425,12 +425,12 @@ public class ElementDamageHandler {
 			}
 			case ELECTRIC -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
 				yield originalDamage;
 			}
-			case SOURCE -> {
+			case ENERGY -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0xFFFF00);
 				yield originalDamage;
 			}
 			case NATURAL -> {

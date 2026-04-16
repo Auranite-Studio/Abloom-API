@@ -21,7 +21,7 @@ public class ElementalWeaponTooltipHandler {
 	private static final String KEY_ELEMENT_EARTH = "elemental.tooltip.earth";
 	private static final String KEY_ELEMENT_ICE = "elemental.tooltip.ice";
 	private static final String KEY_ELEMENT_ELECTRIC = "elemental.tooltip.electric";
-	private static final String KEY_ELEMENT_SOURCE = "elemental.tooltip.source";
+	private static final String KEY_ELEMENT_ENERGY = "elemental.tooltip.energy";
 	private static final String KEY_ELEMENT_NATURAL = "elemental.tooltip.natural";
 	private static final String KEY_ELEMENT_QUANTUM = "elemental.tooltip.quantum";
 	private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
@@ -60,7 +60,7 @@ public class ElementalWeaponTooltipHandler {
 			case EARTH -> Component.translatable(KEY_ELEMENT_EARTH);
 			case ICE -> Component.translatable(KEY_ELEMENT_ICE);
 			case ELECTRIC -> Component.translatable(KEY_ELEMENT_ELECTRIC);
-			case SOURCE -> Component.translatable(KEY_ELEMENT_SOURCE);
+			case ENERGY -> Component.translatable(KEY_ELEMENT_ENERGY);
 			case NATURAL -> Component.translatable(KEY_ELEMENT_NATURAL);
 			case QUANTUM -> Component.translatable(KEY_ELEMENT_QUANTUM);
 			default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
@@ -74,13 +74,13 @@ public class ElementalWeaponTooltipHandler {
 	private static int getElementColor(ElementType type) {
 		return switch (type) {
 			case FIRE -> 0xFF5500;
-			case PHYSICAL -> 0xFFAA00;
+			case PHYSICAL -> 0xC0C0C0;
 			case WIND -> 0x00FFFF;
 			case WATER -> 0x0080FF;
 			case EARTH -> 0x8B4513;
 			case ICE -> 0x00BFFF;
 			case ELECTRIC -> 0xFF19FF;
-			case SOURCE -> 0xFF5C77;
+			case ENERGY -> 0xFFFF00;
 			case NATURAL -> 0x32CD32;
 			case QUANTUM -> 0x9400D3;
 			default -> 0xFFFFFF;

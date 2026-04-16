@@ -18,7 +18,7 @@ public class AbloomModElementalProjectiles {
 
         ElementalProjectileRegistry.registerProjectile(EntityType.FIREBALL, ElementType.FIRE, 0f);
         ElementalProjectileRegistry.registerProjectile(EntityType.SMALL_FIREBALL, ElementType.FIRE, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.DRAGON_FIREBALL, ElementType.SOURCE, 0f);
+        ElementalProjectileRegistry.registerProjectile(EntityType.DRAGON_FIREBALL, ElementType.ENERGY, 0f);
 
 
         ElementalProjectileRegistry.registerProjectile(EntityType.FIREWORK_ROCKET, ElementType.PHYSICAL, 0f);

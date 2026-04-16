@@ -19,7 +19,7 @@ public class AbloomModItems {
     public static final DeferredItem<Item> EARTH_STICK;
     public static final DeferredItem<Item> ICE_STICK;
     public static final DeferredItem<Item> ELECTRIC_STICK;
-    public static final DeferredItem<Item> SOURCE_STICK;
+    public static final DeferredItem<Item> ENERGY_STICK;
     public static final DeferredItem<Item> NATURAL_STICK;
     public static final DeferredItem<Item> QUANTUM_STICK;
 
@@ -36,7 +36,7 @@ public class AbloomModItems {
         EARTH_STICK    = REGISTRY.register("earth_stick", () -> new Item(STICK_PROPS));
         ICE_STICK      = REGISTRY.register("ice_stick", () -> new Item(STICK_PROPS));
         ELECTRIC_STICK = REGISTRY.register("electric_stick", () -> new Item(STICK_PROPS));
-        SOURCE_STICK   = REGISTRY.register("source_stick", () -> new Item(STICK_PROPS));
+        ENERGY_STICK   = REGISTRY.register("energy_stick", () -> new Item(STICK_PROPS));
         NATURAL_STICK  = REGISTRY.register("natural_stick", () -> new Item(STICK_PROPS));
         QUANTUM_STICK  = REGISTRY.register("quantum_stick", () -> new Item(STICK_PROPS));
     }

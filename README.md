@@ -15,13 +15,13 @@ The mod defines 10 element types:
 | Element | Damage ID | Damage Color |
 |---------|----------|------------|
 | FIRE | `fire_dmg` | #FF5500 |
-| PHYSICAL | `physical_dmg` | #FFAA00 |
+| PHYSICAL | `physical_dmg` | #C0C0C0 |
 | WIND | `wind_dmg` | #00FFFF |
 | EARTH | `earth_dmg` | #8B4513 |
 | WATER | `water_dmg` | #0080FF |
 | ICE | `ice_dmg` | #00BFFF |
 | ELECTRIC | `electric_dmg` | #FF19FF |
-| SOURCE | `source_dmg` | #FF5C77 |
+| ENERGY | `energy_dmg` | #0xFFFF00 |
 | NATURAL | `natural_dmg` | #32CD32 |
 | QUANTUM | `quantum_dmg` | #9400D3 |
 
@@ -46,7 +46,7 @@ When reaching 100 accumulation resonance points:
 | **EARTH** | Earth resonance explosion, applies Stun effect for 6 seconds (target cannot deal damage or move) |
 | **ICE** | Ice resonance explosion, applies Freeze effect for 12 seconds |
 | **ELECTRIC** | Electric resonance explosion, applies Shock effect for 10 seconds (target deals 20% less damage) |
-| **SOURCE** | Source resonance explosion, applies Rift effect for 10 seconds (damage taken by target increased by 20%) |
+| **ENERGY** | Energy resonance explosion, applies Rift effect for 10 seconds (damage taken by target increased by 20%) |
 | **NATURAL** | Natural resonance explosion, applies Bloom effect for 8 seconds (target takes 1 damage per second and receives 20% universal vulnerability) |
 | **QUANTUM** | Quantum resonance explosion, applies Break effect for 8 seconds (all damage to target ignores its defense) |
 

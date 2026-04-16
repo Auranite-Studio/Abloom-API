@@ -42,7 +42,7 @@
   "death.attack.quantum_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.ice": "Ice DMG",
   "elemental.tooltip.electric": "Electric DMG",
-  "elemental.tooltip.source": "Source DMG",
+  "elemental.tooltip.energy": "Energy DMG",
   "elemental.tooltip.natural": "Natural DMG",
   "elemental.tooltip.quantum": "Quantum DMG",
   "elemental.tooltip.ice_freeze": "FREEZING!",
@@ -66,7 +66,7 @@
   "item.abloom.earth_stick": "Earth Stick",
   "item.abloom.ice_stick": "Ice Stick",
   "item.abloom.electric_stick": "Electric Stick",
-  "item.abloom.source_stick": "Source Stick",
+  "item.abloom.energy_stick": "Energy Stick",
   "item.abloom.natural_stick": "Natural Stick",
   "item.abloom.quantum_stick": "Quantum Stick"
 

@@ -24,7 +24,7 @@ public class AbloomModTabs {
                         tabData.accept(AbloomModItems.EARTH_STICK.get());
                         tabData.accept(AbloomModItems.ICE_STICK.get());
                         tabData.accept(AbloomModItems.ELECTRIC_STICK.get());
-                        tabData.accept(AbloomModItems.SOURCE_STICK.get());
+                        tabData.accept(AbloomModItems.ENERGY_STICK.get());
                         tabData.accept(AbloomModItems.NATURAL_STICK.get());
                         tabData.accept(AbloomModItems.QUANTUM_STICK.get());
                     })

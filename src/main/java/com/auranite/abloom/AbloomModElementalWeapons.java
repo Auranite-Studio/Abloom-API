@@ -21,7 +21,7 @@ public class AbloomModElementalWeapons {
             registerEarthWeapons();
             registerIceWeapons();
             registerElectricWeapons();
-            registerSourceWeapons();
+            registerEnergyWeapons();
             registerNaturalWeapons();
             registerQuantumWeapons();
 
@@ -74,8 +74,8 @@ public class AbloomModElementalWeapons {
     private static void registerElectricWeapons() {
         ElementalWeaponUtils.registerItem(AbloomModItems.ELECTRIC_STICK.get(), ElementType.ELECTRIC, 50f);
     }
-    private static void registerSourceWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.SOURCE_STICK.get(), ElementType.SOURCE, 50f);
+    private static void registerEnergyWeapons() {
+        ElementalWeaponUtils.registerItem(AbloomModItems.ENERGY_STICK.get(), ElementType.ENERGY, 50f);
     }
     private static void registerNaturalWeapons() {
         ElementalWeaponUtils.registerItem(AbloomModItems.NATURAL_STICK.get(), ElementType.NATURAL, 50f);

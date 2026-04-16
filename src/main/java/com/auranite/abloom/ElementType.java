@@ -13,7 +13,7 @@ public enum ElementType {
     WATER("water_dmg"),
     ICE("ice_dmg"),
     ELECTRIC("electric_dmg"),
-    SOURCE("source_dmg"),
+    ENERGY("energy_dmg"),
     NATURAL("natural_dmg"),
     QUANTUM("quantum_dmg");
 
@@ -104,7 +104,7 @@ public enum ElementType {
                  "thorns",
                  "guardian",
                  "evocation_fangs",
-                 "wither_effect" -> SOURCE;
+                 "wither_effect" -> ENERGY;
 
             case "poison",
                  "wither",
