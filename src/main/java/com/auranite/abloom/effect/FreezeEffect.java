@@ -25,13 +25,11 @@ public class FreezeEffect extends MobEffect {
             return true;
         }
 
-
         MobEffectInstance effectInstance = entity.getEffect(AbloomModEffects.FREEZE);
         if (effectInstance == null) {
             return false;
         }
         int duration = effectInstance.getDuration();
-
 
         int currentFrozen = entity.getTicksFrozen();
         int required = entity.getTicksRequiredToFreeze();
@@ -39,7 +37,6 @@ public class FreezeEffect extends MobEffect {
         if (currentFrozen < required) {
             entity.setTicksFrozen(Math.min(currentFrozen + 3 + amplifier, required));
         }
-
 
         if (entity.isFullyFrozen()) {
             if (duration % 20 == 0) {

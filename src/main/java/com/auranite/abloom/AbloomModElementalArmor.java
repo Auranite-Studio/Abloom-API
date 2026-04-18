@@ -10,11 +10,6 @@ import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Применяет элементальные сопротивления к ванильной броне на этапе инициализации.
- * Использует официальный NeoForge-хук ModifyDefaultComponentsEvent (1.20.5+),
- * который модифицирует DataComponents до создания первого ItemStack.
- */
 @EventBusSubscriber
 public class AbloomModElementalArmor {
 
@@ -52,7 +47,6 @@ public class AbloomModElementalArmor {
         add(Items.CHAINMAIL_BOOTS,      ElementType.WIND, 0.02f);
     }
 
-    // Вспомогательные методы для обхода лимита Map.of (макс 10 пар)
     private static void add(Item item, ElementType t1, float v1, ElementType t2, float v2) {
         VANILLA_ARMOR_RESISTANCES.put(item, Map.of(t1, v1, t2, v2));
     }
@@ -63,10 +57,6 @@ public class AbloomModElementalArmor {
         VANILLA_ARMOR_RESISTANCES.put(item, Map.of(t1, v1));
     }
 
-    /**
-     * 🔹 Главный хук NeoForge 1.20.5+ для модификации дефолтных компонентов предметов.
-     * Вызывается на мод-шине до полной регистрации предметов.
-     */
     @SubscribeEvent
     public static void modifyDefaultComponents(ModifyDefaultComponentsEvent event) {
         VANILLA_ARMOR_RESISTANCES.forEach((item, resistances) -> {

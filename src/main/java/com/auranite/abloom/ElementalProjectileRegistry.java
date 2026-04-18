@@ -9,31 +9,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public class ElementalProjectileRegistry {
-
 
     private static final Map<EntityType<?>, ElementType> PROJECTILE_ELEMENT_MAP = new ConcurrentHashMap<>();
 
-
     private static final Map<EntityType<?>, Float> PROJECTILE_ACCUM_MAP = new ConcurrentHashMap<>();
-
 
     private static final Map<Class<? extends Entity>, ElementType> PROJECTILE_CLASS_MAP = new ConcurrentHashMap<>();
 
-
     private static final Map<Class<? extends Entity>, Float> PROJECTILE_CLASS_ACCUM_MAP = new ConcurrentHashMap<>();
 
-
     private static boolean inheritElementFromShooter = true;
-
 
     public static void register(IEventBus modEventBus) {
         AbloomMod.LOGGER.info("ElementalProjectileRegistry initialized");
     }
-
-
-
 
     public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier) {
         if (entityType == null || element == null) {
@@ -45,7 +35,6 @@ public class ElementalProjectileRegistry {
         AbloomMod.LOGGER.debug("Registered projectile {} → {} (accum: x{})", entityType, element, accumulationMultiplier);
     }
 
-
     public static void registerProjectileByClass(Class<? extends Entity> entityClass, ElementType element, float accumulationMultiplier) {
         if (entityClass == null || element == null) {
             AbloomMod.LOGGER.warn("Cannot register null projectile class or element");
@@ -56,8 +45,6 @@ public class ElementalProjectileRegistry {
         AbloomMod.LOGGER.debug("Registered projectile class {} → {} (accum: x{})", entityClass.getSimpleName(), element, accumulationMultiplier);
     }
 
-
-
     public static Optional<ElementType> getElementForType(EntityType<?> entityType) {
         return Optional.ofNullable(PROJECTILE_ELEMENT_MAP.get(entityType));
     }
@@ -65,17 +52,14 @@ public class ElementalProjectileRegistry {
     public static Optional<ElementType> getElementForEntity(Entity entity) {
         if (entity == null) return Optional.empty();
 
-
         ElementType byType = PROJECTILE_ELEMENT_MAP.get(entity.getType());
         if (byType != null) return Optional.of(byType);
-
 
         for (Map.Entry<Class<? extends Entity>, ElementType> entry : PROJECTILE_CLASS_MAP.entrySet()) {
             if (entry.getKey().isInstance(entity)) {
                 return Optional.of(entry.getValue());
             }
         }
-
 
         if (AbloomModAttachments.hasProjectileElement(entity)) {
             return Optional.ofNullable(AbloomModAttachments.getProjectileElement(entity));
@@ -84,15 +68,11 @@ public class ElementalProjectileRegistry {
         return Optional.empty();
     }
 
-
-
     public static Optional<Float> getAccumulationMultiplierForEntity(Entity entity) {
         if (entity == null) return Optional.empty();
 
-
         Float byType = PROJECTILE_ACCUM_MAP.get(entity.getType());
         if (byType != null) return Optional.of(byType);
-
 
         for (Map.Entry<Class<? extends Entity>, Float> entry : PROJECTILE_CLASS_ACCUM_MAP.entrySet()) {
             if (entry.getKey().isInstance(entity)) {
@@ -110,8 +90,6 @@ public class ElementalProjectileRegistry {
     public static int getRegisteredCount() {
         return PROJECTILE_ELEMENT_MAP.size();
     }
-
-
 
     public static boolean applyElementToProjectile(Entity projectile, LivingEntity shooter) {
         if (projectile == null || projectile.level().isClientSide) return false;
@@ -135,8 +113,6 @@ public class ElementalProjectileRegistry {
         return false;
     }
 
-
-
     public static void setInheritElementFromShooter(boolean value) {
         inheritElementFromShooter = value;
     }
@@ -144,8 +120,6 @@ public class ElementalProjectileRegistry {
     public static boolean getInheritElementFromShooter() {
         return inheritElementFromShooter;
     }
-
-
 
     public static <T extends Entity> T createAndLaunchElementalProjectile(
             net.minecraft.server.level.ServerLevel level,
