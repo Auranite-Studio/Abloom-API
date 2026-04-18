@@ -1,47 +1,22 @@
-```
-# Gradle
+# Gradle build system ignores
 .gradle/
+.eclipse/
 build/
-!gradle/wrapper/gradle-wrapper.jar
-!gradlew
-!gradlew.bat
 
-# Dependencies
-libs/
-
-# Logs
-*.log
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editor/IDE
-.vscode/
+# Other IDE related folders
 .idea/
-*.swp
-*.swo
-*.tmp
+.settings/
 
-# OS
-.DS_Store
-Thumbs.db
+# MCreator workspace
+.mcreator/
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
+# Minecraft client/server files
+run/
+runs/
 
-# Python (if applicable)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-.venv/
-venv/
-.pytest_cache/
-.mypy_cache/
-```
+# MacOS system files
+.DS_STORE
+
+# Other Files (In Eclipse)
+.classpath
+.project
