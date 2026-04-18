@@ -1,22 +1,47 @@
-# Gradle build system ignores
+```
+# Gradle
 .gradle/
-.eclipse/
 build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradlew
+!gradlew.bat
 
-# Other IDE related folders
+# Dependencies
+libs/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editor/IDE
+.vscode/
 .idea/
-.settings/
+*.swp
+*.swo
+*.tmp
 
-# MCreator workspace
-.mcreator/
+# OS
+.DS_Store
+Thumbs.db
 
-# Minecraft client/server files
-run/
-runs/
+# Coverage
+coverage/
+htmlcov/
+.coverage
 
-# MacOS system files
-.DS_STORE
-
-# Other Files (In Eclipse)
-.classpath
-.project
+# Python (if applicable)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+```
