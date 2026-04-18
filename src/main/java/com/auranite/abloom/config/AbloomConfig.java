@@ -17,17 +17,19 @@ public class AbloomConfig {
     public static class Server {
         public final ModConfigSpec.BooleanValue enableDamageNumbers;
         public final ModConfigSpec.BooleanValue enableStatusTexts;
+        public final ModConfigSpec.IntValue damageNumberSpawnRadius;
 
         public Server(ModConfigSpec.Builder builder) {
             builder.push("Damage Display Settings");
             enableDamageNumbers = builder
-                    .comment("Enable floating damage numbers above entities")
                     .translation("abloom.config.enableDamageNumbers")
                     .define("enableDamageNumbers", true);
             enableStatusTexts = builder
-                    .comment("Enable status text displays (buffs, debuffs, etc.)")
                     .translation("abloom.config.enableStatusTexts")
                     .define("enableStatusTexts", true);
+            damageNumberSpawnRadius = builder
+                    .translation("abloom.config.damageNumberSpawnRadius")
+                    .defineInRange("damageNumberSpawnRadius", 16, 1, 128);
             builder.pop();
         }
     }
@@ -39,6 +41,7 @@ public class AbloomConfig {
 
     private static volatile boolean cachedDamageNumbers = true;
     private static volatile boolean cachedStatusTexts = true;
+    private static volatile int cachedDamageNumberSpawnRadius = 16;
 
     static {
         final Pair<Client, ModConfigSpec> clientSpec = new ModConfigSpec.Builder().configure(Client::new);
@@ -57,6 +60,14 @@ public class AbloomConfig {
         return cachedStatusTexts;
     }
 
+    public static int getDamageNumberSpawnRadius() {
+        return cachedDamageNumberSpawnRadius;
+    }
+
+    public static int getDamageNumberSpawnRadiusSq() {
+        return cachedDamageNumberSpawnRadius * cachedDamageNumberSpawnRadius;
+    }
+
     @SubscribeEvent
     public static void onConfigLoad(final ModConfigEvent.Loading event) {
         syncConfigValues(event.getConfig());
@@ -72,6 +83,7 @@ public class AbloomConfig {
             try {
                 cachedDamageNumbers = SERVER_CONFIG.enableDamageNumbers.get();
                 cachedStatusTexts = SERVER_CONFIG.enableStatusTexts.get();
+                cachedDamageNumberSpawnRadius = SERVER_CONFIG.damageNumberSpawnRadius.get();
             } catch (IllegalStateException ignored) {
             }
         }

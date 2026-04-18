@@ -292,13 +292,15 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
-        if (!AbloomConfig.areDamageNumbersEnabled()) {
-            return;
-        }
+        if (!AbloomConfig.areDamageNumbersEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+        double spawnRadiusSq = 16.0 * 16.0;
+        boolean playerInRange = serverLevel.players().stream()
+                .anyMatch(player -> player.distanceToSqr(entity) <= spawnRadiusSq);
+        if (!playerInRange) return;
+
         int entityId = entity.getId();
         int color = getDamageColor(type);
-
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
 
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
@@ -347,10 +349,13 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnStatusText(LivingEntity entity, Component textComponent, int color) {
-        if (!AbloomConfig.areStatusTextsEnabled()) {
-            return;
-        }
+        if (!AbloomConfig.areStatusTextsEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+        double spawnRadiusSq = 16.0 * 16.0;
+        boolean playerInRange = serverLevel.players().stream()
+                .anyMatch(player -> player.distanceToSqr(entity) <= spawnRadiusSq);
+        if (!playerInRange) return;
+
         int entityId = entity.getId();
 
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.3;
@@ -398,9 +403,7 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnStatusText(LivingEntity entity, String text, int color) {
-        if (!AbloomConfig.areStatusTextsEnabled()) {
-            return;
-        }
+        if (!AbloomConfig.areStatusTextsEnabled()) return;
         spawnStatusText(entity, Component.literal(text), color);
     }
 
@@ -572,7 +575,7 @@ public class ElementDamageDisplayManager {
         display.setNoGravity(true);
         display.setInvulnerable(true);
         display.setSilent(true);
-        display.setViewRange(64.0f);
+        display.setViewRange(16.0f);
         display.setPosRotInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDelay(0);
