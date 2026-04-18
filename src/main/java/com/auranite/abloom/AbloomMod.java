@@ -60,6 +60,7 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
+        modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
 
     }
     @SubscribeEvent
