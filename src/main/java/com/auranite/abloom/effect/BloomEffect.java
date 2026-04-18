@@ -25,13 +25,11 @@ public class BloomEffect extends MobEffect {
             return true;
         }
 
-
         MobEffectInstance effectInstance = entity.getEffect(AbloomModEffects.BLOOM);
         if (effectInstance == null) {
             return false;
         }
         int duration = effectInstance.getDuration();
-
 
             if (duration % 20 == 0) {
                 float damage = 1.0f + amplifier * 0.5f;

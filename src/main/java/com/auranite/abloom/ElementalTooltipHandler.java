@@ -9,15 +9,9 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 import java.util.Map;
 
-/**
- * Универсальный обработчик подсказок для элементальных свойств:
- * - Отображение типа элемента и множителя накопления для оружия
- * - Отображение сопротивлений элементальному урону для брони
- */
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementalTooltipHandler {
 
-    // ==================== Ключи локализации: Оружие ====================
     private static final String KEY_ELEMENT_FIRE = "elemental.tooltip.fire";
     private static final String KEY_ELEMENT_PHYSICAL = "elemental.tooltip.physical";
     private static final String KEY_ELEMENT_WIND = "elemental.tooltip.wind";
@@ -31,7 +25,6 @@ public class ElementalTooltipHandler {
     private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
     private static final String KEY_ACCUM_MULTIPLIER = "elemental.tooltip.accum_multiplier";
 
-    // ==================== Ключи локализации: Броня ====================
     private static final String KEY_RESISTANCE_HEADER = "elemental.resistance.header";
     private static final String KEY_RESISTANCE_FIRE = "elemental.resistance.fire";
     private static final String KEY_RESISTANCE_PHYSICAL = "elemental.resistance.physical";
@@ -45,7 +38,6 @@ public class ElementalTooltipHandler {
     private static final String KEY_RESISTANCE_QUANTUM = "elemental.resistance.quantum";
     private static final String KEY_RESISTANCE_DEFAULT = "elemental.resistance.element";
 
-    // ==================== Цвета элементов (общие) ====================
     private static int getElementColor(ElementType type) {
         return switch (type) {
             case FIRE -> 0xFF5500;
@@ -66,24 +58,20 @@ public class ElementalTooltipHandler {
     public static void onItemTooltip(ItemTooltipEvent event) {
         ItemStack stack = event.getItemStack();
 
-        // === Обработка элементального оружия ===
         handleWeaponTooltip(stack, event);
 
-        // === Обработка элементальных сопротивлений (броня) ===
         handleResistanceTooltip(stack, event);
     }
 
-    // ==================== Логика: Оружие ====================
     private static void handleWeaponTooltip(ItemStack stack, ItemTooltipEvent event) {
         ElementType type = ElementalWeaponUtils.getElementType(stack);
         float accumMultiplier = ElementalWeaponUtils.getAccumulationMultiplier(stack);
 
         if (type != null && accumMultiplier != 0.0f && accumMultiplier != 1.0f) {
-            // Добавляем тип элемента
+
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
 
-            // Добавляем множитель накопления
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_MULTIPLIER,
                     String.format("%.1f", accumMultiplier)
@@ -111,7 +99,6 @@ public class ElementalTooltipHandler {
         return text;
     }
 
-    // ==================== Логика: Броня/Сопротивления ====================
     private static void handleResistanceTooltip(ItemStack stack, ItemTooltipEvent event) {
         if (!ElementalResistanceComponent.hasResistance(stack)) {
             return;
@@ -120,12 +107,10 @@ public class ElementalTooltipHandler {
         Map<ElementType, Float> resistances = ElementalResistanceComponent.getAllResistances(stack);
         if (resistances.isEmpty()) return;
 
-        // Добавляем заголовок
         MutableComponent headerText = Component.translatable(KEY_RESISTANCE_HEADER);
         headerText.setStyle(headerText.getStyle().withColor(0xAAAAAA));
         event.getToolTip().add(headerText);
 
-        // Добавляем каждое сопротивление
         for (Map.Entry<ElementType, Float> entry : resistances.entrySet()) {
             ElementType type = entry.getKey();
             float resistance = entry.getValue();
@@ -152,7 +137,6 @@ public class ElementalTooltipHandler {
             default -> Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
         };
 
-        // Форматируем процент сопротивления
         int percentage = Math.round(resistance * 100);
         MutableComponent percentageText = Component.literal(" +" + percentage + "%");
         percentageText.setStyle(percentageText.getStyle().withColor(0x00FF00));

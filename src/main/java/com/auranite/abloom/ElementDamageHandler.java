@@ -128,10 +128,10 @@ public class ElementDamageHandler {
 			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
-		// BLOOM - универсальная уязвимость, стакается с уровнями эффекта
+
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
 			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-			// Каждый уровень BLOOM увеличивает получаемый урон на 20%
+
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		event.setNewDamage(damage);
@@ -155,7 +155,7 @@ public class ElementDamageHandler {
 			if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
 			else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
 		}
-		// BLOOM увеличивает накопление элементального урона (стакается с уровнями)
+
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
 			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
 			effectiveAccumMultiplier *= 1.25f * (amplifier + 1);
@@ -165,7 +165,6 @@ public class ElementDamageHandler {
 			effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 1.0f;
 		}
 
-		// Получаем сопротивление от брони
 		float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
 		if (ElementResistanceManager.isImmune(target, type)) {
@@ -183,7 +182,7 @@ public class ElementDamageHandler {
 
 		float finalDamage = event.getNewDamage();
 		finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
-		// Применяем дополнительное сопротивление от брони
+
 		finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 		if (thresholdReached) {
 			finalDamage = applyThresholdEffect(target, type, event, finalDamage);
@@ -349,35 +348,21 @@ public class ElementDamageHandler {
 		return ElementDamageDisplayManager.getAllDamageColors();
 	}
 
-	/**
-	 * Получает суммарное сопротивление к элементальному типу от всей брони сущности.
-	 * @param entity Сущность
-	 * @param type Тип элемента
-	 * @return Суммарное значение сопротивления (0.0 - 0.99)
-	 */
 	private static float getArmorResistanceBonus(LivingEntity entity, ElementType type) {
 		if (entity == null || type == null) return 0.0f;
-		
+
 		float totalResistance = 0.0f;
-		
-		// Проходим по всем предметам брони
+
 		for (ItemStack armorStack : entity.getArmorSlots()) {
 			if (!armorStack.isEmpty()) {
 				float resistance = ElementalResistanceComponent.getResistance(armorStack, type);
 				totalResistance += resistance;
 			}
 		}
-		
-		// Ограничиваем максимальное сопротивление 99% (чтобы избежать полного иммунитета)
+
 		return Math.min(totalResistance, 0.99f);
 	}
 
-	/**
-	 * Применяет сопротивление от брони к урону.
-	 * @param damage Исходный урон
-	 * @param resistanceBonus Бонус сопротивления (0.0 - 1.0)
-	 * @return Урон после применения сопротивления
-	 */
 	private static float applyArmorResistance(float damage, float resistanceBonus) {
 		if (resistanceBonus <= 0.0f) return damage;
 		float multiplier = 1.0f - resistanceBonus;

@@ -8,10 +8,6 @@ import net.minecraft.nbt.CompoundTag;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
- * Компонент данных для добавления сопротивления к элементальным типам урона на броне.
- * Сопротивление хранится как карта ElementType -> float (значение от 0.0 до 1.0)
- */
 public class ElementalResistanceComponent {
 
     public static final String ELEMENT_RESISTANCE_KEY = "elemental_resistance_bonus";
@@ -19,11 +15,6 @@ public class ElementalResistanceComponent {
     public static final String ELEMENT_TYPE_KEY = "element_type";
     public static final String RESISTANCE_VALUE_KEY = "resistance_value";
 
-    /**
-     * Создаёт CustomData с сопротивлениями для установки по умолчанию при регистрации предмета.
-     * @param resistanceMap Карта ElementType -> resistance value
-     * @return CustomData для компонента
-     */
     public static CustomData createDefaultResistanceData(Map<ElementType, Float> resistanceMap) {
         if (resistanceMap == null || resistanceMap.isEmpty()) {
             return CustomData.EMPTY;
@@ -41,13 +32,6 @@ public class ElementalResistanceComponent {
         });
     }
 
-    /**
-     * Добавляет сопротивление к указанному элементальному типу на предмет брони.
-     * @param stack ItemStack брони
-     * @param type Тип элемента
-     * @param resistance Значение сопротивления (0.0 - 1.0, где 1.0 = 100% сопротивление)
-     * @return модифицированный ItemStack
-     */
     public static ItemStack withResistance(ItemStack stack, ElementType type, float resistance) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
@@ -65,12 +49,6 @@ public class ElementalResistanceComponent {
         return stack;
     }
 
-    /**
-     * Добавляет множественные сопротивления к предмету брони.
-     * @param stack ItemStack брони
-     * @param resistanceMap Карта ElementType -> resistance value
-     * @return модифицированный ItemStack
-     */
     public static ItemStack withResistances(ItemStack stack, Map<ElementType, Float> resistanceMap) {
         if (stack == null || stack.isEmpty() || resistanceMap == null) return stack;
 
@@ -90,12 +68,6 @@ public class ElementalResistanceComponent {
         return stack;
     }
 
-    /**
-     * Получает сопротивление к указанному элементальному типу с предмета брони.
-     * @param stack ItemStack брони
-     * @param type Тип элемента
-     * @return значение сопротивления или 0.0 если не найдено
-     */
     public static float getResistance(ItemStack stack, ElementType type) {
         if (stack == null || stack.isEmpty() || type == null) return 0.0f;
 
@@ -109,11 +81,6 @@ public class ElementalResistanceComponent {
         return resistanceTag.contains(type.name()) ? resistanceTag.getFloat(type.name()) : 0.0f;
     }
 
-    /**
-     * Получает все сопротивления с предмета брони.
-     * @param stack ItemStack брони
-     * @return Map ElementType -> resistance value (может быть пустой)
-     */
     public static Map<ElementType, Float> getAllResistances(ItemStack stack) {
         Map<ElementType, Float> result = new EnumMap<>(ElementType.class);
 
@@ -136,11 +103,6 @@ public class ElementalResistanceComponent {
         return result;
     }
 
-    /**
-     * Проверяет, имеет ли предмет какие-либо сопротивления.
-     * @param stack ItemStack брони
-     * @return true если есть хотя бы одно сопротивление > 0
-     */
     public static boolean hasResistance(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
 
@@ -161,21 +123,10 @@ public class ElementalResistanceComponent {
         return false;
     }
 
-    /**
-     * Проверяет, имеет ли предмет сопротивление к конкретному типу элемента.
-     * @param stack ItemStack брони
-     * @param type Тип элемента
-     * @return true если сопротивление > 0
-     */
     public static boolean hasResistance(ItemStack stack, ElementType type) {
         return getResistance(stack, type) > 0.0f;
     }
 
-    /**
-     * Удаляет все сопротивления с предмета.
-     * @param stack ItemStack брони
-     * @return модифицированный ItemStack
-     */
     public static ItemStack removeResistance(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return stack;
 
@@ -188,12 +139,6 @@ public class ElementalResistanceComponent {
         return stack;
     }
 
-    /**
-     * Удаляет сопротивление к конкретному типу элемента.
-     * @param stack ItemStack брони
-     * @param type Тип элемента
-     * @return модифицированный ItemStack
-     */
     public static ItemStack removeResistance(ItemStack stack, ElementType type) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
@@ -203,7 +148,7 @@ public class ElementalResistanceComponent {
                 if (tag.contains(ELEMENT_RESISTANCE_KEY)) {
                     var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
                     resistanceTag.remove(type.name());
-                    // Удаляем пустой тег, если больше нет сопротивлений
+
                     if (resistanceTag.isEmpty()) {
                         tag.remove(ELEMENT_RESISTANCE_KEY);
                     } else {
