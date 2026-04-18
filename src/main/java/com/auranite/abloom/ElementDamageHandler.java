@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -361,9 +360,8 @@ public class ElementDamageHandler {
 		
 		float totalResistance = 0.0f;
 		
-		// Проходим по всем слотам брони
-		for (EquipmentSlot slot : entity.getArmorSlots()) {
-			ItemStack armorStack = entity.getItemBySlot(slot);
+		// Проходим по всем предметам брони
+		for (ItemStack armorStack : entity.getArmorSlots()) {
 			if (!armorStack.isEmpty()) {
 				float resistance = ElementalResistanceComponent.getResistance(armorStack, type);
 				totalResistance += resistance;

@@ -80,5 +80,16 @@
   "elemental.resistance.energy": "Сопротивление энергии",
   "elemental.resistance.natural": "Сопротивление природе",
   "elemental.resistance.quantum": "Сопротивление квантовому урону",
-  "elemental.resistance.element": "Сопротивление %s"
+  "elemental.resistance.element": "Сопротивление %s",
+  "elemental.resistance.tooltip.fire": "Сопр. огню: +%d%%",
+  "elemental.resistance.tooltip.physical": "Сопр. физ.: +%d%%",
+  "elemental.resistance.tooltip.wind": "Сопр. ветру: +%d%%",
+  "elemental.resistance.tooltip.water": "Сопр. воде: +%d%%",
+  "elemental.resistance.tooltip.earth": "Сопр. земле: +%d%%",
+  "elemental.resistance.tooltip.ice": "Сопр. льду: +%d%%",
+  "elemental.resistance.tooltip.electric": "Сопр. электричеству: +%d%%",
+  "elemental.resistance.tooltip.energy": "Сопр. энергии: +%d%%",
+  "elemental.resistance.tooltip.natural": "Сопр. природе: +%d%%",
+  "elemental.resistance.tooltip.quantum": "Сопр. квантам: +%d%%",
+  "elemental.resistance.tooltip.default": "Сопр. %s: +%d%%"
 }

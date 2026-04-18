@@ -80,5 +80,16 @@
   "elemental.resistance.energy": "Energy Resistance",
   "elemental.resistance.natural": "Natural Resistance",
   "elemental.resistance.quantum": "Quantum Resistance",
-  "elemental.resistance.element": "%s Resistance"
+  "elemental.resistance.element": "%s Resistance",
+  "elemental.resistance.tooltip.fire": "Fire Res: +%d%%",
+  "elemental.resistance.tooltip.physical": "Physical Res: +%d%%",
+  "elemental.resistance.tooltip.wind": "Wind Res: +%d%%",
+  "elemental.resistance.tooltip.water": "Water Res: +%d%%",
+  "elemental.resistance.tooltip.earth": "Earth Res: +%d%%",
+  "elemental.resistance.tooltip.ice": "Ice Res: +%d%%",
+  "elemental.resistance.tooltip.electric": "Electric Res: +%d%%",
+  "elemental.resistance.tooltip.energy": "Energy Res: +%d%%",
+  "elemental.resistance.tooltip.natural": "Natural Res: +%d%%",
+  "elemental.resistance.tooltip.quantum": "Quantum Res: +%d%%",
+  "elemental.resistance.tooltip.default": "%s Res: +%d%%"
 }
