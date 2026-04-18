@@ -29,7 +29,7 @@ public class ElementalResistanceComponent {
         if (stack == null || stack.isEmpty() || type == null) return stack;
         
         // Ограничиваем значение сопротивления диапазоном [0.0, 1.0]
-        resistance = Math.max(0.0f, Math.min(1.0f, resistance));
+        final float clampedResistance = Math.max(0.0f, Math.min(1.0f, resistance));
         
         final ElementType finalType = type;
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
@@ -37,7 +37,7 @@ public class ElementalResistanceComponent {
             // Получаем или создаем compound тег для сопротивлений
             var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
             // Сохраняем сопротивление для конкретного типа элемента
-            resistanceTag.putFloat(finalType.name(), resistance);
+            resistanceTag.putFloat(finalType.name(), clampedResistance);
             tag.put(ELEMENT_RESISTANCE_KEY, resistanceTag);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);

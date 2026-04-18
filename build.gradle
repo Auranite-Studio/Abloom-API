@@ -6,7 +6,7 @@ plugins {
 version = '1.0.0-beta.1+1.21.1-neoforge'
 base.archivesName = "Abloom-API"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 neoForge {
     version = "21.1.215"

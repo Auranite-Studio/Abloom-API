@@ -1,51 +1,73 @@
 ```
-# Compiled and build artifacts
+# Dependencies
+.gradle/
+node_modules/
+
+# Build artifacts
+build/
+target/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+.MF
+classes/
+lib/
+logs/
+
+# Compiled
 *.class
 *.o
 *.obj
-*.exe
-*.dll
 *.so
 *.a
+*.dll
+*.exe
 *.out
 
-# Dependencies
-node_modules/
-venv/
-.venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-target/
-.gradle/
-
-# Build directories
-build/
-dist/
-
-# Editor/IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.tmp
-
-# System files
-.DS_Store
-Thumbs.db
+# Environment
 .env
 .env.local
 *.env.*
 
-# Logs
-*.log
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Coverage
-coverage/
+# System
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage*
 htmlcov/
-.coverage
+.pytest_cache/
+.mypy_cache/
 
-# Compressed files
+# Archives
 *.zip
 *.gz
 *.tar
@@ -64,4 +86,8 @@ htmlcov/
 *.Z
 *.lz
 *.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
