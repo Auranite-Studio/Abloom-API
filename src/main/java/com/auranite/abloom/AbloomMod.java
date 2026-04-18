@@ -61,7 +61,6 @@ public class AbloomMod {
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
-        modEventBus.addListener(AbloomModElementalArmor::onCommonSetup);
 
     }
     @SubscribeEvent

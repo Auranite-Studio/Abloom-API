@@ -1,93 +1,22 @@
-```
-# Dependencies
+# Gradle build system ignores
 .gradle/
-node_modules/
-
-# Build artifacts
+.eclipse/
 build/
-target/
-dist/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-*.pot
-*.pyc
-*.pyo
-*.pyd
-.MF
-classes/
-lib/
-logs/
-
-# Compiled
-*.class
-*.o
-*.obj
-*.so
-*.a
-*.dll
-*.exe
-*.out
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Editors
-.vscode/
+# Other IDE related folders
 .idea/
-*.swp
-*.swo
+.settings/
 
-# System
-.DS_Store
-Thumbs.db
+# MCreator workspace
+.mcreator/
 
-# Testing
-.coverage*
-htmlcov/
-.pytest_cache/
-.mypy_cache/
+# Minecraft client/server files
+run/
+runs/
 
-# Archives
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-```
+# MacOS system files
+.DS_STORE
+
+# Other Files (In Eclipse)
+.classpath
+.project

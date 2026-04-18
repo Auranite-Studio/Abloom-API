@@ -1,96 +1,81 @@
 package com.auranite.abloom;
 
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Применяет элементальные сопротивления к ванильной броне на этапе инициализации.
+ * Использует официальный NeoForge-хук ModifyDefaultComponentsEvent (1.20.5+),
+ * который модифицирует DataComponents до создания первого ItemStack.
+ */
 @EventBusSubscriber
 public class AbloomModElementalArmor {
 
+    private static final Map<Item, Map<ElementType, Float>> VANILLA_ARMOR_RESISTANCES = new HashMap<>();
+
+    static {
+        add(Items.NETHERITE_HELMET,     ElementType.FIRE, 0.02f, ElementType.PHYSICAL, 0.02f);
+        add(Items.NETHERITE_CHESTPLATE, ElementType.FIRE, 0.03f, ElementType.PHYSICAL, 0.03f);
+        add(Items.NETHERITE_LEGGINGS,   ElementType.FIRE, 0.03f, ElementType.PHYSICAL, 0.03f);
+        add(Items.NETHERITE_BOOTS,      ElementType.FIRE, 0.02f, ElementType.PHYSICAL, 0.02f);
+
+        add(Items.DIAMOND_HELMET,       ElementType.FIRE, 0.01f, ElementType.PHYSICAL, 0.01f);
+        add(Items.DIAMOND_CHESTPLATE,   ElementType.FIRE, 0.02f, ElementType.PHYSICAL, 0.02f);
+        add(Items.DIAMOND_LEGGINGS,     ElementType.FIRE, 0.01f, ElementType.PHYSICAL, 0.01f);
+        add(Items.DIAMOND_BOOTS,        ElementType.FIRE, 0.01f, ElementType.PHYSICAL, 0.01f);
+
+        add(Items.IRON_HELMET,          ElementType.PHYSICAL, 0.01f);
+        add(Items.IRON_CHESTPLATE,      ElementType.PHYSICAL, 0.02f);
+        add(Items.IRON_LEGGINGS,        ElementType.PHYSICAL, 0.01f);
+        add(Items.IRON_BOOTS,           ElementType.PHYSICAL, 0.01f);
+
+        add(Items.GOLDEN_HELMET,        ElementType.QUANTUM, 0.02f);
+        add(Items.GOLDEN_CHESTPLATE,    ElementType.QUANTUM, 0.03f);
+        add(Items.GOLDEN_LEGGINGS,      ElementType.QUANTUM, 0.03f);
+        add(Items.GOLDEN_BOOTS,         ElementType.QUANTUM, 0.02f);
+
+        add(Items.LEATHER_HELMET,       ElementType.ELECTRIC, 0.02f, ElementType.ICE, 0.1f);
+        add(Items.LEATHER_CHESTPLATE,   ElementType.ELECTRIC, 0.03f, ElementType.ICE, 0.2f);
+        add(Items.LEATHER_LEGGINGS,     ElementType.ELECTRIC, 0.03f, ElementType.ICE, 0.1f);
+        add(Items.LEATHER_BOOTS,        ElementType.ELECTRIC, 0.02f, ElementType.ICE, 0.1f);
+
+        add(Items.CHAINMAIL_HELMET,     ElementType.WIND, 0.03f);
+        add(Items.CHAINMAIL_CHESTPLATE, ElementType.WIND, 0.04f);
+        add(Items.CHAINMAIL_LEGGINGS,   ElementType.WIND, 0.03f);
+        add(Items.CHAINMAIL_BOOTS,      ElementType.WIND, 0.02f);
+    }
+
+    // Вспомогательные методы для обхода лимита Map.of (макс 10 пар)
+    private static void add(Item item, ElementType t1, float v1, ElementType t2, float v2) {
+        VANILLA_ARMOR_RESISTANCES.put(item, Map.of(t1, v1, t2, v2));
+    }
+    private static void add(Item item, ElementType t1, float v1, ElementType t2, float v2, ElementType t3, float v3) {
+        VANILLA_ARMOR_RESISTANCES.put(item, Map.of(t1, v1, t2, v2, t3, v3));
+    }
+    private static void add(Item item, ElementType t1, float v1) {
+        VANILLA_ARMOR_RESISTANCES.put(item, Map.of(t1, v1));
+    }
+
+    /**
+     * 🔹 Главный хук NeoForge 1.20.5+ для модификации дефолтных компонентов предметов.
+     * Вызывается на мод-шине до полной регистрации предметов.
+     */
     @SubscribeEvent
-    public static void onCommonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> {
-            AbloomMod.LOGGER.info("🛡️ Registering elemental armor resistances...");
-
-            registerFireResistArmor();
-            registerPhysicalResistArmor();
-            registerWindResistArmor();
-            registerWaterResistArmor();
-            registerEarthResistArmor();
-            registerIceResistArmor();
-            registerElectricResistArmor();
-            registerEnergyResistArmor();
-            registerNaturalResistArmor();
-            registerQuantumResistArmor();
-
-            AbloomMod.LOGGER.info("✅ Elemental armor registration complete!");
+    public static void modifyDefaultComponents(ModifyDefaultComponentsEvent event) {
+        VANILLA_ARMOR_RESISTANCES.forEach((item, resistances) -> {
+            event.modify(item, builder -> builder.set(
+                    DataComponents.CUSTOM_DATA,
+                    ElementalResistanceComponent.createDefaultResistanceData(resistances)
+            ));
         });
-    }
 
-    private static void registerFireResistArmor() {
-        // Пример: броня с сопротивлением к огню
-        Map<ElementType, Float> fireResist = new HashMap<>();
-        fireResist.put(ElementType.FIRE, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.FIRE_STICK.get(), fireResist);
-    }
-
-    private static void registerPhysicalResistArmor() {
-        // Пример: броня с сопротивлением к физическому урону
-        Map<ElementType, Float> physicalResist = new HashMap<>();
-        physicalResist.put(ElementType.PHYSICAL, 0.10f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.PHYSICAL_STICK.get(), physicalResist);
-    }
-
-    private static void registerWindResistArmor() {
-        Map<ElementType, Float> windResist = new HashMap<>();
-        windResist.put(ElementType.WIND, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.WIND_STICK.get(), windResist);
-    }
-
-    private static void registerWaterResistArmor() {
-        Map<ElementType, Float> waterResist = new HashMap<>();
-        waterResist.put(ElementType.WATER, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.WATER_STICK.get(), waterResist);
-    }
-
-    private static void registerEarthResistArmor() {
-        Map<ElementType, Float> earthResist = new HashMap<>();
-        earthResist.put(ElementType.EARTH, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.EARTH_STICK.get(), earthResist);
-    }
-
-    private static void registerIceResistArmor() {
-        Map<ElementType, Float> iceResist = new HashMap<>();
-        iceResist.put(ElementType.ICE, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.ICE_STICK.get(), iceResist);
-    }
-
-    private static void registerElectricResistArmor() {
-        Map<ElementType, Float> electricResist = new HashMap<>();
-        electricResist.put(ElementType.ELECTRIC, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.ELECTRIC_STICK.get(), electricResist);
-    }
-
-    private static void registerEnergyResistArmor() {
-        Map<ElementType, Float> energyResist = new HashMap<>();
-        energyResist.put(ElementType.ENERGY, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.ENERGY_STICK.get(), energyResist);
-    }
-
-    private static void registerNaturalResistArmor() {
-        Map<ElementType, Float> naturalResist = new HashMap<>();
-        naturalResist.put(ElementType.NATURAL, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.NATURAL_STICK.get(), naturalResist);
-    }
-
-    private static void registerQuantumResistArmor() {
-        Map<ElementType, Float> quantumResist = new HashMap<>();
-        quantumResist.put(ElementType.QUANTUM, 0.15f);
-        ElementalResistanceUtils.registerArmor(AbloomModItems.QUANTUM_STICK.get(), quantumResist);
+        AbloomMod.LOGGER.info("🛡️ Vanilla armor resistances registered via DataComponents.");
     }
 }
