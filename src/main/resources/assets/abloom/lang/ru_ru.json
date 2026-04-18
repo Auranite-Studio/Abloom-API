@@ -68,5 +68,17 @@
   "item.abloom.electric_stick": "Электрическая палочка",
   "item.abloom.energy_stick": "Энергетическая палочка",
   "item.abloom.natural_stick": "Природная палочка",
-  "item.abloom.quantum_stick": "Квантовая палочка"
+  "item.abloom.quantum_stick": "Квантовая палочка",
+  "elemental.resistance.header": "Сопротивления элементам:",
+  "elemental.resistance.fire": "Сопротивление огню",
+  "elemental.resistance.physical": "Сопротивление физическому урону",
+  "elemental.resistance.wind": "Сопротивление ветру",
+  "elemental.resistance.water": "Сопротивление воде",
+  "elemental.resistance.earth": "Сопротивление земле",
+  "elemental.resistance.ice": "Сопротивление льду",
+  "elemental.resistance.electric": "Сопротивление электричеству",
+  "elemental.resistance.energy": "Сопротивление энергии",
+  "elemental.resistance.natural": "Сопротивление природе",
+  "elemental.resistance.quantum": "Сопротивление квантовому урону",
+  "elemental.resistance.element": "Сопротивление %s"
 }

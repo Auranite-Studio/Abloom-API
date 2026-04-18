@@ -68,6 +68,17 @@
   "item.abloom.electric_stick": "Electric Stick",
   "item.abloom.energy_stick": "Energy Stick",
   "item.abloom.natural_stick": "Natural Stick",
-  "item.abloom.quantum_stick": "Quantum Stick"
-
+  "item.abloom.quantum_stick": "Quantum Stick",
+  "elemental.resistance.header": "Elemental Resistances:",
+  "elemental.resistance.fire": "Fire Resistance",
+  "elemental.resistance.physical": "Physical Resistance",
+  "elemental.resistance.wind": "Wind Resistance",
+  "elemental.resistance.water": "Water Resistance",
+  "elemental.resistance.earth": "Earth Resistance",
+  "elemental.resistance.ice": "Ice Resistance",
+  "elemental.resistance.electric": "Electric Resistance",
+  "elemental.resistance.energy": "Energy Resistance",
+  "elemental.resistance.natural": "Natural Resistance",
+  "elemental.resistance.quantum": "Quantum Resistance",
+  "elemental.resistance.element": "%s Resistance"
 }

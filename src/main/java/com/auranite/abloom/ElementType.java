@@ -162,4 +162,12 @@ public enum ElementType {
     public String toString() {
         return name();
     }
+
+    /**
+     * Возвращает отображаемое имя типа элемента для использования в локализации.
+     * @return Имя элемента в нижнем регистре с заглавной первой буквой
+     */
+    public String getDisplayName() {
+        return name().charAt(0) + name().substring(1).toLowerCase();
+    }
 }

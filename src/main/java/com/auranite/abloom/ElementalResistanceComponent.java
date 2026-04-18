@@ -31,12 +31,13 @@ public class ElementalResistanceComponent {
         // Ограничиваем значение сопротивления диапазоном [0.0, 1.0]
         resistance = Math.max(0.0f, Math.min(1.0f, resistance));
         
+        final ElementType finalType = type;
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         customData.update(tag -> {
             // Получаем или создаем compound тег для сопротивлений
             var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
             // Сохраняем сопротивление для конкретного типа элемента
-            resistanceTag.putFloat(type.name(), resistance);
+            resistanceTag.putFloat(finalType.name(), resistance);
             tag.put(ELEMENT_RESISTANCE_KEY, resistanceTag);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);

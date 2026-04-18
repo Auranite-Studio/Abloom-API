@@ -68,7 +68,7 @@ public class ElementalResistanceTooltipHandler {
             case ENERGY -> Component.translatable(KEY_RESISTANCE_ENERGY);
             case NATURAL -> Component.translatable(KEY_RESISTANCE_NATURAL);
             case QUANTUM -> Component.translatable(KEY_RESISTANCE_QUANTUM);
-            default -> Component.translatable(KEY_RESISTANCE_DEFAULT, type.name());
+            default -> Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
         };
 
         // Форматируем процент сопротивления
