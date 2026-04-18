@@ -33,7 +33,6 @@ public class AbloomModAttachments {
     }
 
 
-
     public static Map<ElementType, Integer> getAccumulator(LivingEntity entity) {
         return entity.getData(ELEMENT_ACCUMULATOR.get());
     }
@@ -64,7 +63,6 @@ public class AbloomModAttachments {
     }
 
 
-
     public static void setProjectileElement(Entity entity, ElementType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
             entity.setData(PROJECTILE_ELEMENT.get(), type);
@@ -82,7 +80,6 @@ public class AbloomModAttachments {
         ElementType element = getProjectileElement(entity);
         return element != null;
     }
-
 
 
     public static void clearProjectileElement(Entity entity) {

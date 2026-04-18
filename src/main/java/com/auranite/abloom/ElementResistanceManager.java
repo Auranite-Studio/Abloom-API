@@ -20,9 +20,6 @@ public class ElementResistanceManager {
 	private ElementResistanceManager() {}
 
 
-
-
-
 	public static void registerResistance(EntityType<?> entityType, Map<ElementType, Resistance> resistanceMap) {
 		if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
 
@@ -67,9 +64,6 @@ public class ElementResistanceManager {
 	}
 
 
-
-
-
 	private static void tryLazyLoadFromTags(EntityType<?> entityType, ElementType elementType) {
 		if (entityType == null || elementType == null) return;
 
@@ -81,8 +75,6 @@ public class ElementResistanceManager {
 
 		String elementLower = elementType.name().toLowerCase();
 		String modid = AbloomMod.MODID;
-
-
 
 
 		TagKey<EntityType<?>> immuneTag = createTag(modid, elementLower, "immune");
@@ -115,9 +107,6 @@ public class ElementResistanceManager {
 	}
 
 
-
-
-
 	public static Resistance getResistance(Entity entity, ElementType type) {
 		if (entity == null || type == null) return Resistance.ZERO;
 		return getResistance(entity.getType(), type);
@@ -138,9 +127,6 @@ public class ElementResistanceManager {
 		Resistance res = typeMap.get(type);
 		return res != null ? res : Resistance.ZERO;
 	}
-
-
-
 
 
 	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
@@ -192,9 +178,6 @@ public class ElementResistanceManager {
 	}
 
 
-
-
-
 	public static void clearAllResistances() {
 		ENTITY_RESISTANCES.clear();
 		TAG_CHECKED_ENTITIES.clear();
@@ -218,9 +201,6 @@ public class ElementResistanceManager {
 			AbloomMod.LOGGER.info("  {} → {}", type.getDescriptionId(), map);
 		});
 	}
-
-
-
 
 
 	public record Resistance(float accumulationResistance, float damageResistance) {

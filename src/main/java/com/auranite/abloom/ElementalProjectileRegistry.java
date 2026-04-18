@@ -33,8 +33,6 @@ public class ElementalProjectileRegistry {
     }
 
 
-
-
     public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier) {
         if (entityType == null || element == null) {
             AbloomMod.LOGGER.warn("Cannot register null projectile type or element");
@@ -55,7 +53,6 @@ public class ElementalProjectileRegistry {
         PROJECTILE_CLASS_ACCUM_MAP.put(entityClass, accumulationMultiplier);
         AbloomMod.LOGGER.debug("Registered projectile class {} → {} (accum: x{})", entityClass.getSimpleName(), element, accumulationMultiplier);
     }
-
 
 
     public static Optional<ElementType> getElementForType(EntityType<?> entityType) {
@@ -85,7 +82,6 @@ public class ElementalProjectileRegistry {
     }
 
 
-
     public static Optional<Float> getAccumulationMultiplierForEntity(Entity entity) {
         if (entity == null) return Optional.empty();
 
@@ -112,7 +108,6 @@ public class ElementalProjectileRegistry {
     }
 
 
-
     public static boolean applyElementToProjectile(Entity projectile, LivingEntity shooter) {
         if (projectile == null || projectile.level().isClientSide) return false;
 
@@ -136,7 +131,6 @@ public class ElementalProjectileRegistry {
     }
 
 
-
     public static void setInheritElementFromShooter(boolean value) {
         inheritElementFromShooter = value;
     }
@@ -144,7 +138,6 @@ public class ElementalProjectileRegistry {
     public static boolean getInheritElementFromShooter() {
         return inheritElementFromShooter;
     }
-
 
 
     public static <T extends Entity> T createAndLaunchElementalProjectile(

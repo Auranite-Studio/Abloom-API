@@ -15,7 +15,6 @@ public class AbloomModElementalProjectiles {
     public static void registerAll() {
 
 
-
         ElementalProjectileRegistry.registerProjectile(EntityType.FIREBALL, ElementType.FIRE, 0f);
         ElementalProjectileRegistry.registerProjectile(EntityType.SMALL_FIREBALL, ElementType.FIRE, 0f);
         ElementalProjectileRegistry.registerProjectile(EntityType.DRAGON_FIREBALL, ElementType.ENERGY, 0f);
@@ -29,7 +28,6 @@ public class AbloomModElementalProjectiles {
         ElementalProjectileRegistry.registerProjectile(EntityType.WIND_CHARGE, ElementType.WIND, 0f);
 
 
-
         registerCustomProjectiles();
 
         AbloomMod.LOGGER.info("Registered {} elemental projectile types",
@@ -38,9 +36,6 @@ public class AbloomModElementalProjectiles {
 
 
     private static void registerCustomProjectiles() {
-
-
-
 
 
     }
