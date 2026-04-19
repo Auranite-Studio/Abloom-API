@@ -23,7 +23,7 @@ public class ElementalTooltipHandler {
     private static final String KEY_ELEMENT_NATURAL = "elemental.tooltip.natural";
     private static final String KEY_ELEMENT_QUANTUM = "elemental.tooltip.quantum";
     private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
-    private static final String KEY_ACCUM_MULTIPLIER = "elemental.tooltip.accum_multiplier";
+    private static final String KEY_ACCUM_POINTS = "elemental.tooltip.accum_points";
 
     private static final String KEY_RESISTANCE_HEADER = "elemental.resistance.header";
     private static final String KEY_RESISTANCE_FIRE = "elemental.resistance.fire";
@@ -73,7 +73,7 @@ public class ElementalTooltipHandler {
             event.getToolTip().add(1, elementText);
 
             MutableComponent accumText = Component.translatable(
-                    KEY_ACCUM_MULTIPLIER,
+                    KEY_ACCUM_POINTS,
                     String.format("%.1f", accumMultiplier)
             );
             accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
