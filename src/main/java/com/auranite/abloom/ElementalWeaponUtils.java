@@ -87,9 +87,9 @@ public class ElementalWeaponUtils {
         return addElementToStackWithAccum(stack, type, 1.0f);
     }
 
-    public static ItemStack addElementToStackWithAccum(ItemStack stack, ElementType type, float accumMultiplier) {
+    public static ItemStack addElementToStackWithAccum(ItemStack stack, ElementType type, float accumPoints) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
-        return ElementalWeaponComponent.withElementAndAccum(stack, type, accumMultiplier);
+        return ElementalWeaponComponent.withElementAndAccum(stack, type, accumPoints);
     }
 
     public static ItemStack removeElementFromStack(ItemStack stack) {

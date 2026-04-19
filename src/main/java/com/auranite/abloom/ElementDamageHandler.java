@@ -271,8 +271,8 @@ public class ElementDamageHandler {
 		return ElementalWeaponComponent.withElement(new ItemStack(item, count), type);
 	}
 
-	public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, ElementType type, int count, float accumMultiplier) {
-		return ElementalWeaponComponent.withElementAndAccum(new ItemStack(item, count), type, accumMultiplier);
+	public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, ElementType type, int count, float accumPoints) {
+		return ElementalWeaponComponent.withElementAndAccum(new ItemStack(item, count), type, accumPoints);
 	}
 
 	private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
@@ -559,17 +559,17 @@ public class ElementDamageHandler {
 		updateLastDamageTime(livingTarget, type);
 	}
 
-	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier) {
-		dealElementDamageWithAccum(target, type, amount, accumMultiplier, null);
+	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumPoints) {
+		dealElementDamageWithAccum(target, type, amount, accumPoints, null);
 	}
-	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumPoints, Entity attacker) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-		try { processDealElementDamageWithAccum(target, type, amount, accumMultiplier, attacker); }
+		try { processDealElementDamageWithAccum(target, type, amount, accumPoints, attacker); }
 		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
-	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumPoints, Entity attacker) {
 		if (!(target.level() instanceof ServerLevel serverLevel)) return;
 		if (!(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, type)) return;
@@ -609,7 +609,7 @@ public class ElementDamageHandler {
 
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+		pointsToAdd = Math.round(pointsToAdd * accumPoints * accumBonus);
 
 		if (pointsToAdd > 0) {
 			AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
@@ -656,14 +656,14 @@ public class ElementDamageHandler {
 		}
 	}
 
-	public static void applyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
+	public static void applyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumPoints) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-		try { processApplyElementalDamageInstant(target, source, elementalType, baseDamage, accumMultiplier); }
+		try { processApplyElementalDamageInstant(target, source, elementalType, baseDamage, accumPoints); }
 		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
-	private static void processApplyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
+	private static void processApplyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumPoints) {
 		if (!(target.level() instanceof ServerLevel serverLevel) || !(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, elementalType)) return;
 
@@ -701,7 +701,7 @@ public class ElementDamageHandler {
 
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, elementalType, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+		pointsToAdd = Math.round(pointsToAdd * accumPoints * accumBonus);
 
 		if (pointsToAdd > 0) {
 			AbloomModAttachments.addPoints(livingTarget, elementalType, pointsToAdd);
