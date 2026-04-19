@@ -195,7 +195,7 @@ public class ElementResistanceManager {
 
 	public record Resistance(float accumulationResistance, float damageResistance) {
 		public static final Resistance ZERO = new Resistance(0.0f, 0.0f);
-		public static final Resistance IMMUNE = new Resistance(1.0f, 1.0f);
+		public static final Resistance IMMUNE = new Resistance(1.0f, 0.99f);
 		public static final Resistance HALF_RESIST = new Resistance(0.5f, 0.5f);
 		public static final Resistance WEAKNESS = new Resistance(-0.5f, -0.5f);
 
