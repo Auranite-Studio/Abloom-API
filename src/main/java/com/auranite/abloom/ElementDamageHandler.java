@@ -158,7 +158,7 @@ public class ElementDamageHandler {
 
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
 			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-			effectiveAccumMultiplier *= 1.25f * (amplifier + 1);
+			effectiveAccumMultiplier *= 1.20f * (amplifier + 1);
 		}
 		if (target.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -511,18 +511,18 @@ public class ElementDamageHandler {
 		float damageMultiplier = 1.0f;
 		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			damageMultiplier *= Math.max(0.1f, reduction);
 		}
 
 		float accumBonus = 1.0f;
 		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-			damageMultiplier *= 1.25f;
-			accumBonus *= 1.25f;
+			damageMultiplier *= 1.20f;
+			accumBonus *= 1.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -585,18 +585,18 @@ public class ElementDamageHandler {
 		float damageMultiplier = 1.0f;
 		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			damageMultiplier *= Math.max(0.1f, reduction);
 		}
 
 		float accumBonus = 1.0f;
 		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-			damageMultiplier *= 1.25f;
-			accumBonus *= 1.25f;
+			damageMultiplier *= 1.20f;
+			accumBonus *= 1.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -678,18 +678,18 @@ public class ElementDamageHandler {
 		float damageMultiplier = 1.0f;
 		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			damageMultiplier *= Math.max(0.1f, reduction);
 		}
 
 		float accumBonus = 1.0f;
 		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-			damageMultiplier *= 1.25f;
-			accumBonus *= 1.25f;
+			damageMultiplier *= 1.20f;
+			accumBonus *= 1.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
