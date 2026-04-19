@@ -36,10 +36,10 @@ public class AbloomModElementalArmor {
         add(Items.GOLDEN_LEGGINGS,      ElementType.QUANTUM, 0.03f);
         add(Items.GOLDEN_BOOTS,         ElementType.QUANTUM, 0.02f);
 
-        add(Items.LEATHER_HELMET,       ElementType.ELECTRIC, 0.02f, ElementType.ICE, 0.1f);
-        add(Items.LEATHER_CHESTPLATE,   ElementType.ELECTRIC, 0.03f, ElementType.ICE, 0.2f);
-        add(Items.LEATHER_LEGGINGS,     ElementType.ELECTRIC, 0.03f, ElementType.ICE, 0.1f);
-        add(Items.LEATHER_BOOTS,        ElementType.ELECTRIC, 0.02f, ElementType.ICE, 0.1f);
+        add(Items.LEATHER_HELMET,       ElementType.ELECTRIC, 0.02f, ElementType.ICE, 0.01f);
+        add(Items.LEATHER_CHESTPLATE,   ElementType.ELECTRIC, 0.03f, ElementType.ICE, 0.02f);
+        add(Items.LEATHER_LEGGINGS,     ElementType.ELECTRIC, 0.03f, ElementType.ICE, 0.01f);
+        add(Items.LEATHER_BOOTS,        ElementType.ELECTRIC, 0.02f, ElementType.ICE, 0.01f);
 
         add(Items.CHAINMAIL_HELMET,     ElementType.WIND, 0.03f);
         add(Items.CHAINMAIL_CHESTPLATE, ElementType.WIND, 0.04f);
