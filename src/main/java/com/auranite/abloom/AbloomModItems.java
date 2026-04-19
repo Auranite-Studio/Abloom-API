@@ -23,7 +23,6 @@ public class AbloomModItems {
     public static final DeferredItem<Item> NATURAL_STICK;
     public static final DeferredItem<Item> QUANTUM_STICK;
 
-
     private static final Item.Properties STICK_PROPS = new Item.Properties()
             .stacksTo(1)
             .rarity(Rarity.RARE);

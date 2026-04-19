@@ -128,8 +128,11 @@ public class ElementDamageHandler {
 			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
+
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
-			damage *= 1.20f;
+			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+
+			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		event.setNewDamage(damage);
 
@@ -152,11 +155,17 @@ public class ElementDamageHandler {
 			if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
 			else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
 		}
-		if (target.hasEffect(AbloomModEffects.BLOOM)) effectiveAccumMultiplier *= 1.25f;
+
+		if (target.hasEffect(AbloomModEffects.BLOOM)) {
+			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+			effectiveAccumMultiplier *= 1.25f * (amplifier + 1);
+		}
 		if (target.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
 			effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 1.0f;
 		}
+
+		float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
 		if (ElementResistanceManager.isImmune(target, type)) {
 			event.setNewDamage(0f);
@@ -173,6 +182,8 @@ public class ElementDamageHandler {
 
 		float finalDamage = event.getNewDamage();
 		finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+
+		finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 		if (thresholdReached) {
 			finalDamage = applyThresholdEffect(target, type, event, finalDamage);
 			AbloomModAttachments.resetPoints(target, type);
@@ -335,6 +346,27 @@ public class ElementDamageHandler {
 	}
 	public static Map<ElementType, Integer> getAllDamageColors() {
 		return ElementDamageDisplayManager.getAllDamageColors();
+	}
+
+	private static float getArmorResistanceBonus(LivingEntity entity, ElementType type) {
+		if (entity == null || type == null) return 0.0f;
+
+		float totalResistance = 0.0f;
+
+		for (ItemStack armorStack : entity.getArmorSlots()) {
+			if (!armorStack.isEmpty()) {
+				float resistance = ElementalResistanceComponent.getResistance(armorStack, type);
+				totalResistance += resistance;
+			}
+		}
+
+		return Math.min(totalResistance, 0.99f);
+	}
+
+	private static float applyArmorResistance(float damage, float resistanceBonus) {
+		if (resistanceBonus <= 0.0f) return damage;
+		float multiplier = 1.0f - resistanceBonus;
+		return Math.max(0.0f, damage * multiplier);
 	}
 
 	private static float applyThresholdEffect(LivingEntity target, ElementType type, LivingDamageEvent.Pre event, float currentDamage) {

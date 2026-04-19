@@ -6,17 +6,14 @@ import net.minecraft.world.item.component.CustomData;
 
 import java.util.Optional;
 
-
 public class ElementalWeaponComponent {
 
     public static final String ELEMENT_TYPE_KEY = "element_type";
     public static final String ACCUM_MULTIPLIER_KEY = "accum_multiplier";
 
-
     public static ItemStack withElement(ItemStack stack, ElementType type) {
         return withElementAndAccum(stack, type, 1f);
     }
-
 
     public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumMultiplier) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
@@ -30,7 +27,6 @@ public class ElementalWeaponComponent {
 
         return stack;
     }
-
 
     public static Optional<ElementType> getElement(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return Optional.empty();
@@ -48,7 +44,6 @@ public class ElementalWeaponComponent {
         }
     }
 
-
     public static float getAccumMultiplier(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 1.0f;
 
@@ -58,11 +53,9 @@ public class ElementalWeaponComponent {
         return customData.copyTag().getFloat(ACCUM_MULTIPLIER_KEY);
     }
 
-
     public static boolean hasElement(ItemStack stack) {
         return getElement(stack).isPresent();
     }
-
 
     public static ItemStack removeElement(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return stack;
@@ -79,4 +72,3 @@ public class ElementalWeaponComponent {
         return stack;
     }
 }
-
