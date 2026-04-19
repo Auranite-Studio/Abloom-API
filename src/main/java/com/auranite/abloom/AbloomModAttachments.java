@@ -16,12 +16,10 @@ public class AbloomModAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, AbloomMod.MODID);
 
-
     public static final Supplier<AttachmentType<Map<ElementType, Integer>>> ELEMENT_ACCUMULATOR =
             ATTACHMENT_TYPES.register("element_accumulator", () ->
                     AttachmentType.<Map<ElementType, Integer>>builder(() -> new EnumMap<>(ElementType.class)).build()
             );
-
 
     public static final Supplier<AttachmentType<ElementType>> PROJECTILE_ELEMENT =
             ATTACHMENT_TYPES.register("projectile_element", () ->
@@ -31,8 +29,6 @@ public class AbloomModAttachments {
     public static void register(IEventBus modEventBus) {
         ATTACHMENT_TYPES.register(modEventBus);
     }
-
-
 
     public static Map<ElementType, Integer> getAccumulator(LivingEntity entity) {
         return entity.getData(ELEMENT_ACCUMULATOR.get());
@@ -63,8 +59,6 @@ public class AbloomModAttachments {
         getAccumulator(entity).clear();
     }
 
-
-
     public static void setProjectileElement(Entity entity, ElementType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
             entity.setData(PROJECTILE_ELEMENT.get(), type);
@@ -83,13 +77,9 @@ public class AbloomModAttachments {
         return element != null;
     }
 
-
-
     public static void clearProjectileElement(Entity entity) {
 
-
         if (entity != null && !entity.level().isClientSide) {
-
 
         }
     }

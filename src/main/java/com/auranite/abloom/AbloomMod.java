@@ -31,14 +31,12 @@ import java.util.HashMap;
 import java.util.Collection;
 import java.util.ArrayList;
 
-
 @Mod("abloom")
 public class AbloomMod {
     public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
 
     public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
-
 
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
@@ -60,6 +58,7 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
+        modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
 
     }
     @SubscribeEvent
@@ -76,7 +75,6 @@ public class AbloomMod {
         }
     }
 
-
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Pre event) {
         MinecraftServer server = event.getServer();
@@ -90,7 +88,6 @@ public class AbloomMod {
             }
         }
     }
-
 
     private static boolean networkingRegistered = false;
     private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
@@ -118,9 +115,6 @@ public class AbloomMod {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
     }
-
-
-
 
     @SubscribeEvent
     public void tick(ServerTickEvent.Post event) {

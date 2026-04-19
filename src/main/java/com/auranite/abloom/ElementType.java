@@ -92,7 +92,6 @@ public enum ElementType {
                  "falling_anvil",
                  "falling_block" -> EARTH;
 
-
             case "lightning_bolt" -> ELECTRIC;
 
             case "freeze",
@@ -116,7 +115,6 @@ public enum ElementType {
                  "generic_kill",
                  "void",
                  "outside_border" -> QUANTUM;
-
 
             default -> {
                 AbloomMod.LOGGER.debug("Unknown DamageType '{}', defaulting to PHYSICAL", id);
@@ -161,5 +159,9 @@ public enum ElementType {
     @Override
     public String toString() {
         return name();
+    }
+
+    public String getDisplayName() {
+        return name().charAt(0) + name().substring(1).toLowerCase();
     }
 }
