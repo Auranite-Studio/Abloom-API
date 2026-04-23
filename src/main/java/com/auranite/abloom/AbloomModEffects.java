@@ -12,7 +12,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class AbloomModEffects {
     public static final DeferredRegister<MobEffect> REGISTRY = DeferredRegister.create(Registries.MOB_EFFECT, AbloomMod.MODID);
-    public static final DeferredHolder<MobEffect, MobEffect> BURNING = REGISTRY.register("burning", () -> new BurningEffect(0xFF5500));
+    public static final DeferredHolder<MobEffect, MobEffect> BURN = REGISTRY.register("burn", () -> new BurnEffect(0xFF5500));
     public static final DeferredHolder<MobEffect, MobEffect> WETNESS = REGISTRY.register("wetness", () -> new WetnessEffect(0x0080FF));
     public static final DeferredHolder<MobEffect, MobEffect> STUN = REGISTRY.register("stun", () -> new StunEffect(0x8B4513));
     public static final DeferredHolder<MobEffect, MobEffect> FREEZE = REGISTRY.register("freeze", () -> new FreezeEffect(0x00BFFF));
@@ -20,6 +20,7 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> BREAK = REGISTRY.register("break", () -> new BreakEffect(0x9400D3));
     public static final DeferredHolder<MobEffect, MobEffect> BLOOM = REGISTRY.register("bloom", () -> new BloomEffect(0x32CD32));
     public static final DeferredHolder<MobEffect, MobEffect> OVERLOAD = REGISTRY.register("overload", () -> new OverloadEffect(0xFF00FF));
+    public static final DeferredHolder<MobEffect, MobEffect> EROSION = REGISTRY.register("erosion", () -> new ErosionEffect(0x00FFFF));
 
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
