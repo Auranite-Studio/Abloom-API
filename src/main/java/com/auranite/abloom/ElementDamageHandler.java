@@ -136,21 +136,7 @@ public class ElementDamageHandler {
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 
-		boolean erosionTriggered = false;
-		if (target.hasEffect(AbloomModEffects.EROSION)) {
-			DamageSource source = event.getSource();
-			ElementType type = getElementTypeFromSource(source);
-			if (type != null && type != ElementType.WIND) {
-				target.removeEffect(AbloomModEffects.EROSION);
-				triggerErosionExplosion(target, attacker);
-				erosionTriggered = true;
-			}
-		}
-		if (erosionTriggered) {
-			event.setNewDamage(damage);
-			return;
-		}
-		event.setNewDamage(damage);
+		boolean erosionActive = target.hasEffect(AbloomModEffects.EROSION);
 
 		DamageSource source = event.getSource();
 		ElementType type = getElementTypeFromSource(source);
@@ -191,6 +177,10 @@ public class ElementDamageHandler {
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
+
+		if (erosionActive) {
+			pointsToAdd = 100;
+		}
 
 		AbloomModAttachments.addPoints(target, type, pointsToAdd);
 		int pointsAfter = AbloomModAttachments.getPoints(target, type);
@@ -729,36 +719,5 @@ public class ElementDamageHandler {
 		if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, elementalType);
 		target.hurt(dmgSource, finalDamage);
 		updateLastDamageTime(livingTarget, elementalType);
-	}
-
-	private static void triggerErosionExplosion(LivingEntity target, LivingEntity attacker) {
-		spawnStatusText(target, Component.translatable("elemental.tooltip.erosion_explosion"), 0x00FFFF);
-
-		if (!(target.level() instanceof ServerLevel serverLevel)) return;
-
-		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, ElementType.WIND.getDamageTypeId());
-		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
-		if (damageTypeHolder.isEmpty()) return;
-
-		DamageSource windSource = new DamageSource(damageTypeHolder.get(), attacker != null ? attacker : target, attacker != null ? attacker : target);
-
-		float explosionDamage = 5.0f;
-
-		List<Entity> nearbyEntities = serverLevel.getEntitiesOfClass(Entity.class, target.getBoundingBox().inflate(5.0));
-		for (Entity entity : nearbyEntities) {
-			if (entity instanceof LivingEntity livingEntity && entity != target) {
-				if (!ElementResistanceManager.isImmune(entity, ElementType.WIND)) {
-					livingEntity.hurt(windSource, explosionDamage);
-					int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingEntity, ElementType.WIND, 30);
-					AbloomModAttachments.addPoints(livingEntity, ElementType.WIND, pointsToAdd);
-					if (AbloomModAttachments.getPoints(livingEntity, ElementType.WIND) >= THRESHOLD) {
-						applyThresholdEffectWithDamage(livingEntity, ElementType.WIND, explosionDamage);
-						AbloomModAttachments.resetPoints(livingEntity, ElementType.WIND);
-					}
-					if (canShowDamage(livingEntity)) spawnDamageNumber(livingEntity, explosionDamage, ElementType.WIND);
-				}
-			}
-		}
 	}
 }
