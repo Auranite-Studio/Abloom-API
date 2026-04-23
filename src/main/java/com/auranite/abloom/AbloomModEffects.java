@@ -20,6 +20,7 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> BREAK = REGISTRY.register("break", () -> new BreakEffect(0x9400D3));
     public static final DeferredHolder<MobEffect, MobEffect> BLOOM = REGISTRY.register("bloom", () -> new BloomEffect(0x32CD32));
     public static final DeferredHolder<MobEffect, MobEffect> OVERLOAD = REGISTRY.register("overload", () -> new OverloadEffect(0xFF00FF));
+    public static final DeferredHolder<MobEffect, MobEffect> EROSION = REGISTRY.register("erosion", () -> new ErosionEffect(0x00FFFF));
 
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {

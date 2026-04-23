@@ -1,22 +1,44 @@
-# Gradle build system ignores
+```
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.a
+*.out
+
+# Dependencies
+lib/
+deps/
+target/
 .gradle/
-.eclipse/
-build/
+.mypy_cache/
+.pytest_cache/
+node_modules/
+venv/
+.venv/
+__pycache__/
 
-# Other IDE related folders
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
 .idea/
-.settings/
 
-# MCreator workspace
-.mcreator/
-
-# Minecraft client/server files
-run/
-runs/
-
-# MacOS system files
-.DS_STORE
-
-# Other Files (In Eclipse)
-.classpath
-.project
+# Build systems
+build/
+dist/
+out/
+bin/
+```
