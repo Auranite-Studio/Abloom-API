@@ -48,7 +48,7 @@ When reaching 100 accumulation resonance points:
 | **ELECTRIC** | Electric resonance explosion, applies Shock effect (target deals 20% less damage per level) | 10 seconds (200 ticks) |
 | **ENERGY** | Energy resonance explosion, applies Rift effect (damage taken by target increased by 20% per level) | 10 seconds (200 ticks) |
 | **NATURAL** | Natural resonance explosion, applies Bloom effect (target takes periodic damage and receives 20% universal vulnerability per level) | 8 seconds (160 ticks) |
-| **QUANTUM** | Quantum resonance explosion, applies Break effect (all damage to target ignores defense) | 8 seconds (160 ticks) |
+| **QUANTUM** | Quantum resonance explosion, applies Overload effect (all damage to target ignores defense) | 8 seconds (160 ticks) |
 
 ### 4. Custom Mob Effects
 
@@ -58,7 +58,7 @@ The mod includes 8 custom mob effects:
 - **Stun** (Earth) - Prevents movement and actions
 - **Freeze** (Ice) - Immobilizes target
 - **Shock** (Electric) - Reduces damage output
-- **Rift** (Energy) - Increases damage taken
+- **Overload** (Energy) - Increases damage taken
 - **Bloom** (Natural) - Periodic damage + vulnerability
 - **Break** (Quantum) - Ignores defense
 

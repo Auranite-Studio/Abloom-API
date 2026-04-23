@@ -3,8 +3,8 @@ package com.auranite.abloom.effect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
-public class RiftEffect extends MobEffect {
-    public RiftEffect(int color) {
+public class OverloadEffect extends MobEffect {
+    public OverloadEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
     }
 

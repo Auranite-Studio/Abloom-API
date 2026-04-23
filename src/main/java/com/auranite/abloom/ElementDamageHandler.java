@@ -124,8 +124,8 @@ public class ElementDamageHandler {
 			reduction = Math.max(0.1f, reduction);
 			damage *= reduction;
 		}
-		if (target.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
+		if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 
@@ -406,8 +406,8 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case ENERGY -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0xFFFF00);
+				target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
 				yield currentDamage;
 			}
 			case NATURAL -> {
@@ -461,8 +461,8 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case ENERGY -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0xFFFF00);
+				target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
 				yield originalDamage;
 			}
 			case NATURAL -> {
@@ -520,8 +520,8 @@ public class ElementDamageHandler {
 			damageMultiplier *= 1.20f;
 			accumBonus *= 1.20f;
 		}
-		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
+		if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
 			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
@@ -594,8 +594,8 @@ public class ElementDamageHandler {
 			damageMultiplier *= 1.20f;
 			accumBonus *= 1.20f;
 		}
-		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
+		if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
 			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
@@ -687,8 +687,8 @@ public class ElementDamageHandler {
 			damageMultiplier *= 1.20f;
 			accumBonus *= 1.20f;
 		}
-		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
+		if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
 			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
