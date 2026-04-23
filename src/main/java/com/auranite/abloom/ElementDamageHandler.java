@@ -1,13 +1,10 @@
 package com.auranite.abloom;
 
 import com.auranite.abloom.effect.ErosionEffect;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -733,31 +730,20 @@ public class ElementDamageHandler {
 	}
 
 	private static void triggerErosionExplosion(LivingEntity target, LivingEntity attacker, ElementType triggerType) {
-		spawnStatusText(target, Component.translatable("elemental.tooltip.erosion_explosion"), 0x00FFFF);
 
 		if (!(target.level() instanceof ServerLevel serverLevel)) return;
-
-		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, triggerType.getDamageTypeId());
-		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
-		if (damageTypeHolder.isEmpty()) return;
-
-		DamageSource elementSource = new DamageSource(damageTypeHolder.get(), attacker != null ? attacker : target, attacker != null ? attacker : target);
-
-		float explosionDamage = 5.0f;
 
 		List<Entity> nearbyEntities = serverLevel.getEntitiesOfClass(Entity.class, target.getBoundingBox().inflate(5.0));
 		for (Entity entity : nearbyEntities) {
 			if (entity instanceof LivingEntity livingEntity && entity != target) {
 				if (!ElementResistanceManager.isImmune(entity, triggerType)) {
-					livingEntity.hurt(elementSource, explosionDamage);
-					int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingEntity, triggerType, 30);
+					int pointsToAdd = 100;
 					AbloomModAttachments.addPoints(livingEntity, triggerType, pointsToAdd);
 					if (AbloomModAttachments.getPoints(livingEntity, triggerType) >= THRESHOLD) {
-						applyThresholdEffectWithDamage(livingEntity, triggerType, explosionDamage);
+						applyThresholdEffectWithDamage(livingEntity, triggerType, 5.0f);
 						AbloomModAttachments.resetPoints(livingEntity, triggerType);
 					}
-					if (canShowDamage(livingEntity)) spawnDamageNumber(livingEntity, explosionDamage, triggerType);
+					if (canShowDamage(livingEntity)) spawnDamageNumber(livingEntity, 5.0f, triggerType);
 				}
 			}
 		}
