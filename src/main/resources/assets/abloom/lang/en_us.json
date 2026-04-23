@@ -55,7 +55,7 @@
   "effect.abloom.stun": "Stun",
   "effect.abloom.freeze": "Freeze",
   "effect.abloom.shock": "Shock",
-  "effect.abloom.rift": "Rift",
+  "effect.abloom.overload": "Overload",
   "effect.abloom.bloom": "Bloom",
   "effect.abloom.break": "Break",
   "item_group.abloom.abloom_api": "Abloom API",
