@@ -58,6 +58,8 @@
   "effect.abloom.rift": "Раскол",
   "effect.abloom.bloom": "Цветение",
   "effect.abloom.break": "Пробитие",
+  "effect.abloom.erosion": "Выветривание",
+  "elemental.tooltip.erosion_explosion": "ВЗРЫВ ВЫВЕТРИВАНИЯ!",
   "item_group.abloom.abloom_api": "Цветущий API",
   "item.abloom.fire_stick": "Огненная палочка",
   "item.abloom.physical_stick": "Физическая палочка",

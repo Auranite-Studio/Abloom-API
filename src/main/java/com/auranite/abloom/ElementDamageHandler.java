@@ -1,5 +1,6 @@
 package com.auranite.abloom;
 
+import com.auranite.abloom.effect.ErosionEffect;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -142,7 +143,7 @@ public class ElementDamageHandler {
 			ElementType type = getElementTypeFromSource(source);
 			if (type != null && type != ElementType.WIND) {
 				target.removeEffect(AbloomModEffects.EROSION);
-				triggerErosionExplosion(target, attacker);
+				triggerErosionExplosion(target, attacker, type);
 				erosionTriggered = true;
 			}
 		}
@@ -397,7 +398,7 @@ public class ElementDamageHandler {
 				yield currentDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, ErosionEffect.getDurationTicks(), 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield currentDamage;
 			}
@@ -452,7 +453,7 @@ public class ElementDamageHandler {
 				yield originalDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, ErosionEffect.getDurationTicks(), 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield originalDamage;
 			}
@@ -731,32 +732,32 @@ public class ElementDamageHandler {
 		updateLastDamageTime(livingTarget, elementalType);
 	}
 
-	private static void triggerErosionExplosion(LivingEntity target, LivingEntity attacker) {
+	private static void triggerErosionExplosion(LivingEntity target, LivingEntity attacker, ElementType triggerType) {
 		spawnStatusText(target, Component.translatable("elemental.tooltip.erosion_explosion"), 0x00FFFF);
 
 		if (!(target.level() instanceof ServerLevel serverLevel)) return;
 
 		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, ElementType.WIND.getDamageTypeId());
+		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, triggerType.getDamageTypeId());
 		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
 		if (damageTypeHolder.isEmpty()) return;
 
-		DamageSource windSource = new DamageSource(damageTypeHolder.get(), attacker != null ? attacker : target, attacker != null ? attacker : target);
+		DamageSource elementSource = new DamageSource(damageTypeHolder.get(), attacker != null ? attacker : target, attacker != null ? attacker : target);
 
 		float explosionDamage = 5.0f;
 
 		List<Entity> nearbyEntities = serverLevel.getEntitiesOfClass(Entity.class, target.getBoundingBox().inflate(5.0));
 		for (Entity entity : nearbyEntities) {
 			if (entity instanceof LivingEntity livingEntity && entity != target) {
-				if (!ElementResistanceManager.isImmune(entity, ElementType.WIND)) {
-					livingEntity.hurt(windSource, explosionDamage);
-					int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingEntity, ElementType.WIND, 30);
-					AbloomModAttachments.addPoints(livingEntity, ElementType.WIND, pointsToAdd);
-					if (AbloomModAttachments.getPoints(livingEntity, ElementType.WIND) >= THRESHOLD) {
-						applyThresholdEffectWithDamage(livingEntity, ElementType.WIND, explosionDamage);
-						AbloomModAttachments.resetPoints(livingEntity, ElementType.WIND);
+				if (!ElementResistanceManager.isImmune(entity, triggerType)) {
+					livingEntity.hurt(elementSource, explosionDamage);
+					int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingEntity, triggerType, 30);
+					AbloomModAttachments.addPoints(livingEntity, triggerType, pointsToAdd);
+					if (AbloomModAttachments.getPoints(livingEntity, triggerType) >= THRESHOLD) {
+						applyThresholdEffectWithDamage(livingEntity, triggerType, explosionDamage);
+						AbloomModAttachments.resetPoints(livingEntity, triggerType);
 					}
-					if (canShowDamage(livingEntity)) spawnDamageNumber(livingEntity, explosionDamage, ElementType.WIND);
+					if (canShowDamage(livingEntity)) spawnDamageNumber(livingEntity, explosionDamage, triggerType);
 				}
 			}
 		}
