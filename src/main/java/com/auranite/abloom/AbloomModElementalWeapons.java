@@ -30,7 +30,7 @@ public class AbloomModElementalWeapons {
     }
 
     private static void registerFireWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.FIRE_STICK.get(), ElementType.FIRE, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.FIRE_STICK.get(), ElementType.FIRE, 50f);
     }
 
     private static void registerPhysicalWeapons() {
@@ -53,33 +53,33 @@ public class AbloomModElementalWeapons {
         ElementalWeaponUtils.registerItem(Items.MACE, ElementType.PHYSICAL, 25f);
         ElementalWeaponUtils.registerItem(Items.BOW, ElementType.PHYSICAL, 2f);
 
-        ElementalWeaponUtils.registerItem(AbloomModItems.PHYSICAL_STICK.get(), ElementType.PHYSICAL, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.PHYSICAL_STICK.get(), ElementType.PHYSICAL, 50f);
     }
 
     private static void registerWindWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.WIND_STICK.get(), ElementType.WIND, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.WIND_STICK.get(), ElementType.WIND, 50f);
     }
 
     private static void registerWaterWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.WATER_STICK.get(), ElementType.WATER, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.WATER_STICK.get(), ElementType.WATER, 50f);
     }
 
     private static void registerEarthWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.EARTH_STICK.get(), ElementType.EARTH, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.EARTH_STICK.get(), ElementType.EARTH, 50f);
     }
     private static void registerIceWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.ICE_STICK.get(), ElementType.ICE, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.ICE_STICK.get(), ElementType.ICE, 50f);
     }
     private static void registerElectricWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.ELECTRIC_STICK.get(), ElementType.ELECTRIC, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.ELECTRIC_STICK.get(), ElementType.ELECTRIC, 50f);
     }
     private static void registerEnergyWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.ENERGY_STICK.get(), ElementType.ENERGY, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.ENERGY_STICK.get(), ElementType.ENERGY, 50f);
     }
     private static void registerNaturalWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.NATURAL_STICK.get(), ElementType.NATURAL, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.NATURAL_STICK.get(), ElementType.NATURAL, 50f);
     }
     private static void registerQuantumWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.QUANTUM_STICK.get(), ElementType.QUANTUM, 50f);
+//        ElementalWeaponUtils.registerItem(AbloomModItems.QUANTUM_STICK.get(), ElementType.QUANTUM, 50f);
     }
 }
