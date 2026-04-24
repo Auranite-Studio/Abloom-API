@@ -14,14 +14,9 @@ public class ElementResistanceManager {
 
 	private static final Map<EntityType<?>, Map<ElementType, Resistance>> ENTITY_RESISTANCES = new ConcurrentHashMap<>();
 
-
 	private static final Map<EntityType<?>, Boolean> TAG_CHECKED_ENTITIES = new ConcurrentHashMap<>();
 
 	private ElementResistanceManager() {}
-
-
-
-
 
 	public static void registerResistance(EntityType<?> entityType, Map<ElementType, Resistance> resistanceMap) {
 		if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
@@ -34,7 +29,6 @@ public class ElementResistanceManager {
 		AbloomMod.LOGGER.debug("Registered resistance for {}: {}",
 				entityType.getDescriptionId(), resistanceMap);
 	}
-
 
 	public static void loadFromTag(ElementType elementType, TagKey<EntityType<?>> tag,
 								   Resistance resistance, net.minecraft.core.HolderLookup.Provider lookupProvider) {
@@ -66,13 +60,8 @@ public class ElementResistanceManager {
 		});
 	}
 
-
-
-
-
 	private static void tryLazyLoadFromTags(EntityType<?> entityType, ElementType elementType) {
 		if (entityType == null || elementType == null) return;
-
 
 		if (TAG_CHECKED_ENTITIES.getOrDefault(entityType, false)) {
 			return;
@@ -81,9 +70,6 @@ public class ElementResistanceManager {
 
 		String elementLower = elementType.name().toLowerCase();
 		String modid = AbloomMod.MODID;
-
-
-
 
 		TagKey<EntityType<?>> immuneTag = createTag(modid, elementLower, "immune");
 		if (entityType.is(immuneTag)) {
@@ -114,10 +100,6 @@ public class ElementResistanceManager {
 				ResourceLocation.fromNamespaceAndPath(modid, "element/" + element + "/" + modifier));
 	}
 
-
-
-
-
 	public static Resistance getResistance(Entity entity, ElementType type) {
 		if (entity == null || type == null) return Resistance.ZERO;
 		return getResistance(entity.getType(), type);
@@ -138,10 +120,6 @@ public class ElementResistanceManager {
 		Resistance res = typeMap.get(type);
 		return res != null ? res : Resistance.ZERO;
 	}
-
-
-
-
 
 	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
 		Resistance resistance = getResistance(entity, type);
@@ -191,10 +169,6 @@ public class ElementResistanceManager {
 		return res != null && res != Resistance.ZERO;
 	}
 
-
-
-
-
 	public static void clearAllResistances() {
 		ENTITY_RESISTANCES.clear();
 		TAG_CHECKED_ENTITIES.clear();
@@ -219,13 +193,9 @@ public class ElementResistanceManager {
 		});
 	}
 
-
-
-
-
 	public record Resistance(float accumulationResistance, float damageResistance) {
 		public static final Resistance ZERO = new Resistance(0.0f, 0.0f);
-		public static final Resistance IMMUNE = new Resistance(1.0f, 1.0f);
+		public static final Resistance IMMUNE = new Resistance(1.0f, 0.99f);
 		public static final Resistance HALF_RESIST = new Resistance(0.5f, 0.5f);
 		public static final Resistance WEAKNESS = new Resistance(-0.5f, -0.5f);
 

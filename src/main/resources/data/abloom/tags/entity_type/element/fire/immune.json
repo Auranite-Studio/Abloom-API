@@ -6,6 +6,7 @@
     "minecraft:wither",
     "minecraft:ender_dragon",
     "minecraft:strider",
-    "minecraft:zombified_piglin"
+    "minecraft:zombified_piglin",
+    "minecraft:wither_skeleton"
   ]
 }

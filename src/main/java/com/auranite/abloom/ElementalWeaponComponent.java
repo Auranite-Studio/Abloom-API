@@ -6,31 +6,27 @@ import net.minecraft.world.item.component.CustomData;
 
 import java.util.Optional;
 
-
 public class ElementalWeaponComponent {
 
     public static final String ELEMENT_TYPE_KEY = "element_type";
-    public static final String ACCUM_MULTIPLIER_KEY = "accum_multiplier";
-
+    public static final String ACCUM_POINTS_KEY = "accum_points";
 
     public static ItemStack withElement(ItemStack stack, ElementType type) {
         return withElementAndAccum(stack, type, 1f);
     }
 
-
-    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumMultiplier) {
+    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         customData.update(tag -> {
             tag.putString(ELEMENT_TYPE_KEY, type.name());
-            tag.putFloat(ACCUM_MULTIPLIER_KEY, accumMultiplier);
+            tag.putFloat(ACCUM_POINTS_KEY, accumPoints);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);
 
         return stack;
     }
-
 
     public static Optional<ElementType> getElement(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return Optional.empty();
@@ -48,21 +44,18 @@ public class ElementalWeaponComponent {
         }
     }
 
-
     public static float getAccumMultiplier(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 1.0f;
 
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return 1.0f;
 
-        return customData.copyTag().getFloat(ACCUM_MULTIPLIER_KEY);
+        return customData.copyTag().getFloat(ACCUM_POINTS_KEY);
     }
-
 
     public static boolean hasElement(ItemStack stack) {
         return getElement(stack).isPresent();
     }
-
 
     public static ItemStack removeElement(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return stack;
@@ -71,7 +64,7 @@ public class ElementalWeaponComponent {
         if (customData != null) {
             customData.update(tag -> {
                 tag.remove(ELEMENT_TYPE_KEY);
-                tag.remove(ACCUM_MULTIPLIER_KEY);
+                tag.remove(ACCUM_POINTS_KEY);
             });
             stack.set(DataComponents.CUSTOM_DATA, customData);
         }
@@ -79,4 +72,3 @@ public class ElementalWeaponComponent {
         return stack;
     }
 }
-

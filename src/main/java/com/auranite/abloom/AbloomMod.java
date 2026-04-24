@@ -1,7 +1,10 @@
 package com.auranite.abloom;
 
+import com.auranite.abloom.config.AbloomConfig;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -28,17 +31,21 @@ import java.util.HashMap;
 import java.util.Collection;
 import java.util.ArrayList;
 
-
 @Mod("abloom")
 public class AbloomMod {
     public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
 
-    public AbloomMod(IEventBus modEventBus) {
-
+    public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
+
+        modContainer.registerConfig(ModConfig.Type.CLIENT, AbloomConfig.CLIENT_SPEC);
+        modContainer.registerConfig(ModConfig.Type.SERVER, AbloomConfig.SERVER_SPEC);
+
+        modEventBus.addListener(AbloomConfig::onConfigLoad);
+        modEventBus.addListener(AbloomConfig::onConfigReload);
 
         AbloomModAttachments.ATTACHMENT_TYPES.register(modEventBus);
         AbloomModEffects.REGISTRY.register(modEventBus);
@@ -51,6 +58,7 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
+        modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
 
     }
     @SubscribeEvent
@@ -67,7 +75,6 @@ public class AbloomMod {
         }
     }
 
-
     @SubscribeEvent
     public void onServerTick(ServerTickEvent.Pre event) {
         MinecraftServer server = event.getServer();
@@ -81,7 +88,6 @@ public class AbloomMod {
             }
         }
     }
-
 
     private static boolean networkingRegistered = false;
     private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
@@ -109,9 +115,6 @@ public class AbloomMod {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
     }
-
-
-
 
     @SubscribeEvent
     public void tick(ServerTickEvent.Post event) {

@@ -13,19 +13,11 @@ public class ElementResistanceRegistry {
 
     private ElementResistanceRegistry() {}
 
-
-
-
-
     public static TagKey<EntityType<?>> createEntityTag(String element, String modifier) {
         return TagKey.create(Registries.ENTITY_TYPE,
                 ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID,
                         "element/" + element.toLowerCase() + "/" + modifier));
     }
-
-
-
-
 
     public static void init(net.minecraft.core.HolderLookup.Provider lookupProvider) {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
@@ -68,10 +60,6 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Lazy tag loading)...");
     }
 
-
-
-
-
     @SafeVarargs
     public static void registerUniform(ElementType elementType, float resistance, EntityType<?>... entityTypes) {
         registerUniform(elementType, resistance, resistance, entityTypes);
@@ -108,15 +96,9 @@ public class ElementResistanceRegistry {
         ElementResistanceManager.registerResistance(entityType, new EnumMap<>(resistanceMap));
     }
 
-
-
-
-
-
     public static boolean hasResistances(EntityType<?> entityType) {
         return ElementResistanceManager.hasResistanceFor(entityType);
     }
-
 
     public static boolean hasResistances(Entity entity) {
         if (entity == null) return false;
@@ -138,10 +120,6 @@ public class ElementResistanceRegistry {
     public static void debugPrint() {
         ElementResistanceManager.debugPrintRegistry();
     }
-
-
-
-
 
     public static final class Tags {
         private Tags() {}

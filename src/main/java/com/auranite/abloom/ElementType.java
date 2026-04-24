@@ -13,7 +13,7 @@ public enum ElementType {
     WATER("water_dmg"),
     ICE("ice_dmg"),
     ELECTRIC("electric_dmg"),
-    SOURCE("source_dmg"),
+    ENERGY("energy_dmg"),
     NATURAL("natural_dmg"),
     QUANTUM("quantum_dmg");
 
@@ -92,7 +92,6 @@ public enum ElementType {
                  "falling_anvil",
                  "falling_block" -> EARTH;
 
-
             case "lightning_bolt" -> ELECTRIC;
 
             case "freeze",
@@ -104,7 +103,7 @@ public enum ElementType {
                  "thorns",
                  "guardian",
                  "evocation_fangs",
-                 "wither_effect" -> SOURCE;
+                 "wither_effect" -> ENERGY;
 
             case "poison",
                  "wither",
@@ -116,7 +115,6 @@ public enum ElementType {
                  "generic_kill",
                  "void",
                  "outside_border" -> QUANTUM;
-
 
             default -> {
                 AbloomMod.LOGGER.debug("Unknown DamageType '{}', defaulting to PHYSICAL", id);
@@ -161,5 +159,9 @@ public enum ElementType {
     @Override
     public String toString() {
         return name();
+    }
+
+    public String getDisplayName() {
+        return name().charAt(0) + name().substring(1).toLowerCase();
     }
 }

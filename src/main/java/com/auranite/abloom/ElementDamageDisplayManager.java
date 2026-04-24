@@ -1,5 +1,6 @@
 package com.auranite.abloom;
 
+import com.auranite.abloom.config.AbloomConfig;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -26,11 +27,11 @@ public class ElementDamageDisplayManager {
     private static final int STATUS_TEXT_LIFETIME = 50;
     private static final byte FLAG_SEE_THROUGH = 2;
 
-    public static final String CLEANUP_TAG = "lots:cleanup_on_load";
-    public static final String SELF_DESTRUCT_TAG = "lots:self_destruct";
+    public static final String CLEANUP_TAG = "abloom:cleanup_on_load";
+    public static final String SELF_DESTRUCT_TAG = "abloom:self_destruct";
 
-    private static final String NBT_MAX_LIFETIME = "lots:max_lifetime";
-    private static final String NBT_AGE = "lots:age";
+    private static final String NBT_MAX_LIFETIME = "abloom:max_lifetime";
+    private static final String NBT_AGE = "abloom:age";
 
     private static final double DAMAGE_GRAVITY = -0.02;
     private static final double DAMAGE_INITIAL_VELOCITY_Y = 0.18;
@@ -291,10 +292,15 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
+        if (!AbloomConfig.areDamageNumbersEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+        double spawnRadiusSq = 16.0 * 16.0;
+        boolean playerInRange = serverLevel.players().stream()
+                .anyMatch(player -> player.distanceToSqr(entity) <= spawnRadiusSq);
+        if (!playerInRange) return;
+
         int entityId = entity.getId();
         int color = getDamageColor(type);
-
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
 
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
@@ -320,14 +326,14 @@ public class ElementDamageDisplayManager {
             double randomZ = (serverLevel.random.nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
 
             ACTIVE_PHYSICS.put(displayUuid, new double[]{
-                    randomX,                      // [0] drift X
-                    DAMAGE_INITIAL_VELOCITY_Y,    // [1] velocity Y
-                    randomZ,                      // [2] drift Z
-                    0,                            // [3] ticks alive
-                    DAMAGE_NUMBER_LIFETIME,       // [4] max ticks
-                    color,                        // [5] original color
-                    0,                            // [6] phase (reserved)
-                    hasBreak ? 1.0 : 0.0          // [7] isBreak flag
+                    randomX,
+                    DAMAGE_INITIAL_VELOCITY_Y,
+                    randomZ,
+                    0,
+                    DAMAGE_NUMBER_LIFETIME,
+                    color,
+                    0,
+                    hasBreak ? 1.0 : 0.0
             });
 
             schedulePhysicsUpdate(serverLevel, displayUuid);
@@ -343,7 +349,13 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnStatusText(LivingEntity entity, Component textComponent, int color) {
+        if (!AbloomConfig.areStatusTextsEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+        double spawnRadiusSq = 16.0 * 16.0;
+        boolean playerInRange = serverLevel.players().stream()
+                .anyMatch(player -> player.distanceToSqr(entity) <= spawnRadiusSq);
+        if (!playerInRange) return;
+
         int entityId = entity.getId();
 
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.3;
@@ -368,14 +380,14 @@ public class ElementDamageDisplayManager {
             double randomPhase = serverLevel.random.nextDouble() * Math.PI * 2;
 
             ACTIVE_PHYSICS.put(displayUuid, new double[]{
-                    0,                              // [0] drift X (unused)
-                    0,                              // [1] velocity Y (unused)
-                    0,                              // [2] drift Z (unused)
-                    0,                              // [3] ticks alive
-                    STATUS_TEXT_LIFETIME,           // [4] max ticks
-                    color,                          // [5] original color
-                    randomPhase,                    // [6] float phase
-                    0.0                             // [7] isBreak flag (always 0 for status)
+                    0,
+                    0,
+                    0,
+                    0,
+                    STATUS_TEXT_LIFETIME,
+                    color,
+                    randomPhase,
+                    0.0
             });
 
             schedulePhysicsUpdate(serverLevel, displayUuid);
@@ -391,6 +403,7 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnStatusText(LivingEntity entity, String text, int color) {
+        if (!AbloomConfig.areStatusTextsEnabled()) return;
         spawnStatusText(entity, Component.literal(text), color);
     }
 
@@ -436,14 +449,13 @@ public class ElementDamageDisplayManager {
                 }
 
             } else {
-
                 physics[1] += DAMAGE_GRAVITY;
                 display.setPos(display.getX() + physics[0], display.getY() + physics[1], display.getZ() + physics[2]);
 
                 int finalColor;
 
                 if (isBreak) {
-                    double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0; // 0.0 -> 1.0 -> 0.0
+                    double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0;
 
                     int r = (originalColor >> 16) & 0xFF;
                     int g = (originalColor >> 8) & 0xFF;
@@ -563,7 +575,7 @@ public class ElementDamageDisplayManager {
         display.setNoGravity(true);
         display.setInvulnerable(true);
         display.setSilent(true);
-        display.setViewRange(64.0f);
+        display.setViewRange(16.0f);
         display.setPosRotInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDelay(0);

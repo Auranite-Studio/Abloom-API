@@ -24,6 +24,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 import java.util.EnumMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,13 +60,13 @@ public class ElementDamageHandler {
 
 	public static void initDamageColors() {
 		ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xFFAA00);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.WIND, 0x00FFFF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.WATER, 0x0080FF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.EARTH, 0x8B4513);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.ICE, 0x00BFFF);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, 0xFF19FF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.SOURCE, 0xFF5C77);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ENERGY, 0xFFFF00);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
 	}
@@ -124,14 +125,18 @@ public class ElementDamageHandler {
 			reduction = Math.max(0.1f, reduction);
 			damage *= reduction;
 		}
-		if (target.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = target.getEffect(AbloomModEffects.RIFT).getAmplifier();
+		if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
+
 		if (target.hasEffect(AbloomModEffects.BLOOM)) {
-			damage *= 1.20f;
+			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+
+			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
-		event.setNewDamage(damage);
+
+		boolean erosionActive = target.hasEffect(AbloomModEffects.EROSION);
 
 		DamageSource source = event.getSource();
 		ElementType type = getElementTypeFromSource(source);
@@ -152,11 +157,17 @@ public class ElementDamageHandler {
 			if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
 			else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
 		}
-		if (target.hasEffect(AbloomModEffects.BLOOM)) effectiveAccumMultiplier *= 1.25f;
+
+		if (target.hasEffect(AbloomModEffects.BLOOM)) {
+			int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+			effectiveAccumMultiplier *= 1.20f * (amplifier + 1);
+		}
 		if (target.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
 			effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 1.0f;
 		}
+
+		float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
 		if (ElementResistanceManager.isImmune(target, type)) {
 			event.setNewDamage(0f);
@@ -167,12 +178,18 @@ public class ElementDamageHandler {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
 
+		if (erosionActive) {
+			pointsToAdd = 100;
+		}
+
 		AbloomModAttachments.addPoints(target, type, pointsToAdd);
 		int pointsAfter = AbloomModAttachments.getPoints(target, type);
 		boolean thresholdReached = pointsAfter >= THRESHOLD;
 
 		float finalDamage = event.getNewDamage();
 		finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+
+		finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 		if (thresholdReached) {
 			finalDamage = applyThresholdEffect(target, type, event, finalDamage);
 			AbloomModAttachments.resetPoints(target, type);
@@ -260,8 +277,8 @@ public class ElementDamageHandler {
 		return ElementalWeaponComponent.withElement(new ItemStack(item, count), type);
 	}
 
-	public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, ElementType type, int count, float accumMultiplier) {
-		return ElementalWeaponComponent.withElementAndAccum(new ItemStack(item, count), type, accumMultiplier);
+	public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, ElementType type, int count, float accumPoints) {
+		return ElementalWeaponComponent.withElementAndAccum(new ItemStack(item, count), type, accumPoints);
 	}
 
 	private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
@@ -337,19 +354,40 @@ public class ElementDamageHandler {
 		return ElementDamageDisplayManager.getAllDamageColors();
 	}
 
+	private static float getArmorResistanceBonus(LivingEntity entity, ElementType type) {
+		if (entity == null || type == null) return 0.0f;
+
+		float totalResistance = 0.0f;
+
+		for (ItemStack armorStack : entity.getArmorSlots()) {
+			if (!armorStack.isEmpty()) {
+				float resistance = ElementalResistanceComponent.getResistance(armorStack, type);
+				totalResistance += resistance;
+			}
+		}
+
+		return Math.min(totalResistance, 0.99f);
+	}
+
+	private static float applyArmorResistance(float damage, float resistanceBonus) {
+		if (resistanceBonus <= 0.0f) return damage;
+		float multiplier = 1.0f - resistanceBonus;
+		return Math.max(0.0f, damage * multiplier);
+	}
+
 	private static float applyThresholdEffect(LivingEntity target, ElementType type, LivingDamageEvent.Pre event, float currentDamage) {
 		return switch (type) {
 			case FIRE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BURNING, 200, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
 				yield currentDamage;
 			}
 			case PHYSICAL -> {
-				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xFFAA00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xC0C0C0);
 				yield currentDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 120, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield currentDamage;
 			}
@@ -370,12 +408,12 @@ public class ElementDamageHandler {
 			}
 			case ELECTRIC -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
 				yield currentDamage;
 			}
-			case SOURCE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
+			case ENERGY -> {
+				target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
 				yield currentDamage;
 			}
 			case NATURAL -> {
@@ -395,16 +433,16 @@ public class ElementDamageHandler {
 	private static float applyThresholdEffectWithDamage(LivingEntity target, ElementType type, float originalDamage) {
 		return switch (type) {
 			case FIRE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BURNING, 200, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
 				yield originalDamage;
 			}
 			case PHYSICAL -> {
-				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xFFAA00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xC0C0C0);
 				yield originalDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(MobEffects.LEVITATION, 120, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield originalDamage;
 			}
@@ -425,12 +463,12 @@ public class ElementDamageHandler {
 			}
 			case ELECTRIC -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFFFF00);
+				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
 				yield originalDamage;
 			}
-			case SOURCE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RIFT, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.source_void"), 0x9932CC);
+			case ENERGY -> {
+				target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
 				yield originalDamage;
 			}
 			case NATURAL -> {
@@ -479,18 +517,18 @@ public class ElementDamageHandler {
 		float damageMultiplier = 1.0f;
 		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			damageMultiplier *= Math.max(0.1f, reduction);
 		}
 
 		float accumBonus = 1.0f;
 		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-			damageMultiplier *= 1.25f;
-			accumBonus *= 1.25f;
+			damageMultiplier *= 1.20f;
+			accumBonus *= 1.20f;
 		}
-		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+		if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -527,17 +565,17 @@ public class ElementDamageHandler {
 		updateLastDamageTime(livingTarget, type);
 	}
 
-	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier) {
-		dealElementDamageWithAccum(target, type, amount, accumMultiplier, null);
+	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumPoints) {
+		dealElementDamageWithAccum(target, type, amount, accumPoints, null);
 	}
-	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+	public static void dealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumPoints, Entity attacker) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-		try { processDealElementDamageWithAccum(target, type, amount, accumMultiplier, attacker); }
+		try { processDealElementDamageWithAccum(target, type, amount, accumPoints, attacker); }
 		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
-	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+	private static void processDealElementDamageWithAccum(Entity target, ElementType type, float amount, float accumPoints, Entity attacker) {
 		if (!(target.level() instanceof ServerLevel serverLevel)) return;
 		if (!(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, type)) return;
@@ -553,18 +591,18 @@ public class ElementDamageHandler {
 		float damageMultiplier = 1.0f;
 		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			damageMultiplier *= Math.max(0.1f, reduction);
 		}
 
 		float accumBonus = 1.0f;
 		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-			damageMultiplier *= 1.25f;
-			accumBonus *= 1.25f;
+			damageMultiplier *= 1.20f;
+			accumBonus *= 1.20f;
 		}
-		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+		if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -577,7 +615,7 @@ public class ElementDamageHandler {
 
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+		pointsToAdd = Math.round(pointsToAdd * accumPoints * accumBonus);
 
 		if (pointsToAdd > 0) {
 			AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
@@ -624,14 +662,14 @@ public class ElementDamageHandler {
 		}
 	}
 
-	public static void applyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
+	public static void applyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumPoints) {
 		if (IS_PROCESSING_DAMAGE.get()) return;
 		IS_PROCESSING_DAMAGE.set(true);
-		try { processApplyElementalDamageInstant(target, source, elementalType, baseDamage, accumMultiplier); }
+		try { processApplyElementalDamageInstant(target, source, elementalType, baseDamage, accumPoints); }
 		finally { IS_PROCESSING_DAMAGE.set(false); }
 	}
 
-	private static void processApplyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumMultiplier) {
+	private static void processApplyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumPoints) {
 		if (!(target.level() instanceof ServerLevel serverLevel) || !(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, elementalType)) return;
 
@@ -646,18 +684,18 @@ public class ElementDamageHandler {
 		float damageMultiplier = 1.0f;
 		if (sourceEntity instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
 			int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-			float reduction = 1.0f - ((amplifier + 1) * 0.10f);
+			float reduction = 1.0f - ((amplifier + 1) * 0.20f);
 			damageMultiplier *= Math.max(0.1f, reduction);
 		}
 
 		float accumBonus = 1.0f;
 		if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-			damageMultiplier *= 1.25f;
-			accumBonus *= 1.25f;
+			damageMultiplier *= 1.20f;
+			accumBonus *= 1.20f;
 		}
-		if (livingTarget.hasEffect(AbloomModEffects.RIFT)) {
-			int amplifier = livingTarget.getEffect(AbloomModEffects.RIFT).getAmplifier();
-			damageMultiplier *= 1.0f + (amplifier + 1) * 0.25f;
+		if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
+			int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
+			damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -669,7 +707,7 @@ public class ElementDamageHandler {
 
 		int basePoints = (int) baseAccumulation;
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, elementalType, basePoints);
-		pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+		pointsToAdd = Math.round(pointsToAdd * accumPoints * accumBonus);
 
 		if (pointsToAdd > 0) {
 			AbloomModAttachments.addPoints(livingTarget, elementalType, pointsToAdd);
