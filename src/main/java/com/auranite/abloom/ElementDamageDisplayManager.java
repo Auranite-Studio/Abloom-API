@@ -257,7 +257,7 @@ public class ElementDamageDisplayManager {
 
         Predicate<Entity> hasCleanupTag = e -> e.entityTags().contains(CLEANUP_TAG) && !e.isRemoved();
 
-        for (TextDisplay display : level.getEntitiesOfClass(TextDisplay.class, level.bounds(), hasCleanupTag)) {
+        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasCleanupTag)) {
             if (display != null && !display.isRemoved()) {
                 display.discard();
                 removedCount++;
@@ -278,7 +278,7 @@ public class ElementDamageDisplayManager {
             return tag.getBooleanOr(SELF_DESTRUCT_TAG,false) && !e.isRemoved();
         };
 
-        for (TextDisplay display : level.getEntitiesOfClass(TextDisplay.class, level.bounds(), hasSelfDestruct)) {
+        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasSelfDestruct)) {
             if (display == null || display.isRemoved()) continue;
 
             CompoundTag tag = display.getPersistentData();
