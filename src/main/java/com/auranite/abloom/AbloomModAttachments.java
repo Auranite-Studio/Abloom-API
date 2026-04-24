@@ -60,7 +60,7 @@ public class AbloomModAttachments {
     }
 
     public static void setProjectileElement(Entity entity, ElementType type) {
-        if (entity != null && !entity.level().isClientSide && type != null) {
+        if (entity != null && !entity.level().isClientSide() && type != null) {
             entity.setData(PROJECTILE_ELEMENT.get(), type);
         }
     }
@@ -79,7 +79,7 @@ public class AbloomModAttachments {
 
     public static void clearProjectileElement(Entity entity) {
 
-        if (entity != null && !entity.level().isClientSide) {
+        if (entity != null && !entity.level().isClientSide()) {
 
         }
     }

@@ -2,14 +2,15 @@ package com.auranite.abloom;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -235,8 +236,8 @@ public class ElementDamageHandler {
 	public static void onChunkUnload(ChunkDataEvent.Save event) {
 		if (displayManager == null) return;
 		if (!(event.getLevel() instanceof ServerLevel level)) return;
-		int chunkX = event.getChunk().getPos().x;
-		int chunkZ = event.getChunk().getPos().z;
+		int chunkX = event.getChunk().getPos().x();
+		int chunkZ = event.getChunk().getPos().z();
 		displayManager.cleanupDisplaysInChunk(level, chunkX, chunkZ);
 	}
 
@@ -359,7 +360,8 @@ public class ElementDamageHandler {
 
 		float totalResistance = 0.0f;
 
-		for (ItemStack armorStack : entity.getArmorSlots()) {
+		for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
+			ItemStack armorStack = entity.getItemBySlot(slot);
 			if (!armorStack.isEmpty()) {
 				float resistance = ElementalResistanceComponent.getResistance(armorStack, type);
 				totalResistance += resistance;
@@ -506,9 +508,9 @@ public class ElementDamageHandler {
 		if (!(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, type)) return;
 
-		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
-		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
+		var damageTypeRegistry = serverLevel.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+		var rl = Identifier.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
+		var damageTypeHolder = damageTypeRegistry.get(rl);
 		if (damageTypeHolder.isEmpty()) return;
 
 		DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
@@ -580,9 +582,9 @@ public class ElementDamageHandler {
 		if (!(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, type)) return;
 
-		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
-		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
+		var damageTypeRegistry = serverLevel.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+		var rl = Identifier.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
+		var damageTypeHolder = damageTypeRegistry.get(rl);
 		if (damageTypeHolder.isEmpty()) return;
 
 		DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
@@ -657,7 +659,7 @@ public class ElementDamageHandler {
 	}
 
 	public static void markProjectileAsElemental(Entity projectile, ElementType type) {
-		if (projectile != null && !projectile.level().isClientSide) {
+		if (projectile != null && !projectile.level().isClientSide()) {
 			AbloomModAttachments.setProjectileElement(projectile, type);
 		}
 	}
@@ -673,9 +675,9 @@ public class ElementDamageHandler {
 		if (!(target.level() instanceof ServerLevel serverLevel) || !(target instanceof LivingEntity livingTarget)) return;
 		if (ElementResistanceManager.isImmune(target, elementalType)) return;
 
-		var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-		var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, elementalType.getDamageTypeId());
-		var damageTypeHolder = damageTypeRegistry.getHolder(rl);
+		var damageTypeRegistry = serverLevel.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+		var rl = Identifier.fromNamespaceAndPath(AbloomMod.MODID, elementalType.getDamageTypeId());
+		var damageTypeHolder = damageTypeRegistry.get(rl);
 		if (damageTypeHolder.isEmpty()) return;
 
 		DamageSource dmgSource = new DamageSource(damageTypeHolder.get(), source, source);

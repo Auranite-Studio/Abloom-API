@@ -6,11 +6,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.Display.BillboardConstraints;
 import net.minecraft.world.entity.Display.TextDisplay;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 
 import java.util.EnumMap;
@@ -25,7 +23,9 @@ public class ElementDamageDisplayManager {
 
     private static final int DAMAGE_NUMBER_LIFETIME = 30;
     private static final int STATUS_TEXT_LIFETIME = 50;
-    private static final byte FLAG_SEE_THROUGH = 2;
+
+    // Флаги для TextDisplay: 0x02 = SEE_THROUGH (видимый сквозь блоки)
+    private static final byte FLAG_SEE_THROUGH = 0x02;
 
     public static final String CLEANUP_TAG = "abloom:cleanup_on_load";
     public static final String SELF_DESTRUCT_TAG = "abloom:self_destruct";
@@ -85,6 +85,7 @@ public class ElementDamageDisplayManager {
     public void cleanupStaleDisplays() {
         int cleanedCount = 0;
 
+        // Очистка damage displays
         Iterator<Map.Entry<UUID, DisplayInfo>> damageIterator = ACTIVE_DAMAGE_DISPLAYS.entrySet().iterator();
         while (damageIterator.hasNext()) {
             Map.Entry<UUID, DisplayInfo> entry = damageIterator.next();
@@ -98,7 +99,7 @@ public class ElementDamageDisplayManager {
                 continue;
             }
 
-            Entity target = info.display.level().getEntity(info.targetEntityId);
+            Entity target = ((ServerLevel) info.display.level()).getEntity(info.targetEntityId);
             if (target == null || !target.isAlive()) {
                 if (!info.display.isRemoved()) safeRemoveDisplaySilent(info.display);
                 damageIterator.remove();
@@ -107,6 +108,7 @@ public class ElementDamageDisplayManager {
             }
         }
 
+        // Очистка status displays
         Iterator<Map.Entry<UUID, DisplayInfo>> statusIterator = ACTIVE_STATUS_DISPLAYS.entrySet().iterator();
         while (statusIterator.hasNext()) {
             Map.Entry<UUID, DisplayInfo> entry = statusIterator.next();
@@ -120,7 +122,7 @@ public class ElementDamageDisplayManager {
                 continue;
             }
 
-            Entity target = info.display.level().getEntity(info.targetEntityId);
+            Entity target = ((ServerLevel) info.display.level()).getEntity(info.targetEntityId);
             if (target == null || !target.isAlive()) {
                 if (!info.display.isRemoved()) safeRemoveDisplaySilent(info.display);
                 statusIterator.remove();
@@ -253,9 +255,9 @@ public class ElementDamageDisplayManager {
         long startTime = System.currentTimeMillis();
         int removedCount = 0;
 
-        Predicate<Entity> hasCleanupTag = e -> e.getTags().contains(CLEANUP_TAG) && !e.isRemoved();
+        Predicate<Entity> hasCleanupTag = e -> e.entityTags().contains(CLEANUP_TAG) && !e.isRemoved();
 
-        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasCleanupTag)) {
+        for (TextDisplay display : level.getEntitiesOfClass(TextDisplay.class, level.getRandomPlayer().getBoundingBox(), hasCleanupTag)) {
             if (display != null && !display.isRemoved()) {
                 display.discard();
                 removedCount++;
@@ -273,15 +275,15 @@ public class ElementDamageDisplayManager {
 
         Predicate<Entity> hasSelfDestruct = e -> {
             CompoundTag tag = e.getPersistentData();
-            return tag.getBoolean(SELF_DESTRUCT_TAG) && !e.isRemoved();
+            return tag.getBooleanOr(SELF_DESTRUCT_TAG,false) && !e.isRemoved();
         };
 
-        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasSelfDestruct)) {
+        for (TextDisplay display : level.getEntitiesOfClass(TextDisplay.class, level.getRandomPlayer().getBoundingBox(), hasSelfDestruct)) {
             if (display == null || display.isRemoved()) continue;
 
             CompoundTag tag = display.getPersistentData();
-            int age = tag.getInt(NBT_AGE) + 1;
-            int maxLife = tag.getInt(NBT_MAX_LIFETIME);
+            int age = tag.getIntOr(NBT_AGE, 0) + 1;
+            int maxLife = tag.getIntOr(NBT_MAX_LIFETIME, 0);
 
             if (age >= maxLife) {
                 display.discard();
@@ -294,6 +296,7 @@ public class ElementDamageDisplayManager {
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
         if (!AbloomConfig.areDamageNumbersEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+
         double spawnRadiusSq = 16.0 * 16.0;
         boolean playerInRange = serverLevel.players().stream()
                 .anyMatch(player -> player.distanceToSqr(entity) <= spawnRadiusSq);
@@ -303,8 +306,8 @@ public class ElementDamageDisplayManager {
         int color = getDamageColor(type);
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
 
-        double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
-        double offsetZ = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
+        double offsetX = (serverLevel.getRandom().nextFloat() - 0.5f) * 0.5;
+        double offsetZ = (serverLevel.getRandom().nextFloat() - 0.5f) * 0.5;
 
         TextDisplay display = createTextDisplay(
                 serverLevel,
@@ -322,8 +325,8 @@ public class ElementDamageDisplayManager {
 
             ACTIVE_DAMAGE_DISPLAYS.put(displayUuid, new DisplayInfo(display, entityId, false));
 
-            double randomX = (serverLevel.random.nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
-            double randomZ = (serverLevel.random.nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
+            double randomX = (serverLevel.getRandom().nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
+            double randomZ = (serverLevel.getRandom().nextFloat() - 0.5f) * HORIZONTAL_DRIFT;
 
             ACTIVE_PHYSICS.put(displayUuid, new double[]{
                     randomX,
@@ -351,6 +354,7 @@ public class ElementDamageDisplayManager {
     public void spawnStatusText(LivingEntity entity, Component textComponent, int color) {
         if (!AbloomConfig.areStatusTextsEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+
         double spawnRadiusSq = 16.0 * 16.0;
         boolean playerInRange = serverLevel.players().stream()
                 .anyMatch(player -> player.distanceToSqr(entity) <= spawnRadiusSq);
@@ -358,8 +362,8 @@ public class ElementDamageDisplayManager {
 
         int entityId = entity.getId();
 
-        double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.3;
-        double offsetZ = (serverLevel.random.nextFloat() - 0.5f) * 0.3;
+        double offsetX = (serverLevel.getRandom().nextFloat() - 0.5f) * 0.3;
+        double offsetZ = (serverLevel.getRandom().nextFloat() - 0.5f) * 0.3;
 
         TextDisplay display = createTextDisplay(
                 serverLevel,
@@ -377,7 +381,7 @@ public class ElementDamageDisplayManager {
 
             ACTIVE_STATUS_DISPLAYS.put(displayUuid, new DisplayInfo(display, entityId, true));
 
-            double randomPhase = serverLevel.random.nextDouble() * Math.PI * 2;
+            double randomPhase = serverLevel.getRandom().nextDouble() * Math.PI * 2;
 
             ACTIVE_PHYSICS.put(displayUuid, new double[]{
                     0,
@@ -506,19 +510,12 @@ public class ElementDamageDisplayManager {
     private void safeRemoveDisplay(ServerLevel level, UUID displayUuid, TextDisplay display, DisplayInfo info) {
         display.removeTag(CLEANUP_TAG);
 
-        if (!display.isRemoved() && display.level() != null) {
-            var chunkSource = level.getChunkSource();
-            if (chunkSource != null) {
-                try {
-                    chunkSource.broadcastAndSend(
-                            display,
-                            new ClientboundRemoveEntitiesPacket(display.getId())
-                    );
-                } catch (Exception e) {
-                    AbloomMod.LOGGER.debug("Failed to send remove packet for display {}: {}",
-                            display.getId(), e.getMessage());
-                }
-            }
+        if (!display.isRemoved() && level != null) {
+            // В 1.21.9 используем broadcastAndSend для отправки пакета удаления
+            level.getChunkSource().sendToTrackingPlayersAndSelf(
+                    display,
+                    new ClientboundRemoveEntitiesPacket(display.getId())
+            );
             display.discard();
         }
 
@@ -531,7 +528,8 @@ public class ElementDamageDisplayManager {
         display.removeTag(CLEANUP_TAG);
 
         ServerLevel level = (ServerLevel) display.level();
-        level.getChunkSource().broadcastAndSend(
+        // Используем broadcastAndSend для совместимости с 1.21.9
+        level.getChunkSource().sendToTrackingPlayersAndSelf(
                 display,
                 new ClientboundRemoveEntitiesPacket(display.getId())
         );
@@ -560,7 +558,7 @@ public class ElementDamageDisplayManager {
     }
 
     private static TextDisplay createTextDisplay(ServerLevel level, double x, double y, double z, Component textComponent, int color, int maxLifetime) {
-        TextDisplay display = EntityType.TEXT_DISPLAY.create(level);
+        TextDisplay display = EntityType.TEXT_DISPLAY.create(level, EntitySpawnReason.EVENT);
         if (display == null) {
             AbloomMod.LOGGER.error("Failed to create TextDisplay entity at ({}, {}, {})", x, y, z);
             return null;
@@ -568,14 +566,22 @@ public class ElementDamageDisplayManager {
 
         display.setPos(x, y, z);
         display.setText(textComponent.copy().withStyle(Style.EMPTY.withColor(color).withBold(true)));
+
+        // В 1.21.9: setBackgroundColor принимает цвет как int (ARGB)
         display.setBackgroundColor(0x00000000);
+
+        // Установка флагов через data accessor
+        // FLAG_SEE_THROUGH = 0x02 (бит 1)
         display.setFlags(FLAG_SEE_THROUGH);
+
         display.setLineWidth(200);
         display.setBillboardConstraints(BillboardConstraints.CENTER);
         display.setNoGravity(true);
         display.setInvulnerable(true);
         display.setSilent(true);
         display.setViewRange(16.0f);
+
+        // Интерполяция для плавного движения
         display.setPosRotInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDuration(INTERPOLATION_DURATION);
         display.setTransformationInterpolationDelay(0);

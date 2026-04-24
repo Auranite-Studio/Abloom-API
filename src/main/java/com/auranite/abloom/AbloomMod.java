@@ -83,7 +83,7 @@ public class AbloomMod {
                 try {
                     ElementDamageDisplayManager.tickSelfDestructDisplays(level);
                 } catch (Exception e) {
-                    LOGGER.warn("Error in self-destruct tick for level {}", level.dimension().location(), e);
+                    LOGGER.warn("Error in self-destruct tick for level {}", level.dimension(), e);
                 }
             }
         }

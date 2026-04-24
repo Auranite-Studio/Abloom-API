@@ -3,7 +3,7 @@ package com.auranite.abloom;
 import java.util.Arrays;
 import java.util.Optional;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public enum ElementType {
     FIRE("fire_dmg"),
@@ -143,7 +143,7 @@ public enum ElementType {
 
         str = str.replaceAll("[^a-z0-9/._-]", "_");
         try {
-            ResourceLocation rl = ResourceLocation.parse("minecraft:" + str);
+            Identifier rl = Identifier.parse("minecraft:" + str);
             return rl.getPath();
         } catch (Exception e) {
             return str;

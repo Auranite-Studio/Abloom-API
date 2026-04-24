@@ -34,7 +34,7 @@ public class ElementalWeaponComponent {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return Optional.empty();
 
-        String typeName = customData.copyTag().getString(ELEMENT_TYPE_KEY);
+        String typeName = customData.copyTag().getStringOr(ELEMENT_TYPE_KEY, "");
         if (typeName.isEmpty()) return Optional.empty();
 
         try {
@@ -50,7 +50,7 @@ public class ElementalWeaponComponent {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return 1.0f;
 
-        return customData.copyTag().getFloat(ACCUM_POINTS_KEY);
+        return customData.copyTag().getFloatOr(ACCUM_POINTS_KEY,0);
     }
 
     public static boolean hasElement(ItemStack stack) {

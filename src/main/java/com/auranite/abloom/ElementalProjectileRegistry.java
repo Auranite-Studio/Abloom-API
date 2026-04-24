@@ -1,6 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
@@ -92,7 +93,7 @@ public class ElementalProjectileRegistry {
     }
 
     public static boolean applyElementToProjectile(Entity projectile, LivingEntity shooter) {
-        if (projectile == null || projectile.level().isClientSide) return false;
+        if (projectile == null || projectile.level().isClientSide()) return false;
 
         Optional<ElementType> registeredElement = getElementForEntity(projectile);
         ElementType elementToApply = null;
@@ -128,10 +129,10 @@ public class ElementalProjectileRegistry {
             float velocity,
             float inaccuracy
     ) {
-        T projectile = projectileType.create(level);
+        T projectile = projectileType.create(level, EntitySpawnReason.NATURAL);
         if (projectile == null) return null;
 
-        projectile.moveTo(shooter.getX(), shooter.getEyeY() - 0.1, shooter.getZ(),
+        projectile.snapTo(shooter.getX(), shooter.getEyeY() - 0.1, shooter.getZ(),
                 shooter.getYHeadRot(), shooter.getXRot());
 
         applyElementToProjectile(projectile, shooter);
@@ -153,13 +154,13 @@ public class ElementalProjectileRegistry {
             float velocity,
             float inaccuracy
     ) {
-        T projectile = projectileType.create(level);
+        T projectile = projectileType.create(level, EntitySpawnReason.NATURAL);
         if (projectile == null) return null;
 
-        projectile.moveTo(shooter.getX(), shooter.getEyeY() - 0.1, shooter.getZ(),
+        projectile.snapTo(shooter.getX(), shooter.getEyeY() - 0.1, shooter.getZ(),
                 shooter.getYHeadRot(), shooter.getXRot());
 
-        if (forcedElement != null && !level.isClientSide) {
+        if (forcedElement != null && !level.isClientSide()) {
             AbloomModAttachments.setProjectileElement(projectile, forcedElement);
         }
 
