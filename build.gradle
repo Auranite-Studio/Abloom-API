@@ -3,7 +3,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.141'
 }
 
-version = '1.0.0-beta1'
+version = '1.0.0-beta.3+26.1.2-neoforge'
 base.archivesName = "Abloom"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
