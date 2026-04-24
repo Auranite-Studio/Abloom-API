@@ -1,4 +1,3 @@
-
 package com.auranite.abloom;
 
 import net.minecraft.world.item.BlockItem;
@@ -8,6 +7,8 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Function;
 
 public class AbloomModItems {
     public static final DeferredRegister.Items REGISTRY = DeferredRegister.createItems(AbloomMod.MODID);
@@ -23,21 +24,21 @@ public class AbloomModItems {
     public static final DeferredItem<Item> NATURAL_STICK;
     public static final DeferredItem<Item> QUANTUM_STICK;
 
-    private static final Item.Properties STICK_PROPS = new Item.Properties()
-            .stacksTo(1)
-            .rarity(Rarity.RARE);
-
     static {
-        FIRE_STICK     = REGISTRY.register("fire_stick", () -> new Item(STICK_PROPS));
-        PHYSICAL_STICK = REGISTRY.register("physical_stick", () -> new Item(STICK_PROPS));
-        WIND_STICK     = REGISTRY.register("wind_stick", () -> new Item(STICK_PROPS));
-        WATER_STICK    = REGISTRY.register("water_stick", () -> new Item(STICK_PROPS));
-        EARTH_STICK    = REGISTRY.register("earth_stick", () -> new Item(STICK_PROPS));
-        ICE_STICK      = REGISTRY.register("ice_stick", () -> new Item(STICK_PROPS));
-        ELECTRIC_STICK = REGISTRY.register("electric_stick", () -> new Item(STICK_PROPS));
-        ENERGY_STICK   = REGISTRY.register("energy_stick", () -> new Item(STICK_PROPS));
-        NATURAL_STICK  = REGISTRY.register("natural_stick", () -> new Item(STICK_PROPS));
-        QUANTUM_STICK  = REGISTRY.register("quantum_stick", () -> new Item(STICK_PROPS));
+        FIRE_STICK     = register("fire_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        PHYSICAL_STICK = register("physical_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        WIND_STICK     = register("wind_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        WATER_STICK    = register("water_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        EARTH_STICK    = register("earth_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        ICE_STICK      = register("ice_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        ELECTRIC_STICK = register("electric_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        ENERGY_STICK   = register("energy_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        NATURAL_STICK  = register("natural_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        QUANTUM_STICK  = register("quantum_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+    }
+
+    private static <I extends Item> DeferredItem<I> register(String name, Function<Item.Properties, ? extends I> supplier) {
+        return REGISTRY.registerItem(name, supplier, Item.Properties::new);
     }
 
     private static DeferredItem<Item> block(DeferredHolder<Block, Block> block) {
@@ -45,6 +46,6 @@ public class AbloomModItems {
     }
 
     private static DeferredItem<Item> block(DeferredHolder<Block, Block> block, Item.Properties properties) {
-        return REGISTRY.register(block.getId().getPath(), () -> new BlockItem(block.get(), properties));
+        return REGISTRY.registerItem(block.getId().getPath(), prop -> new BlockItem(block.get(), prop));
     }
 }
