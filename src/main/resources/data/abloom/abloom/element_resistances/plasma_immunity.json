@@ -1,0 +1,8 @@
+{
+  "element_type": "abloom:plasma_dmg",
+  "entities": {
+    "immune": ["minecraft:blaze", "minecraft:magma_cube"],
+    "resistance": ["minecraft:strider"],
+    "weakness": ["minecraft:snow_golem"]
+  }
+}

@@ -62,8 +62,8 @@ public class CustomElementResistancesLoader extends SimplePreparableReloadListen
     protected void apply(Map<ResourceLocation, com.google.gson.JsonObject> objects, ResourceManager resourceManager, ProfilerFiller profiler) {
         profiler.push("custom_element_resistances");
         
-        int loadedCount = 0;
-        int failedCount = 0;
+        int[] loadedCount = {0};
+        int[] failedCount = {0};
         
         objects.forEach((id, json) -> {
             try {
@@ -71,7 +71,7 @@ public class CustomElementResistancesLoader extends SimplePreparableReloadListen
                 String elementTypeId = json.has("element_type") ? json.get("element_type").getAsString() : null;
                 if (elementTypeId == null || elementTypeId.isEmpty()) {
                     AbloomMod.LOGGER.warn("Skipping resistance file {} - missing element_type", id);
-                    failedCount++;
+                    failedCount[0]++;
                     return;
                 }
                 
@@ -82,7 +82,7 @@ public class CustomElementResistancesLoader extends SimplePreparableReloadListen
                     Optional<ElementType> builtinType = ElementType.fromDamageTypeId(elementTypeId);
                     if (builtinType.isEmpty()) {
                         AbloomMod.LOGGER.warn("Unknown element type '{}' in resistance file {}", elementTypeId, id);
-                        failedCount++;
+                        failedCount[0]++;
                         return;
                     }
                 }
@@ -95,21 +95,21 @@ public class CustomElementResistancesLoader extends SimplePreparableReloadListen
                     if (entities.has("immune")) {
                         processEntityList(elementTypeId, entities.getAsJsonArray("immune"), 
                                 ElementResistanceManager.Resistance.IMMUNE, id);
-                        loadedCount++;
+                        loadedCount[0]++;
                     }
                     
                     // Process resistance entities
                     if (entities.has("resistance")) {
                         processEntityList(elementTypeId, entities.getAsJsonArray("resistance"), 
                                 ElementResistanceManager.Resistance.HALF_RESIST, id);
-                        loadedCount++;
+                        loadedCount[0]++;
                     }
                     
                     // Process weakness entities
                     if (entities.has("weakness")) {
                         processEntityList(elementTypeId, entities.getAsJsonArray("weakness"), 
                                 ElementResistanceManager.Resistance.WEAKNESS, id);
-                        loadedCount++;
+                        loadedCount[0]++;
                     }
                 }
                 
@@ -117,12 +117,12 @@ public class CustomElementResistancesLoader extends SimplePreparableReloadListen
                 
             } catch (Exception e) {
                 AbloomMod.LOGGER.error("Error loading resistance file {}: {}", id, e.getMessage());
-                failedCount++;
+                failedCount[0]++;
             }
         });
         
         profiler.pop();
-        AbloomMod.LOGGER.info("Loaded {} custom element resistance entries ({} failed)", loadedCount, failedCount);
+        AbloomMod.LOGGER.info("Loaded {} custom element resistance entries ({} failed)", loadedCount[0], failedCount[0]);
     }
     
     private void processEntityList(String elementTypeId, com.google.gson.JsonArray entityArray, 

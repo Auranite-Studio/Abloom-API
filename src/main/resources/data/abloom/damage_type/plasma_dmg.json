@@ -1,0 +1,6 @@
+{
+  "exhaustion": 0.1,
+  "message_id": "plasma_dmg",
+  "scaling": "never",
+  "effects": "burning"
+}
