@@ -38,6 +38,7 @@ public class AbloomModElementalWeapons {
         ElementalWeaponUtils.registerItem(Items.DIAMOND_SWORD, ElementType.PHYSICAL, 5f);
         ElementalWeaponUtils.registerItem(Items.GOLDEN_SWORD, ElementType.PHYSICAL, 4f);
         ElementalWeaponUtils.registerItem(Items.IRON_SWORD, ElementType.PHYSICAL, 3f);
+        ElementalWeaponUtils.registerItem(Items.COPPER_SWORD, ElementType.PHYSICAL, 3f);
         ElementalWeaponUtils.registerItem(Items.STONE_SWORD, ElementType.PHYSICAL, 2f);
         ElementalWeaponUtils.registerItem(Items.WOODEN_SWORD, ElementType.PHYSICAL, 2f);
 
@@ -45,8 +46,17 @@ public class AbloomModElementalWeapons {
         ElementalWeaponUtils.registerItem(Items.DIAMOND_AXE, ElementType.PHYSICAL, 7f);
         ElementalWeaponUtils.registerItem(Items.GOLDEN_AXE, ElementType.PHYSICAL, 6f);
         ElementalWeaponUtils.registerItem(Items.IRON_AXE, ElementType.PHYSICAL, 5f);
+        ElementalWeaponUtils.registerItem(Items.COPPER_AXE, ElementType.PHYSICAL, 5f);
         ElementalWeaponUtils.registerItem(Items.STONE_AXE, ElementType.PHYSICAL, 4f);
         ElementalWeaponUtils.registerItem(Items.WOODEN_AXE, ElementType.PHYSICAL, 2f);
+
+        ElementalWeaponUtils.registerItem(Items.NETHERITE_SPEAR, ElementType.PHYSICAL, 9f);
+        ElementalWeaponUtils.registerItem(Items.DIAMOND_SPEAR, ElementType.PHYSICAL, 8f);
+        ElementalWeaponUtils.registerItem(Items.GOLDEN_SPEAR, ElementType.PHYSICAL, 7f);
+        ElementalWeaponUtils.registerItem(Items.IRON_SPEAR, ElementType.PHYSICAL, 6f);
+        ElementalWeaponUtils.registerItem(Items.COPPER_SPEAR, ElementType.PHYSICAL, 6f);
+        ElementalWeaponUtils.registerItem(Items.STONE_SPEAR, ElementType.PHYSICAL, 5f);
+        ElementalWeaponUtils.registerItem(Items.WOODEN_SPEAR, ElementType.PHYSICAL, 3f);
 
         ElementalWeaponUtils.registerItem(Items.CROSSBOW, ElementType.PHYSICAL, 7f);
         ElementalWeaponUtils.registerItem(Items.TRIDENT, ElementType.PHYSICAL, 4f);
