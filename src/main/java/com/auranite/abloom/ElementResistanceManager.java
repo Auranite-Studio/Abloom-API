@@ -104,6 +104,36 @@ public class ElementResistanceManager {
 		if (entity == null || type == null) return Resistance.ZERO;
 		return getResistance(entity.getType(), type);
 	}
+	
+	/**
+	 * Gets resistance for an entity against a custom element type by its damage type ID.
+	 * @param entity The entity
+	 * @param elementTypeId The custom element type ID (e.g., "mymod:plasma_dmg")
+	 * @return The resistance value
+	 */
+	public static Resistance getResistanceForCustomElement(Entity entity, String elementTypeId) {
+		if (entity == null || elementTypeId == null) return Resistance.ZERO;
+		return getResistanceForCustomElement(entity.getType(), elementTypeId);
+	}
+	
+	/**
+	 * Gets resistance for an entity type against a custom element type by its damage type ID.
+	 * @param entityType The entity type
+	 * @param elementTypeId The custom element type ID
+	 * @return The resistance value
+	 */
+	public static Resistance getResistanceForCustomElement(EntityType<?> entityType, String elementTypeId) {
+		if (entityType == null || elementTypeId == null) return Resistance.ZERO;
+		
+		// Check custom resistance registry
+		ElementResistanceManager.Resistance customRes = 
+			com.auranite.abloom.datapack.CustomResistanceRegistry.getResistance(entityType, elementTypeId);
+		if (customRes != null && customRes != Resistance.ZERO) {
+			return customRes;
+		}
+		
+		return Resistance.ZERO;
+	}
 
 	public static Resistance getResistance(EntityType<?> entityType, ElementType type) {
 		if (entityType == null || type == null) return Resistance.ZERO;

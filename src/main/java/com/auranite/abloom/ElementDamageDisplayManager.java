@@ -61,12 +61,34 @@ public class ElementDamageDisplayManager {
     private static final Map<UUID, DisplayInfo> ACTIVE_DAMAGE_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<UUID, DisplayInfo> ACTIVE_STATUS_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
+    private static final Map<String, Integer> CUSTOM_DAMAGE_COLORS = new ConcurrentHashMap<>();
     private static final Map<UUID, double[]> ACTIVE_PHYSICS = new ConcurrentHashMap<>();
 
     private static final CopyOnWriteArrayList<TextDisplay> PENDING_REMOVALS = new CopyOnWriteArrayList<>();
 
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
+    }
+
+    /**
+     * Registers a damage color for a custom element type.
+     * @param customElement The custom element type
+     * @param color The ARGB color value
+     */
+    public static void registerDamageColor(CustomElementType customElement, int color) {
+        if (customElement != null && customElement.getFullDamageTypeId() != null) {
+            CUSTOM_DAMAGE_COLORS.put(customElement.getFullDamageTypeId(), color);
+        }
+    }
+
+    /**
+     * Registers a damage color for a custom element type using its built-in color.
+     * @param customElement The custom element type with its color
+     */
+    public static void registerDamageColor(CustomElementType customElement) {
+        if (customElement != null && customElement.getFullDamageTypeId() != null) {
+            registerDamageColor(customElement, customElement.getColor());
+        }
     }
 
     public static void setDamageColor(ElementType type, int color) {
@@ -80,6 +102,16 @@ public class ElementDamageDisplayManager {
     private static int getDamageColor(ElementType type) {
         if (type == null) return 0xFFFFFF;
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
+    }
+
+    /**
+     * Gets the damage color for a custom element type by its full damage type ID.
+     * @param fullDamageTypeId The full damage type ID (e.g., "mymod:plasma_dmg")
+     * @return The ARGB color value, or white if not found
+     */
+    private static int getCustomDamageColor(String fullDamageTypeId) {
+        if (fullDamageTypeId == null) return 0xFFFFFF;
+        return CUSTOM_DAMAGE_COLORS.getOrDefault(fullDamageTypeId, 0xFFFFFF);
     }
 
     public void cleanupStaleDisplays() {

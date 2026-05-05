@@ -1,0 +1,6 @@
+{
+  "id": "abloom:plasma_dmg",
+  "damage_type_id": "plasma_dmg",
+  "color": 0xFF00FF00,
+  "is_custom": true
+}
