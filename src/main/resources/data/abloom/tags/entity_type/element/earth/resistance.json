@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:iron_golem",
+    "minecraft:copper_golem",
+    "minecraft:warden",
+    "minecraft:giant",
+    "minecraft:ravager",
+    "minecraft:armadillo",
+    "minecraft:sniffer"
+  ]
+}
