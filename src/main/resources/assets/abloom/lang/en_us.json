@@ -58,7 +58,7 @@
   "effect.abloom.overload": "Overload",
   "effect.abloom.bloom": "Bloom",
   "effect.abloom.break": "Break",
-  "effect.abloom.windswept" : "Windswept",
+  "effect.abloom.windswept": "Windswept",
   "item_group.abloom.abloom_api": "Abloom API",
   "item.abloom.fire_stick": "Fire Stick",
   "item.abloom.physical_stick": "Physical Stick",
@@ -92,6 +92,14 @@
   "elemental.resistance.tooltip.energy": "Energy DMG Res: +%d%%",
   "elemental.resistance.tooltip.natural": "Natural DMG Res: +%d%%",
   "elemental.resistance.tooltip.quantum": "Quantum DMG Res: +%d%%",
-  "elemental.resistance.tooltip.default": "%s Res: +%d%%"
-
+  "elemental.resistance.tooltip.default": "%s Res: +%d%%",
+  "death.attack.ether_dmg": "%1$s died",
+  "death.attack.ether_dmg.item": "%1$s was killed by %2$s using %3$s",
+  "death.attack.ether_dmg.player": "%1$s died whilst trying to escape %2$s",
+  "elemental.tooltip.ether": "Ether DMG",
+  "elemental.tooltip.ether_resonance": "CORRUPTION!",
+  "effect.abloom.ether_resonance": "Corruption",
+  "elemental.resistance.ether": "Ether Resistance",
+  "elemental.resistance.tooltip.ether": "Ether DMG Res: +%d%%",
+  "item.abloom.ether_stick": "Ether Stick"
 }

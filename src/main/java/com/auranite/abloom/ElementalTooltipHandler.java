@@ -22,6 +22,7 @@ public class ElementalTooltipHandler {
     private static final String KEY_ELEMENT_ENERGY = "elemental.tooltip.energy";
     private static final String KEY_ELEMENT_NATURAL = "elemental.tooltip.natural";
     private static final String KEY_ELEMENT_QUANTUM = "elemental.tooltip.quantum";
+    private static final String KEY_ELEMENT_ETHER = "elemental.tooltip.ether";
     private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
     private static final String KEY_ACCUM_POINTS = "elemental.tooltip.accum_points";
 
@@ -36,6 +37,7 @@ public class ElementalTooltipHandler {
     private static final String KEY_RESISTANCE_ENERGY = "elemental.resistance.energy";
     private static final String KEY_RESISTANCE_NATURAL = "elemental.resistance.natural";
     private static final String KEY_RESISTANCE_QUANTUM = "elemental.resistance.quantum";
+    private static final String KEY_RESISTANCE_ETHER = "elemental.resistance.ether";
     private static final String KEY_RESISTANCE_DEFAULT = "elemental.resistance.element";
 
     private static int getElementColor(ElementType type) {
@@ -50,6 +52,7 @@ public class ElementalTooltipHandler {
             case ENERGY -> 0xFFFF00;
             case NATURAL -> 0x32CD32;
             case QUANTUM -> 0x9400D3;
+            case ETHER -> 0x24B3A7;
             default -> 0xFFFFFF;
         };
     }
@@ -93,6 +96,7 @@ public class ElementalTooltipHandler {
             case ENERGY -> Component.translatable(KEY_ELEMENT_ENERGY);
             case NATURAL -> Component.translatable(KEY_ELEMENT_NATURAL);
             case QUANTUM -> Component.translatable(KEY_ELEMENT_QUANTUM);
+            case ETHER -> Component.translatable(KEY_ELEMENT_ETHER);
             default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
         };
         text.setStyle(text.getStyle().withColor(getElementColor(type)));
@@ -134,6 +138,7 @@ public class ElementalTooltipHandler {
             case ENERGY -> Component.translatable(KEY_RESISTANCE_ENERGY);
             case NATURAL -> Component.translatable(KEY_RESISTANCE_NATURAL);
             case QUANTUM -> Component.translatable(KEY_RESISTANCE_QUANTUM);
+            case ETHER -> Component.translatable(KEY_RESISTANCE_ETHER);
             default -> Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
         };
 
