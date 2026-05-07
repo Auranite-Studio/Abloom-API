@@ -3,9 +3,9 @@ package com.auranite.abloom.effect;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 
-public class ErosionEffect extends MobEffect {
+public class WindsweptEffect extends MobEffect {
 
-    public ErosionEffect(int color) {
+    public WindsweptEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
     }
 

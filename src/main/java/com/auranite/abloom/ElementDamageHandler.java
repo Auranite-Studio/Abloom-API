@@ -136,7 +136,7 @@ public class ElementDamageHandler {
 			damage *= 1.0f + (amplifier + 1) * 0.20f;
 		}
 
-		boolean erosionActive = target.hasEffect(AbloomModEffects.EROSION);
+		boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
 		DamageSource source = event.getSource();
 		ElementType type = getElementTypeFromSource(source);
@@ -387,7 +387,7 @@ public class ElementDamageHandler {
 				yield currentDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield currentDamage;
 			}
@@ -442,7 +442,7 @@ public class ElementDamageHandler {
 				yield originalDamage * 5.0f;
 			}
 			case WIND -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.EROSION, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
 				yield originalDamage;
 			}
