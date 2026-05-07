@@ -134,10 +134,15 @@ public class ElementResistanceManager {
 		float multiplier = 1f - resistance.damageResistance();
 		multiplier = Math.max(0f, multiplier);
 		
-		// Apply 20% resistance reduction if target has Ether Resonance effect
+		// Apply 20% resistance reduction if target has Corruption effect
+		// This means resistance is reduced by 20%, so damage multiplier increases
 		if (entity instanceof LivingEntity livingEntity && 
 			livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
-			multiplier *= 0.8f; // 20% reduction
+			// Reduce resistance by 20%: newResistance = oldResistance * 0.8
+			// So multiplier becomes: 1 - (resistance * 0.8) = 1 - resistance + resistance * 0.2
+			// Which equals: multiplier + resistance.damageResistance() * 0.2
+			float resistanceReduction = resistance.damageResistance() * 0.2f;
+			multiplier = Math.min(1.0f, multiplier + resistanceReduction);
 		}
 		
 		return Math.max(0f, baseDamage * multiplier);
