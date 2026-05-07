@@ -10,7 +10,7 @@
 
 ### 1. Element System
 
-The mod defines 10 element types:
+The mod defines 11 element types:
 
 | Element | Damage ID | Damage Color |
 |---------|----------|------------|
@@ -24,6 +24,7 @@ The mod defines 10 element types:
 | ENERGY | `energy_dmg` | #FFFF00 |
 | NATURAL | `natural_dmg` | #32CD32 |
 | QUANTUM | `quantum_dmg` | #9400D3 |
+| ETHER | `ether_dmg` | #6A5ACD |
 
 ### 2. Resonance Accumulation Mechanics
 
@@ -49,10 +50,11 @@ When reaching 100 accumulation resonance points:
 | **ENERGY** | Energy resonance explosion, applies Rift effect (damage taken by target increased by 20% per level) | 10 seconds (200 ticks) |
 | **NATURAL** | Natural resonance explosion, applies Bloom effect (target takes periodic damage and receives 20% universal vulnerability per level) | 8 seconds (160 ticks) |
 | **QUANTUM** | Quantum resonance explosion, applies Overload effect (all damage to target ignores defense) | 8 seconds (160 ticks) |
+| **ETHER** | Ether resonance explosion, applies Corruption effect (target takes periodic damage and all elemental resistances reduced by 20%) | 8 seconds (160 ticks) |
 
 ### 4. Custom Mob Effects
 
-The mod includes 8 custom mob effects:
+The mod includes 9 custom mob effects:
 - **Burning** (Fire) - Damage over time effect
 - **Wetness** (Water) - Increases resonance accumulation
 - **Stun** (Earth) - Prevents movement and actions
@@ -61,6 +63,7 @@ The mod includes 8 custom mob effects:
 - **Overload** (Energy) - Increases damage taken
 - **Bloom** (Natural) - Periodic damage + vulnerability
 - **Break** (Quantum) - Ignores defense
+- **Corruption** (Ether) - Periodic damage + reduces all elemental resistances by 20%
 
 ### 5. Elemental Armor System
 
@@ -268,6 +271,7 @@ The following table shows which mobs have immunities, resistances, or weaknesses
 | **ENERGY** | Enderman, Shulker, Warden | Ender Dragon, Wither, Elder Guardian, Evoker, Witch | Creeper, Ghast, Happy Ghast |
 | **NATURAL** | Zombie, Zombie Villager, Husk, Drowned, Skeleton, Stray, Bogged, Wither Skeleton, Wither, Spider, Cave Spider, Witch, Hoglin, Zoglin, Piglin, Piglin Brute, Zombified Piglin, Slime, Magma Cube, Bee | Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Copper Golem, Snow Golem, Allay, Axolotl |
 | **QUANTUM** | Enderman, Endermite, Ender Dragon, Shulker | Wither, Warden | Villager, Wandering Trader, Bat, Allay |
+| **ETHER** | *None* | *None* | *None* |
 
 ---
 
@@ -333,6 +337,16 @@ public class ModItems {
                 // Register as fire weapon with 1.5x accumulation points
                 ElementalWeaponRegistry.registerWeapon(sword, ElementType.FIRE, 1.5f);
                 return sword;
+            });
+    
+    public static final DeferredHolder<Item, Item> ETHER_STICK =
+            ITEMS.register("ether_stick", () -> {
+                Item stick = new Item(new Item.Properties()
+                        .stacksTo(1)
+                        .durability(200));
+                // Register as ether weapon with 50x accumulation points (for testing)
+                ElementalWeaponRegistry.registerWeapon(stick, ElementType.ETHER, 50.0f);
+                return stick;
             });
 }
 ```
@@ -431,6 +445,8 @@ The mod uses NeoForge's data component system for storing elemental properties:
 - **Elemental Weapon Component**: Stores element type and accumulation points on weapons
 - **Elemental Resistance Component**: Stores resistance values for each element type on armor
 - **Data Attachments**: Used for runtime data like resonance accumulation points and projectile elements
+- **ElementType**: Enum containing all 11 element types including the new ETHER type
+- **CorruptionEffect**: Custom mob effect applied by Ether resonance, dealing periodic damage and reducing all elemental resistances by 20%
 
 ### Network Synchronization
 
