@@ -21,6 +21,7 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> BLOOM = REGISTRY.register("bloom", () -> new BloomEffect(0x32CD32));
     public static final DeferredHolder<MobEffect, MobEffect> OVERLOAD = REGISTRY.register("overload", () -> new OverloadEffect(0xFF00FF));
     public static final DeferredHolder<MobEffect, MobEffect> WINDSWEPT = REGISTRY.register("windswept", () -> new WindsweptEffect(0x00FFFF));
+    public static final DeferredHolder<MobEffect, MobEffect> CORRUPTION = REGISTRY.register("corruption", () -> new CorruptionEffect(0x24B3A7));
 
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {

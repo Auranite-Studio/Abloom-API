@@ -5,6 +5,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -133,6 +134,13 @@ public class ElementResistanceManager {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.damageResistance();
 		multiplier = Math.max(0f, multiplier);
+
+		if (entity instanceof LivingEntity livingEntity &&
+				livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
+			float resistanceReduction = resistance.damageResistance() * 0.2f;
+			multiplier = Math.min(1.0f, multiplier + resistanceReduction);
+		}
+		
 		return Math.max(0f, baseDamage * multiplier);
 	}
 
