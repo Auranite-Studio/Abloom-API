@@ -2,6 +2,10 @@
   "replace": false,
   "values": [
     "minecraft:ghast",
-    "minecraft:warden"
+    "minecraft:warden",
+    "minecraft:hoglin",
+    "minecraft:piglin",
+    "minecraft:piglin_brute",
+    "minecraft:zoglin"
   ]
 }

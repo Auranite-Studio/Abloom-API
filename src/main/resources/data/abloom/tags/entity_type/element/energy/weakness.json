@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:creeper",
+    "minecraft:ghast",
+    "minecraft:happy_ghast"
+  ]
+}
