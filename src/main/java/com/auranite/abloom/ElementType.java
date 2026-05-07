@@ -15,7 +15,8 @@ public enum ElementType {
     ELECTRIC("electric_dmg"),
     ENERGY("energy_dmg"),
     NATURAL("natural_dmg"),
-    QUANTUM("quantum_dmg");
+    QUANTUM("quantum_dmg"),
+    ETHER("ether_dmg");
 
     private final String damageTypeId;
 
@@ -115,6 +116,11 @@ public enum ElementType {
                  "generic_kill",
                  "void",
                  "outside_border" -> QUANTUM;
+
+            case "ether",
+                 "aether",
+                 "magic_ether",
+                 "arcane" -> ETHER;
 
             default -> {
                 AbloomMod.LOGGER.debug("Unknown DamageType '{}', defaulting to PHYSICAL", id);

@@ -69,6 +69,7 @@ public class ElementDamageHandler {
 		ElementDamageDisplayManager.registerDamageColor(ElementType.ENERGY, 0xFFFF00);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
 		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0xAA00FF);
 	}
 
 	public static boolean canSpawnDisplay() {
@@ -426,6 +427,11 @@ public class ElementDamageHandler {
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield currentDamage;
 			}
+			case ETHER -> {
+				target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, 8 * 20, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0xAA00FF);
+				yield currentDamage;
+			}
 			default -> currentDamage;
 		};
 	}
@@ -479,6 +485,11 @@ public class ElementDamageHandler {
 			case QUANTUM -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
+				yield originalDamage;
+			}
+			case ETHER -> {
+				target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, 8 * 20, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0xAA00FF);
 				yield originalDamage;
 			}
 			default -> originalDamage;

@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -132,6 +133,13 @@ public class ElementResistanceManager {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.damageResistance();
 		multiplier = Math.max(0f, multiplier);
+		
+		// Apply 20% resistance reduction if target has Ether Resonance effect
+		if (entity instanceof LivingEntity livingEntity && 
+			livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
+			multiplier *= 0.8f; // 20% reduction
+		}
+		
 		return Math.max(0f, baseDamage * multiplier);
 	}
 
