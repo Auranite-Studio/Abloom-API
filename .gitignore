@@ -1,47 +1,22 @@
-```
-# Compiled Java files
-*.class
-
-# Build artifacts
-target/
+# Gradle build system ignores
+.gradle/
+.eclipse/
 build/
 
-# Dependencies
-.gradle/
-libs/
-!src/main/resources/
-
-# Logs
-*.log
-
-# IDE files
-.vscode/
+# Other IDE related folders
 .idea/
-*.iml
-*.ipr
-*.iws
+.settings/
 
-# System files
-.DS_Store
-Thumbs.db
+# MCreator workspace
+.mcreator/
 
-# Environment
-.env
-.env.local
-*.env.*
+# Minecraft client/server files
+run/
+runs/
 
-# Coverage reports
-coverage/
-htmlcov/
-*.coverage
+# MacOS system files
+.DS_STORE
 
-# Maven/Gradle
-**/target/
-**/build/
-**/.gradle/
-**/gradle-app-setting.json
-
-# Minecraft/Forge specific
-.run/
-!src/main/resources/
-```
+# Other Files (In Eclipse)
+.classpath
+.project
