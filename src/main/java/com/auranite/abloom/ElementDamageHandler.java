@@ -384,8 +384,9 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case PHYSICAL -> {
-				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xC0C0C0);
-				yield currentDamage * 5.0f;
+				target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
+				yield currentDamage * 2.5f;
 			}
 			case WIND -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
@@ -444,8 +445,9 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case PHYSICAL -> {
-				spawnStatusText(target, Component.translatable("elemental.tooltip.crit_dmg"), 0xC0C0C0);
-				yield originalDamage * 5.0f;
+				target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
+				spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
+				yield originalDamage * 2.5f;
 			}
 			case WIND -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
