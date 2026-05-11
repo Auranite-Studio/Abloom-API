@@ -38,32 +38,19 @@ The mod defines 11 element types:
 
 When reaching 100 accumulation resonance points:
 
-| Element | Effect | Duration |
-|---------|--------|----------|
-| **PHYSICAL** | Critical damage explosion, deals 500% damage to the target | Instant |
-| **FIRE** | Fire resonance explosion, applies Burning effect | 10 seconds (200 ticks) |
-| **WIND** | Wind resonance explosion, applies Levitation effect | 6 seconds (120 ticks) |
-| **WATER** | Water resonance explosion, applies Wetness effect (increases resonance accumulation by 100% per level) | 15 seconds (300 ticks) |
-| **EARTH** | Earth resonance explosion, applies Stun effect (target cannot deal damage or move) | 6 seconds (120 ticks) |
-| **ICE** | Ice resonance explosion, applies Freeze effect | 12 seconds (240 ticks) |
-| **ELECTRIC** | Electric resonance explosion, applies Shock effect (target deals 20% less damage per level) | 10 seconds (200 ticks) |
-| **ENERGY** | Energy resonance explosion, applies Rift effect (damage taken by target increased by 20% per level) | 10 seconds (200 ticks) |
-| **NATURAL** | Natural resonance explosion, applies Bloom effect (target takes periodic damage and receives 20% universal vulnerability per level) | 8 seconds (160 ticks) |
-| **QUANTUM** | Quantum resonance explosion, applies Overload effect (all damage to target ignores defense) | 8 seconds (160 ticks) |
-| **ETHER** | Ether resonance explosion, applies Corruption effect (target takes periodic damage and all elemental resistances reduced by 20%) | 8 seconds (160 ticks) |
-
-### 4. Custom Mob Effects
-
-The mod includes 9 custom mob effects:
-- **Burning** (Fire) - Damage over time effect
-- **Wetness** (Water) - Increases resonance accumulation
-- **Stun** (Earth) - Prevents movement and actions
-- **Freeze** (Ice) - Immobilizes target
-- **Shock** (Electric) - Reduces damage output
-- **Overload** (Energy) - Increases damage taken
-- **Bloom** (Natural) - Periodic damage + vulnerability
-- **Break** (Quantum) - Ignores defense
-- **Corruption** (Ether) - Periodic damage and reduces all elemental resistances
+| Element | Effect                                                                                                                                                                                                  | Duration |
+|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| **PHYSICAL** | Physical resonance explosion, applies Rupture effect (target takes 250% initial damage, defense reduced by 40%)                                                                                         | 6 seconds (120 ticks) |
+| **FIRE** | Fire resonance explosion, applies Burning effect                                                                                                                                                        | 10 seconds (200 ticks) |
+| **WIND** | Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and removes Weathering | 8 seconds (160 ticks) |
+| **WATER** | Water resonance explosion, applies Wetness effect (increases resonance accumulation by 100%)                                                                                                            | 15 seconds (300 ticks) |
+| **EARTH** | Earth resonance explosion, applies Stun effect (target cannot deal damage or move)                                                                                                                      | 6 seconds (120 ticks) |
+| **ICE** | Ice resonance explosion, applies Freeze effect                                                                                                                                                          | 12 seconds (240 ticks) |
+| **ELECTRIC** | Electric resonance explosion, applies Shock effect (target deals 20% less damage)                                                                                                                       | 10 seconds (200 ticks) |
+| **ENERGY** | Source resonance explosion, applies Overload effect (damage taken by target increased by 20%)                                                                                                           | 10 seconds (200 ticks) |
+| **NATURAL** | Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)                                                                           | 8 seconds (160 ticks) |
+| **QUANTUM** | Quantum resonance explosion, applies Break effect (all damage to target ignores defense)                                                                                                                | 8 seconds (160 ticks) |
+| **ETHER** | Ether resonance explosion, applies Damage effect (target's resistance to all damage types reduced by 20% and takes periodic damage)                                                                     | 8 seconds (160 ticks) |
 
 ### 5. Elemental Armor System
 
