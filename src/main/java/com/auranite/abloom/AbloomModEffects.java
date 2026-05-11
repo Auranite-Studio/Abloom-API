@@ -18,6 +18,7 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> FREEZE = REGISTRY.register("freeze", () -> new FreezeEffect(0x00BFFF));
     public static final DeferredHolder<MobEffect, MobEffect> SHOCK = REGISTRY.register("shock", () -> new ShockEffect(0xFF19FF));
     public static final DeferredHolder<MobEffect, MobEffect> BREAK = REGISTRY.register("break", () -> new BreakEffect(0x9400D3));
+    public static final DeferredHolder<MobEffect, MobEffect> RUPTURE = REGISTRY.register("rupture", () -> new RuptureEffect(0xC0C0C0));
     public static final DeferredHolder<MobEffect, MobEffect> BLOOM = REGISTRY.register("bloom", () -> new BloomEffect(0x32CD32));
     public static final DeferredHolder<MobEffect, MobEffect> OVERLOAD = REGISTRY.register("overload", () -> new OverloadEffect(0xFF00FF));
     public static final DeferredHolder<MobEffect, MobEffect> WINDSWEPT = REGISTRY.register("windswept", () -> new WindsweptEffect(0x00FFFF));
