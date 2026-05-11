@@ -7,7 +7,6 @@
     "minecraft:zombie_villager",
     "minecraft:drowned",
     "minecraft:stray",
-    "minecraft:bogged",
-    "minecraft:camel_husk"
+    "minecraft:bogged"
   ]
 }
