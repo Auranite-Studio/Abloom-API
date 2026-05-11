@@ -7,6 +7,12 @@
     "minecraft:copper_golem",
     "minecraft:snow_golem",
     "minecraft:allay",
+    "minecraft:zoglin",
+    "minecraft:stray",
+    "minecraft:zombified_piglin",
+    "minecraft:zombie",
+    "minecraft:zombie_villager",
+    "minecraft:skeleton",
     "minecraft:axolotl"
   ]
 }
