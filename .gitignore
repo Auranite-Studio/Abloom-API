@@ -1,22 +1,47 @@
-# Gradle build system ignores
-.gradle/
-.eclipse/
+```
+# Compiled Java files
+*.class
+
+# Build artifacts
+target/
 build/
 
-# Other IDE related folders
+# Dependencies
+.gradle/
+libs/
+!src/main/resources/
+
+# Logs
+*.log
+
+# IDE files
+.vscode/
 .idea/
-.settings/
+*.iml
+*.ipr
+*.iws
 
-# MCreator workspace
-.mcreator/
+# System files
+.DS_Store
+Thumbs.db
 
-# Minecraft client/server files
-run/
-runs/
+# Environment
+.env
+.env.local
+*.env.*
 
-# MacOS system files
-.DS_STORE
+# Coverage reports
+coverage/
+htmlcov/
+*.coverage
 
-# Other Files (In Eclipse)
-.classpath
-.project
+# Maven/Gradle
+**/target/
+**/build/
+**/.gradle/
+**/gradle-app-setting.json
+
+# Minecraft/Forge specific
+.run/
+!src/main/resources/
+```
