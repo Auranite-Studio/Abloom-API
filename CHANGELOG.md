@@ -20,10 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Updated total element count to 11 types
+* **Updated Mob Resistances**: Updated resistance data for multiple mobs across various elements
+  * FIRE: Moved Husk and Camel Husk from Weak to Resistant; removed Camel Husk from Weak list
+  * ICE: Removed Sulfur Cube from Weak list
+  * NATURAL: Significantly updated immune and weak lists - removed Zombie, Zombie Villager, Drowned, Skeleton, Spider, Cave Spider, Witch, Hoglin, Piglin, Piglin Brute from Immune; added Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Zombie Nautilus, Skeleton to Weak list
 
 ### Fixed
 
-* *(No fixes in this release)*
+* Corrected mob resistance entries to match actual tag definitions
 
 ### Deprecated
 
