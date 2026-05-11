@@ -261,15 +261,15 @@ The following table shows which mobs have immunities, resistances, or weaknesses
 
 | Element | Immune | Resistant | Weak |
 |---------|--------|-----------|------|
-| **FIRE** | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton | Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin | Snow Golem, Dolphin, Zombie, Zombie Villager, Husk, Drowned, Stray, Bogged, Camel Husk |
+| **FIRE** | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton | Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel Husk | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged |
 | **PHYSICAL** | *None* | Turtle, Armadillo, Iron Golem, Copper Golem, Shulker, Warden, Ender Dragon | Slime, Magma Cube, Phantom, Vex, Allay, Glow Squid, Squid |
 | **WIND** | Phantom, Breeze | Ender Dragon, Ghast, Happy Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf | Turtle, Sniffer, Armadillo, Camel, Camel Husk, Ravager, Hoglin, Polar Bear |
 | **EARTH** | Endermite, Silverfish, Shulker | Iron Golem, Copper Golem, Warden, Giant, Ravager, Armadillo, Sniffer | Ghast, Happy Ghast, Phantom, Vex, Allay, Breeze, Ender Dragon |
 | **WATER** | Squid, Glow Squid, Nautilus, Zombie Nautilus, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin | Witch | Blaze, Snow Golem, Strider, Breeze, Parched |
-| **ICE** | Snow Golem, Stray, Polar Bear, Goat | *None* | Blaze, Magma Cube, Strider, Breeze, Parched, Sulfur Cube |
+| **ICE** | Snow Golem, Stray, Polar Bear, Goat | *None* | Blaze, Magma Cube, Strider, Breeze, Parched |
 | **ELECTRIC** | Creeper | Enderman, Phantom, Allay, Breeze | Drowned, Turtle, Axolotl, Frog, Tadpole, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Squid, Glow Squid, Nautilus, Zombie Nautilus, Guardian, Elder Guardian |
 | **ENERGY** | Enderman, Shulker, Warden | Ender Dragon, Wither, Elder Guardian, Evoker, Witch | Creeper, Ghast, Happy Ghast |
-| **NATURAL** | Zombie, Zombie Villager, Husk, Drowned, Skeleton, Stray, Bogged, Wither Skeleton, Wither, Spider, Cave Spider, Witch, Hoglin, Zoglin, Piglin, Piglin Brute, Zombified Piglin, Slime, Magma Cube, Bee | Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Copper Golem, Snow Golem, Allay, Axolotl |
+| **NATURAL** | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee | Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Copper Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Zombie Nautilus, Skeleton, Axolotl |
 | **QUANTUM** | Enderman, Endermite, Ender Dragon, Shulker | Wither, Warden | Villager, Wandering Trader, Bat, Allay |
 | **ETHER** | Ender Dragon, Wither | Evoker, Vindicator, Pillager, Witch | Enderman, Endermite, Shulker, Warden |
 
