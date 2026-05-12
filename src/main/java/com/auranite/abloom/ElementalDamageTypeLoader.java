@@ -50,7 +50,24 @@ public class ElementalDamageTypeLoader implements PreparableReloadListener {
                         ResourceLocation id = idString != null ? ResourceLocation.parse(idString) : null;
                         
                         String damageTypeId = json.has("damage_type_id") ? json.get("damage_type_id").getAsString() : "";
-                        int color = json.has("color") ? json.get("color").getAsInt() : 0xFFFFFF;
+                        
+                        // Parse color, supporting both integer and hex string formats (e.g., "0xFFFF0000" or "FF0000")
+                        int color = 0xFFFFFF;
+                        if (json.has("color")) {
+                            if (json.get("color").isJsonPrimitive()) {
+                                var colorPrimitive = json.get("color").getAsJsonPrimitive();
+                                if (colorPrimitive.isNumber()) {
+                                    color = colorPrimitive.getAsInt();
+                                } else if (colorPrimitive.isString()) {
+                                    String colorStr = colorPrimitive.getAsString();
+                                    if (colorStr.startsWith("0x") || colorStr.startsWith("0X")) {
+                                        color = (int) Long.parseLong(colorStr.substring(2), 16);
+                                    } else {
+                                        color = (int) Long.parseLong(colorStr, 16);
+                                    }
+                                }
+                            }
+                        }
                         
                         Optional<ResourceLocation> resonanceEffect = json.has("resonance_effect") 
                             ? Optional.of(ResourceLocation.parse(json.get("resonance_effect").getAsString()))

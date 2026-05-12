@@ -271,8 +271,11 @@ public class ElementDamageHandler {
 			// First check if it's a custom elemental damage type from data packs
 			CustomElementalDamageType customType = ElementalDamageTypeLoader.getByDamageTypeId(msgId);
 			if (customType != null) {
-				// For custom types, we map to the closest built-in ElementType for compatibility
-				// The actual color and effects are handled separately
+				// For custom types, use the element_type specified in the JSON if available
+				if (customType.getElementType().isPresent()) {
+					return customType.getElementType().get();
+				}
+				// Fallback: map to the closest built-in ElementType for compatibility
 				return ElementType.fromVanillaDamageType(msgId);
 			}
 			

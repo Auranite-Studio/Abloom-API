@@ -13,6 +13,7 @@ import java.util.Optional;
  *   "id": "abloom:wind_dmg",
  *   "damage_type_id": "wind_dmg",
  *   "color": 0xFF87CEEB,
+ *   "element_type": "WIND",
  *   "resonance_effect": "abloom:erosion",
  *   "resonance_effect_duration": 15,
  *   "element_Item_tooltip": "elemental.tooltip.wind",
@@ -27,6 +28,7 @@ public class CustomElementalDamageType {
             ResourceLocation.CODEC.fieldOf("id").forGetter(CustomElementalDamageType::getId),
             Codec.STRING.fieldOf("damage_type_id").forGetter(CustomElementalDamageType::getDamageTypeId),
             Codec.INT.optionalFieldOf("color", 0xFFFFFF).forGetter(CustomElementalDamageType::getColor),
+            ElementType.CODEC.optionalFieldOf("element_type").forGetter(CustomElementalDamageType::getElementType),
             ResourceLocation.CODEC.optionalFieldOf("resonance_effect").forGetter(CustomElementalDamageType::getResonanceEffect),
             Codec.INT.optionalFieldOf("resonance_effect_duration", 15).forGetter(CustomElementalDamageType::getResonanceEffectDuration),
             Codec.STRING.optionalFieldOf("element_Item_tooltip").forGetter(CustomElementalDamageType::getElementItemTooltip),
@@ -38,6 +40,7 @@ public class CustomElementalDamageType {
     private final ResourceLocation id;
     private final String damageTypeId;
     private final int color;
+    private final Optional<ElementType> elementType;
     private final Optional<ResourceLocation> resonanceEffect;
     private final int resonanceEffectDuration;
     private final Optional<String> elementItemTooltip;
@@ -47,6 +50,7 @@ public class CustomElementalDamageType {
     public CustomElementalDamageType(ResourceLocation id,
                                      String damageTypeId,
                                      int color,
+                                     Optional<ElementType> elementType,
                                      Optional<ResourceLocation> resonanceEffect,
                                      int resonanceEffectDuration,
                                      Optional<String> elementItemTooltip,
@@ -55,6 +59,7 @@ public class CustomElementalDamageType {
         this.id = id;
         this.damageTypeId = damageTypeId;
         this.color = color;
+        this.elementType = elementType;
         this.resonanceEffect = resonanceEffect;
         this.resonanceEffectDuration = resonanceEffectDuration;
         this.elementItemTooltip = elementItemTooltip;
@@ -72,6 +77,10 @@ public class CustomElementalDamageType {
 
     public int getColor() {
         return color;
+    }
+
+    public Optional<ElementType> getElementType() {
+        return elementType;
     }
 
     public Optional<ResourceLocation> getResonanceEffect() {

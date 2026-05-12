@@ -63,6 +63,7 @@ public class AbloomMod {
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
 
+        elementalDamageTypeLoader = new ElementalDamageTypeLoader();
         NeoForge.EVENT_BUS.addListener(this::onRegisterReloadListeners);
 
     }

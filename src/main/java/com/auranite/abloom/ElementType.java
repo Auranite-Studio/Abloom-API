@@ -1,5 +1,6 @@
 package com.auranite.abloom;
 
+import com.mojang.serialization.Codec;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -17,6 +18,18 @@ public enum ElementType {
     NATURAL("natural_dmg"),
     QUANTUM("quantum_dmg"),
     ETHER("ether_dmg");
+
+    public static final Codec<ElementType> CODEC = Codec.STRING.xmap(
+        s -> {
+            try {
+                return ElementType.valueOf(s.toUpperCase(java.util.Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                AbloomMod.LOGGER.warn("Unknown ElementType '{}', defaulting to PHYSICAL", s);
+                return PHYSICAL;
+            }
+        },
+        ElementType::name
+    );
 
     private final String damageTypeId;
 
