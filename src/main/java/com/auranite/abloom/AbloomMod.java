@@ -5,6 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -36,6 +37,8 @@ public class AbloomMod {
     public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
 
+    private static ElementalDamageTypeLoader elementalDamageTypeLoader;
+
     public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
         NeoForge.EVENT_BUS.register(this);
@@ -59,6 +62,8 @@ public class AbloomMod {
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
+
+        NeoForge.EVENT_BUS.addListener(this::onRegisterReloadListeners);
 
     }
     @SubscribeEvent
@@ -126,5 +131,11 @@ public class AbloomMod {
         });
         actions.forEach(e -> e.getA().run());
         workQueue.removeAll(actions);
+    }
+    @SubscribeEvent
+    private void onRegisterReloadListeners(AddReloadListenerEvent event) {
+        if (elementalDamageTypeLoader != null) {
+            event.addListener(elementalDamageTypeLoader);
+        }
     }
 }

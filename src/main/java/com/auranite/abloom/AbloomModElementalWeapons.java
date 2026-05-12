@@ -81,7 +81,7 @@ public class AbloomModElementalWeapons {
         ElementalWeaponUtils.registerItem(AbloomModItems.NATURAL_STICK.get(), ElementType.NATURAL, 50f);
     }
     private static void registerQuantumWeapons() {
-        ElementalWeaponUtils.registerItem(AbloomModItems.QUANTUM_STICK.get(), ElementType.QUANTUM, 50f);
+        ElementalWeaponUtils.registerItem(AbloomModItems.QUANTUM_STICK.get(), "sharp_dmg", 50f);
     }
     
     private static void registerEtherWeapons() {

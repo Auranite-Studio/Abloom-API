@@ -61,12 +61,34 @@ public class ElementDamageDisplayManager {
     private static final Map<UUID, DisplayInfo> ACTIVE_DAMAGE_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<UUID, DisplayInfo> ACTIVE_STATUS_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
+    private static final Map<String, Integer> CUSTOM_DAMAGE_COLORS = new ConcurrentHashMap<>();
     private static final Map<UUID, double[]> ACTIVE_PHYSICS = new ConcurrentHashMap<>();
 
     private static final CopyOnWriteArrayList<TextDisplay> PENDING_REMOVALS = new CopyOnWriteArrayList<>();
 
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
+    }
+
+    /**
+     * Register a damage color for a custom elemental damage type.
+     * @param type the custom damage type
+     */
+    public static void registerDamageColorFromCustom(CustomElementalDamageType type) {
+        if (type != null) {
+            CUSTOM_DAMAGE_COLORS.put(type.getDamageTypeId(), type.getColor());
+        }
+    }
+
+    /**
+     * Register a damage color for a custom damage type by ID.
+     * @param damageTypeId the damage type ID (e.g., "wind_dmg")
+     * @param color the color in ARGB format
+     */
+    public static void registerCustomDamageColor(String damageTypeId, int color) {
+        if (damageTypeId != null) {
+            CUSTOM_DAMAGE_COLORS.put(damageTypeId, color);
+        }
     }
 
     public static void setDamageColor(ElementType type, int color) {
@@ -80,6 +102,16 @@ public class ElementDamageDisplayManager {
     private static int getDamageColor(ElementType type) {
         if (type == null) return 0xFFFFFF;
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
+    }
+
+    /**
+     * Get the damage color for a custom damage type by ID.
+     * @param damageTypeId the damage type ID
+     * @return the color, or 0xFFFFFF if not found
+     */
+    public static int getCustomDamageColor(String damageTypeId) {
+        if (damageTypeId == null) return 0xFFFFFF;
+        return CUSTOM_DAMAGE_COLORS.getOrDefault(damageTypeId, 0xFFFFFF);
     }
 
     public void cleanupStaleDisplays() {
@@ -292,6 +324,17 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
+        spawnDamageNumber(entity, amount, type, null);
+    }
+
+    /**
+     * Spawn a damage number with optional custom damage type ID for color lookup.
+     * @param entity the target entity
+     * @param amount the damage amount
+     * @param type the element type (can be null for custom types)
+     * @param customDamageTypeId the custom damage type ID for color lookup (optional)
+     */
+    public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, String customDamageTypeId) {
         if (!AbloomConfig.areDamageNumbersEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
         double spawnRadiusSq = 16.0 * 16.0;
@@ -300,7 +343,12 @@ public class ElementDamageDisplayManager {
         if (!playerInRange) return;
 
         int entityId = entity.getId();
-        int color = getDamageColor(type);
+        int color;
+        if (customDamageTypeId != null && !customDamageTypeId.isEmpty()) {
+            color = getCustomDamageColor(customDamageTypeId);
+        } else {
+            color = getDamageColor(type);
+        }
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
 
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.5;

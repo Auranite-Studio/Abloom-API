@@ -67,6 +67,27 @@ public class ElementalTooltipHandler {
     }
 
     private static void handleWeaponTooltip(ItemStack stack, ItemTooltipEvent event) {
+        // First check for custom damage type ID from registry
+        String damageTypeId = ElementalWeaponRegistry.getDamageTypeId(stack);
+        
+        if (damageTypeId != null) {
+            float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
+            
+            if (accumPoints != 0.0f && accumPoints != 1.0f) {
+                MutableComponent elementText = getElementText(damageTypeId);
+                event.getToolTip().add(1, elementText);
+
+                MutableComponent accumText = Component.translatable(
+                        KEY_ACCUM_POINTS,
+                        String.format("%.1f", accumPoints)
+                );
+                accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
+                event.getToolTip().add(Component.literal(" ").append(accumText));
+            }
+            return;
+        }
+        
+        // Fallback to ElementType-based lookup
         ElementType type = ElementalWeaponUtils.getElementType(stack);
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
 
@@ -85,21 +106,58 @@ public class ElementalTooltipHandler {
     }
 
     private static MutableComponent getElementText(ElementType type) {
-        MutableComponent text = switch (type) {
-            case FIRE -> Component.translatable(KEY_ELEMENT_FIRE);
-            case PHYSICAL -> Component.translatable(KEY_ELEMENT_PHYSICAL);
-            case WIND -> Component.translatable(KEY_ELEMENT_WIND);
-            case WATER -> Component.translatable(KEY_ELEMENT_WATER);
-            case EARTH -> Component.translatable(KEY_ELEMENT_EARTH);
-            case ICE -> Component.translatable(KEY_ELEMENT_ICE);
-            case ELECTRIC -> Component.translatable(KEY_ELEMENT_ELECTRIC);
-            case ENERGY -> Component.translatable(KEY_ELEMENT_ENERGY);
-            case NATURAL -> Component.translatable(KEY_ELEMENT_NATURAL);
-            case QUANTUM -> Component.translatable(KEY_ELEMENT_QUANTUM);
-            case ETHER -> Component.translatable(KEY_ELEMENT_ETHER);
-            default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
-        };
+        // First check if this is a custom damage type with custom tooltip
+        String damageTypeId = type.getDamageTypeId();
+        CustomElementalDamageType customType = ElementalDamageTypeLoader.getByDamageTypeId(damageTypeId);
+        
+        MutableComponent text;
+        if (customType != null && customType.getElementItemTooltip().isPresent()) {
+            text = Component.translatable(customType.getElementItemTooltip().get());
+        } else {
+            text = switch (type) {
+                case FIRE -> Component.translatable(KEY_ELEMENT_FIRE);
+                case PHYSICAL -> Component.translatable(KEY_ELEMENT_PHYSICAL);
+                case WIND -> Component.translatable(KEY_ELEMENT_WIND);
+                case WATER -> Component.translatable(KEY_ELEMENT_WATER);
+                case EARTH -> Component.translatable(KEY_ELEMENT_EARTH);
+                case ICE -> Component.translatable(KEY_ELEMENT_ICE);
+                case ELECTRIC -> Component.translatable(KEY_ELEMENT_ELECTRIC);
+                case ENERGY -> Component.translatable(KEY_ELEMENT_ENERGY);
+                case NATURAL -> Component.translatable(KEY_ELEMENT_NATURAL);
+                case QUANTUM -> Component.translatable(KEY_ELEMENT_QUANTUM);
+                case ETHER -> Component.translatable(KEY_ELEMENT_ETHER);
+                default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
+            };
+        }
         text.setStyle(text.getStyle().withColor(getElementColor(type)));
+        return text;
+    }
+
+    /**
+     * Get element text for a custom damage type ID.
+     */
+    private static MutableComponent getElementText(String damageTypeId) {
+        if (damageTypeId == null) {
+            return Component.translatable(KEY_ELEMENT_DEFAULT, "Unknown");
+        }
+        
+        // Check if there's a custom damage type with custom tooltip
+        CustomElementalDamageType customType = ElementalDamageTypeLoader.getByDamageTypeId(damageTypeId);
+        if (customType != null && customType.getElementItemTooltip().isPresent()) {
+            MutableComponent text = Component.translatable(customType.getElementItemTooltip().get());
+            text.setStyle(text.getStyle().withColor(customType.getColor()));
+            return text;
+        }
+        
+        // Try to map to built-in ElementType
+        ElementType elementType = ElementType.fromDamageTypeId(damageTypeId).orElse(null);
+        if (elementType != null) {
+            return getElementText(elementType);
+        }
+        
+        // Fallback to generic text
+        MutableComponent text = Component.translatable(KEY_ELEMENT_DEFAULT, damageTypeId);
+        text.setStyle(text.getStyle().withColor(0xFFFFFF));
         return text;
     }
 
