@@ -116,7 +116,8 @@ public class ElementResistanceRegistry {
         registerSingle(entityType, damageTypeId, resistance, resistance);
     }
 
-    public static void registerMultiple(EntityType<?> entityType,
+    @Deprecated
+    public static void registerMultipleLegacy(EntityType<?> entityType,
                                         Map<ElementType, ElementResistanceManager.Resistance> resistanceMap) {
         if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
         ElementResistanceManager.registerResistance(entityType, resistanceMap);
