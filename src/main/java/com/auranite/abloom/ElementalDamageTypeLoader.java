@@ -1,14 +1,20 @@
 package com.auranite.abloom;
 
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.PreparationBarrier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
@@ -21,6 +27,7 @@ public class ElementalDamageTypeLoader implements PreparableReloadListener {
 
     private static final Map<ResourceLocation, CustomElementalDamageType> LOADED_TYPES = new ConcurrentHashMap<>();
     private static final String FOLDER = "elemental_dmg_types";
+    private static final Gson GSON = new GsonBuilder().create();
 
     public ElementalDamageTypeLoader() {
         super();
@@ -35,33 +42,39 @@ public class ElementalDamageTypeLoader implements PreparableReloadListener {
             for (var entry : resources.entrySet()) {
                 try {
                     var resource = entry.getValue();
-                    var json = JsonParser.parseString(resource.openAsReader().readString()).getAsJsonObject();
-                    
-                    var id = ResourceLocation.tryParse(json.get("id").getAsString());
-                    var damageTypeId = json.get("damage_type_id").getAsString();
-                    int color = json.has("color") ? json.get("color").getAsInt() : 0xFFFFFF;
-                    
-                    var resonanceEffect = json.has("resonance_effect") 
-                        ? java.util.Optional.of(ResourceLocation.tryParse(json.get("resonance_effect").getAsString()))
-                        : java.util.Optional.empty();
-                    
-                    int duration = json.has("resonance_effect_duration") ? json.get("resonance_effect_duration").getAsInt() : 15;
-                    
-                    var itemTooltip = json.has("element_Item_tooltip")
-                        ? java.util.Optional.of(json.get("element_Item_tooltip").getAsString())
-                        : java.util.Optional.empty();
-                    
-                    var armorTooltip = json.has("element_armor_resistance_tooltip")
-                        ? java.util.Optional.of(json.get("element_armor_resistance_tooltip").getAsString())
-                        : java.util.Optional.empty();
-                    
-                    var statusText = json.has("resonance_effect.status_text_display")
-                        ? java.util.Optional.of(json.get("resonance_effect.status_text_display").getAsString())
-                        : java.util.Optional.empty();
-                    
-                    if (id != null) {
-                        var type = new CustomElementalDamageType(id, damageTypeId, color, resonanceEffect, duration, itemTooltip, armorTooltip, statusText);
-                        map.put(id, type);
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.open(), StandardCharsets.UTF_8))) {
+                        JsonObject json = GSON.fromJson(reader, JsonObject.class);
+                        
+                        if (json == null) continue;
+                        
+                        String idString = json.has("id") ? json.get("id").getAsString() : null;
+                        ResourceLocation id = idString != null ? ResourceLocation.parse(idString) : null;
+                        
+                        String damageTypeId = json.has("damage_type_id") ? json.get("damage_type_id").getAsString() : "";
+                        int color = json.has("color") ? json.get("color").getAsInt() : 0xFFFFFF;
+                        
+                        Optional<ResourceLocation> resonanceEffect = json.has("resonance_effect") 
+                            ? Optional.of(ResourceLocation.parse(json.get("resonance_effect").getAsString()))
+                            : Optional.empty();
+                        
+                        int duration = json.has("resonance_effect_duration") ? json.get("resonance_effect_duration").getAsInt() : 15;
+                        
+                        Optional<String> itemTooltip = json.has("element_Item_tooltip")
+                            ? Optional.of(json.get("element_Item_tooltip").getAsString())
+                            : Optional.empty();
+                        
+                        Optional<String> armorTooltip = json.has("element_armor_resistance_tooltip")
+                            ? Optional.of(json.get("element_armor_resistance_tooltip").getAsString())
+                            : Optional.empty();
+                        
+                        Optional<String> statusText = json.has("resonance_effect.status_text_display")
+                            ? Optional.of(json.get("resonance_effect.status_text_display").getAsString())
+                            : Optional.empty();
+                        
+                        if (id != null && !damageTypeId.isEmpty()) {
+                            var type = new CustomElementalDamageType(id, damageTypeId, color, resonanceEffect, duration, itemTooltip, armorTooltip, statusText);
+                            map.put(id, type);
+                        }
                     }
                 } catch (Exception e) {
                     AbloomMod.LOGGER.error("Failed to parse custom damage type from: {}", entry.getKey(), e);
