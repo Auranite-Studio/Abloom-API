@@ -141,7 +141,9 @@ public class ElementDamageHandler {
 
 		DamageSource source = event.getSource();
 		ElementType type = getElementTypeFromSource(source);
-		if (type == null) {
+		String customDamageTypeId = getCustomDamageTypeIdFromSource(source);
+		
+		if (type == null && customDamageTypeId == null) {
 			if (canShowDamage(target)) spawnDamageNumber(target, event.getNewDamage(), null);
 			return;
 		}
@@ -170,34 +172,42 @@ public class ElementDamageHandler {
 
 		float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
-		if (ElementResistanceManager.isImmune(target, type)) {
+		if (type != null && ElementResistanceManager.isImmune(target, type)) {
 			event.setNewDamage(0f);
 			return;
 		}
 
 		int basePoints = (int) baseAccumulation;
-		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
+		int pointsToAdd = (type != null) ? ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints) : basePoints;
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
 
 		if (erosionActive) {
 			pointsToAdd = 100;
 		}
 
-		AbloomModAttachments.addPoints(target, type, pointsToAdd);
-		int pointsAfter = AbloomModAttachments.getPoints(target, type);
-		boolean thresholdReached = pointsAfter >= THRESHOLD;
+		if (type != null) {
+			AbloomModAttachments.addPoints(target, type, pointsToAdd);
+			int pointsAfter = AbloomModAttachments.getPoints(target, type);
+			boolean thresholdReached = pointsAfter >= THRESHOLD;
 
-		float finalDamage = event.getNewDamage();
-		finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+			float finalDamage = event.getNewDamage();
+			finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
 
-		finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
-		if (thresholdReached) {
-			finalDamage = applyThresholdEffect(target, type, event, finalDamage);
-			AbloomModAttachments.resetPoints(target, type);
+			finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+			if (thresholdReached) {
+				finalDamage = applyThresholdEffect(target, type, event, finalDamage);
+				AbloomModAttachments.resetPoints(target, type);
+			}
+			event.setNewDamage(finalDamage);
+			if (canShowDamage(target)) spawnDamageNumberWithCustomType(target, finalDamage, type, customDamageTypeId);
+			updateLastDamageTime(target, type);
+		} else {
+			// Custom damage type without built-in ElementType mapping
+			float finalDamage = event.getNewDamage();
+			finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+			event.setNewDamage(finalDamage);
+			if (canShowDamage(target)) spawnDamageNumberWithCustomType(target, finalDamage, null, customDamageTypeId);
 		}
-		event.setNewDamage(finalDamage);
-		if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
-		updateLastDamageTime(target, type);
 	}
 
 	@SubscribeEvent
@@ -258,11 +268,35 @@ public class ElementDamageHandler {
 		}
 		String msgId = source.type().msgId();
 		if (msgId != null) {
+			// First check if it's a custom elemental damage type from data packs
+			CustomElementalDamageType customType = ElementalDamageTypeLoader.getByDamageTypeId(msgId);
+			if (customType != null) {
+				// For custom types, we map to the closest built-in ElementType for compatibility
+				// The actual color and effects are handled separately
+				return ElementType.fromVanillaDamageType(msgId);
+			}
+			
 			for (ElementType type : ElementType.values()) {
 				if (type.getDamageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) return type;
 			}
 			ElementType vanillaType = ElementType.fromVanillaDamageType(msgId);
 			if (vanillaType != null) return vanillaType;
+		}
+		return null;
+	}
+
+	/**
+	 * Get the custom damage type ID from a DamageSource, if applicable.
+	 * @param source the damage source
+	 * @return the custom damage type ID, or null if not a custom type
+	 */
+	public static String getCustomDamageTypeIdFromSource(DamageSource source) {
+		String msgId = source.type().msgId();
+		if (msgId != null) {
+			CustomElementalDamageType customType = ElementalDamageTypeLoader.getByDamageTypeId(msgId);
+			if (customType != null) {
+				return customType.getDamageTypeId();
+			}
 		}
 		return null;
 	}
@@ -329,10 +363,21 @@ public class ElementDamageHandler {
 	}
 
 	private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
+		spawnDamageNumberWithCustomType(entity, amount, type, null);
+	}
+
+	/**
+	 * Spawn a damage number with optional custom damage type ID.
+	 * @param entity the target entity
+	 * @param amount the damage amount
+	 * @param type the element type (can be null for custom types)
+	 * @param customDamageTypeId the custom damage type ID for color lookup (optional)
+	 */
+	private static void spawnDamageNumberWithCustomType(LivingEntity entity, float amount, ElementType type, String customDamageTypeId) {
 		if (!canSpawnDisplay()) return;
 		if (displayManager != null) {
 			incrementDisplayCount();
-			displayManager.spawnDamageNumber(entity, amount, type);
+			displayManager.spawnDamageNumber(entity, amount, type, customDamageTypeId);
 		}
 	}
 

@@ -17,9 +17,19 @@ public class ElementalWeaponUtils {
 
     public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
-        ElementalWeaponRegistry.registerWeapon(vanillaItem, type, accumulationMultiplier);
+        ElementalWeaponRegistry.registerWeapon(vanillaItem, type.getDamageTypeId(), accumulationMultiplier);
         AbloomMod.LOGGER.info("⚔️ Registered item {} as {} elemental (accum x{})",
                 BuiltInRegistries.ITEM.getKey(vanillaItem), type, accumulationMultiplier);
+    }
+
+    /**
+     * Register an item with a custom damage type ID.
+     */
+    public static void registerItem(Item item, String damageTypeId, float accumulationMultiplier) {
+        if (item == null || damageTypeId == null) return;
+        ElementalWeaponRegistry.registerWeapon(item, damageTypeId, accumulationMultiplier);
+        AbloomMod.LOGGER.info("⚔️ Registered item {} as custom elemental '{}' (accum x{})",
+                BuiltInRegistries.ITEM.getKey(item), damageTypeId, accumulationMultiplier);
     }
 
     public static boolean registerItemById(String modId, String itemName, ElementType type) {
@@ -31,8 +41,25 @@ public class ElementalWeaponUtils {
         Optional<Item> itemOpt = BuiltInRegistries.ITEM.getOptional(rl);
 
         if (itemOpt.isPresent()) {
-            ElementalWeaponRegistry.registerWeapon(itemOpt.get(), type, accumulationMultiplier);
+            ElementalWeaponRegistry.registerWeapon(itemOpt.get(), type.getDamageTypeId(), accumulationMultiplier);
             AbloomMod.LOGGER.info("⚔️ Registered {}:{} as {} elemental (accum x{})", modId, itemName, type, accumulationMultiplier);
+            return true;
+        } else {
+            AbloomMod.LOGGER.warn("❌ Item not found: {}:{}", modId, itemName);
+            return false;
+        }
+    }
+
+    /**
+     * Register an item by its ResourceLocation with a custom damage type ID.
+     */
+    public static boolean registerItemById(String modId, String itemName, String damageTypeId, float accumulationMultiplier) {
+        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(modId, itemName);
+        Optional<Item> itemOpt = BuiltInRegistries.ITEM.getOptional(rl);
+
+        if (itemOpt.isPresent()) {
+            ElementalWeaponRegistry.registerWeapon(itemOpt.get(), damageTypeId, accumulationMultiplier);
+            AbloomMod.LOGGER.info("⚔️ Registered {}:{} as custom elemental '{}' (accum x{})", modId, itemName, damageTypeId, accumulationMultiplier);
             return true;
         } else {
             AbloomMod.LOGGER.warn("❌ Item not found: {}:{}", modId, itemName);

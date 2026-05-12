@@ -72,28 +72,68 @@ public class ElementResistanceRegistry {
 
         for (EntityType<?> type : entityTypes) {
             if (type == null) continue;
-            ElementResistanceManager.registerResistance(type, Map.of(
-                    elementType, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance)
-            ));
+            ElementResistanceManager.registerResistance(type, elementType, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance));
+        }
+    }
+
+    /**
+     * Register uniform resistance for a custom damage type ID.
+     */
+    @SafeVarargs
+    public static void registerUniform(String damageTypeId, float accumulationResistance,
+                                       float damageResistance, EntityType<?>... entityTypes) {
+        if (damageTypeId == null || entityTypes == null) return;
+
+        for (EntityType<?> type : entityTypes) {
+            if (type == null) continue;
+            ElementResistanceManager.registerResistance(type, damageTypeId, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance));
         }
     }
 
     public static void registerSingle(EntityType<?> entityType, ElementType elementType,
                                       float accumulationResistance, float damageResistance) {
         if (entityType == null || elementType == null) return;
-        ElementResistanceManager.registerResistance(entityType, Map.of(
-                elementType, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance)
-        ));
+        ElementResistanceManager.registerResistance(entityType, elementType, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance));
+    }
+
+    /**
+     * Register resistance for a single entity type against a custom damage type ID.
+     */
+    public static void registerSingle(EntityType<?> entityType, String damageTypeId,
+                                      float accumulationResistance, float damageResistance) {
+        if (entityType == null || damageTypeId == null) return;
+        ElementResistanceManager.registerResistance(entityType, damageTypeId, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance));
     }
 
     public static void registerSingleUniform(EntityType<?> entityType, ElementType elementType, float resistance) {
         registerSingle(entityType, elementType, resistance, resistance);
     }
 
+    /**
+     * Register uniform resistance for a single entity type against a custom damage type ID.
+     */
+    public static void registerSingleUniform(EntityType<?> entityType, String damageTypeId, float resistance) {
+        registerSingle(entityType, damageTypeId, resistance, resistance);
+    }
+
     public static void registerMultiple(EntityType<?> entityType,
                                         Map<ElementType, ElementResistanceManager.Resistance> resistanceMap) {
         if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
-        ElementResistanceManager.registerResistance(entityType, new EnumMap<>(resistanceMap));
+        ElementResistanceManager.registerResistance(entityType, resistanceMap);
+    }
+
+    /**
+     * Register multiple resistances for an entity type using damage type IDs as keys.
+     */
+    public static void registerMultiple(EntityType<?> entityType,
+                                        Map<String, ElementResistanceManager.Resistance> resistanceMapById) {
+        if (entityType == null || resistanceMapById == null || resistanceMapById.isEmpty()) return;
+        
+        for (Map.Entry<String, ElementResistanceManager.Resistance> entry : resistanceMapById.entrySet()) {
+            if (entry.getKey() != null && entry.getValue() != null) {
+                ElementResistanceManager.registerResistance(entityType, entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public static boolean hasResistances(EntityType<?> entityType) {

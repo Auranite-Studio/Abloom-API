@@ -36,6 +36,8 @@ public class AbloomMod {
     public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
 
+    private static ElementalDamageTypeLoader elementalDamageTypeLoader;
+
     public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
         NeoForge.EVENT_BUS.register(this);
@@ -59,6 +61,12 @@ public class AbloomMod {
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
+        
+        // Register the custom elemental damage type loader for data packs
+        elementalDamageTypeLoader = new ElementalDamageTypeLoader();
+        modEventBus.addListener(net.neoforged.neoforge.event.AddReloadListenerEvent.class, event -> {
+            event.addListener(elementalDamageTypeLoader);
+        });
 
     }
     @SubscribeEvent

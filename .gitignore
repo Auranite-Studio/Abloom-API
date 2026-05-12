@@ -1,22 +1,23 @@
-# Gradle build system ignores
+```
+# Gradle
 .gradle/
-.eclipse/
 build/
+target/
 
-# Other IDE related folders
-.idea/
-.settings/
+# Dependencies
+libs/
 
-# MCreator workspace
-.mcreator/
+# Logs
+*.log
 
-# Minecraft client/server files
-run/
-runs/
+# Temp files
+*.tmp
+*.swp
 
-# MacOS system files
-.DS_STORE
+# OS generated files
+.DS_Store
+Thumbs.db
 
-# Other Files (In Eclipse)
-.classpath
-.project
+# Local configuration
+local.properties
+```

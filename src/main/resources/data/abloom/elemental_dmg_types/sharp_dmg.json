@@ -1,0 +1,10 @@
+{
+  "id": "abloom:sharp_dmg",
+  "damage_type_id": "sharp_dmg",
+  "color": 0xFFFF0000,
+  "resonance_effect": "abloom:sharpened",
+  "resonance_effect_duration": 15,
+  "element_Item_tooltip": "elemental.tooltip.sharp",
+  "element_armor_resistance_tooltip": "elemental.resistance.sharp",
+  "resonance_effect.status_text_display": "elemental.tooltip.sharp_bleed"
+}
