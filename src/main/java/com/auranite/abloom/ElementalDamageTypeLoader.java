@@ -1,10 +1,10 @@
 package com.auranite.abloom;
 
-import com.mojang.serialization.Codec;
+import com.google.gson.JsonParser;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.resources.PreparationBarrier;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.util.HashMap;
@@ -17,7 +17,7 @@ import java.util.concurrent.Executor;
  * Resource listener that loads custom elemental damage types from data packs.
  * Path: data/{modid}/elemental_dmg_types/<damage_type_id>.json
  */
-public class ElementalDamageTypeLoader extends SimplePreparableReloadListener<Map<ResourceLocation, CustomElementalDamageType>> {
+public class ElementalDamageTypeLoader implements PreparableReloadListener {
 
     private static final Map<ResourceLocation, CustomElementalDamageType> LOADED_TYPES = new ConcurrentHashMap<>();
     private static final String FOLDER = "elemental_dmg_types";
@@ -27,7 +27,7 @@ public class ElementalDamageTypeLoader extends SimplePreparableReloadListener<Ma
     }
 
     @Override
-    protected CompletableFuture<Map<ResourceLocation, CustomElementalDamageType>> prepare(ResourceManager resourceManager, Executor executor, ProfilerFiller profiler) {
+    public CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager resourceManager, ProfilerFiller preparationsProfiler, ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor) {
         return CompletableFuture.supplyAsync(() -> {
             Map<ResourceLocation, CustomElementalDamageType> map = new HashMap<>();
             var resources = resourceManager.listResources(FOLDER, path -> path.toString().endsWith(".json"));
@@ -35,7 +35,7 @@ public class ElementalDamageTypeLoader extends SimplePreparableReloadListener<Ma
             for (var entry : resources.entrySet()) {
                 try {
                     var resource = entry.getValue();
-                    var json = com.google.gson.JsonParser.parseString(resource.openAsReader().readString()).getAsJsonObject();
+                    var json = JsonParser.parseString(resource.openAsReader().readString()).getAsJsonObject();
                     
                     var id = ResourceLocation.tryParse(json.get("id").getAsString());
                     var damageTypeId = json.get("damage_type_id").getAsString();
@@ -68,23 +68,20 @@ public class ElementalDamageTypeLoader extends SimplePreparableReloadListener<Ma
                 }
             }
             return map;
-        }, executor);
-    }
-
-    @Override
-    protected void apply(Map<ResourceLocation, CustomElementalDamageType> objects, ResourceManager resourceManager, ProfilerFiller profiler) {
-        LOADED_TYPES.clear();
-        LOADED_TYPES.putAll(objects);
-        
-        AbloomMod.LOGGER.info("Loaded {} custom elemental damage types from data packs", objects.size());
-        
-        for (Map.Entry<ResourceLocation, CustomElementalDamageType> entry : objects.entrySet()) {
-            CustomElementalDamageType type = entry.getValue();
-            AbloomMod.LOGGER.debug("  - {}: {}", entry.getKey(), type);
+        }, backgroundExecutor).thenCompose(preparationBarrier::wait).thenAcceptAsync(map -> {
+            LOADED_TYPES.clear();
+            LOADED_TYPES.putAll(map);
             
-            // Register the color for damage display
-            ElementDamageDisplayManager.registerDamageColorFromCustom(type);
-        }
+            AbloomMod.LOGGER.info("Loaded {} custom elemental damage types from data packs", map.size());
+            
+            for (Map.Entry<ResourceLocation, CustomElementalDamageType> entry : map.entrySet()) {
+                CustomElementalDamageType type = entry.getValue();
+                AbloomMod.LOGGER.debug("  - {}: {}", entry.getKey(), type);
+                
+                // Register the color for damage display
+                ElementDamageDisplayManager.registerDamageColorFromCustom(type);
+            }
+        }, gameExecutor);
     }
 
     /**

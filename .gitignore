@@ -1,35 +1,4 @@
-```
-# Dependencies
-.gradle/
-node_modules/
-
-# Build artifacts
-build/
-target/
-
-# IDE
-.idea/
-.vscode/
-
-# Logs
-*.log
-
-# Environment
-.env
-.env.local
-*.env.*
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-
-# Compiled files
+# Compiled and build artifacts
 *.class
 *.o
 *.obj
@@ -39,7 +8,40 @@ venv/
 *.a
 *.out
 
-# Archives
+# Dependencies
+node_modules/
+venv/
+.venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+target/
+.gradle/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -62,20 +64,3 @@ venv/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
-# OS generated files
-.DS_Store
-Thumbs.db
-
-# Testing
-.coverage
-coverage/
-htmlcov/
-.pytest_cache/
-.mypy_cache/
-
-# Temporary files
-*.tmp
-*.swp
-*.swo
-```
