@@ -42,6 +42,18 @@ public enum ElementType {
                 .findFirst();
     }
 
+    /**
+     * Check if a damage type ID corresponds to one of the original 11 elemental types.
+     */
+    public static boolean isDefaultElementType(String damageTypeId) {
+        if (damageTypeId == null) return false;
+        String cleanId = damageTypeId.contains(":") ? damageTypeId.substring(damageTypeId.indexOf(":") + 1) : damageTypeId;
+        for (ElementType type : values()) {
+            if (type.getDamageTypeId().equals(cleanId)) return true;
+        }
+        return false;
+    }
+
     public static ElementType fromVanillaDamageType(String damageTypeId) {
         if (damageTypeId == null || damageTypeId.isEmpty()) {
             AbloomMod.LOGGER.warn("DamageType ID is null or empty, defaulting to PHYSICAL");

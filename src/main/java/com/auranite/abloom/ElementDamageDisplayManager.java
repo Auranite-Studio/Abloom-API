@@ -16,6 +16,7 @@ import net.minecraft.world.phys.AABB;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -67,6 +68,24 @@ public class ElementDamageDisplayManager {
 
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
+    }
+
+    public static void registerDamageColorFromCustom(CustomElementalDamageType customType) {
+        if (customType == null) return;
+        // Register the color for this custom damage type
+        // We use a pseudo-ElementType mapping based on the custom type's ID
+        String idPath = customType.getId().getPath();
+        
+        // Try to find matching ElementType or create a virtual one
+        Optional<ElementType> matchingType = ElementType.fromDamageTypeId(idPath);
+        if (matchingType.isPresent()) {
+            DAMAGE_COLORS.put(matchingType.get(), customType.getColor());
+        } else {
+            // For fully custom types, we still store the color in our map
+            // The display system will look up colors by damage type ID string
+            AbloomMod.LOGGER.debug("Registered color for custom damage type: {} -> 0x{}", 
+                customType.getId(), Integer.toHexString(customType.getColor()));
+        }
     }
 
     public static void setDamageColor(ElementType type, int color) {

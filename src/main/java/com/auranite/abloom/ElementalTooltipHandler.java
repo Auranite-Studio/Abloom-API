@@ -8,6 +8,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 import java.util.Map;
+import java.util.Optional;
 
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementalTooltipHandler {
@@ -85,6 +86,17 @@ public class ElementalTooltipHandler {
     }
 
     private static MutableComponent getElementText(ElementType type) {
+        // First check if there's a custom tooltip key registered for this type
+        Optional<CustomElementalDamageType> customType = ElementalDamageTypeRegistry.getByDamageTypeId(type.getDamageTypeId());
+        if (customType.isPresent()) {
+            String customKey = customType.get().getElementItemTooltip();
+            if (customKey != null && !customKey.isEmpty()) {
+                MutableComponent text = Component.translatable(customKey);
+                text.setStyle(text.getStyle().withColor(customType.get().getColor()));
+                return text;
+            }
+        }
+        
         MutableComponent text = switch (type) {
             case FIRE -> Component.translatable(KEY_ELEMENT_FIRE);
             case PHYSICAL -> Component.translatable(KEY_ELEMENT_PHYSICAL);
@@ -127,6 +139,20 @@ public class ElementalTooltipHandler {
     }
 
     private static MutableComponent getResistanceText(ElementType type, float resistance) {
+        // First check if there's a custom resistance tooltip key registered for this type
+        Optional<CustomElementalDamageType> customType = ElementalDamageTypeRegistry.getByDamageTypeId(type.getDamageTypeId());
+        if (customType.isPresent()) {
+            String customKey = customType.get().getElementArmorResistanceTooltip();
+            if (customKey != null && !customKey.isEmpty()) {
+                MutableComponent text = Component.translatable(customKey);
+                int percentage = Math.round(resistance * 100);
+                MutableComponent percentageText = Component.literal(" +" + percentage + "%");
+                percentageText.setStyle(percentageText.getStyle().withColor(0x00FF00));
+                text.setStyle(text.getStyle().withColor(customType.get().getColor()));
+                return text.append(percentageText);
+            }
+        }
+        
         MutableComponent text = switch (type) {
             case FIRE -> Component.translatable(KEY_RESISTANCE_FIRE);
             case PHYSICAL -> Component.translatable(KEY_RESISTANCE_PHYSICAL);
