@@ -166,7 +166,7 @@ public class ElementDamageHandler {
 		}
 		if (target.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-			effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 1.0f;
+			effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 0.5f;
 		}
 
 		float armorResistanceBonus = getArmorResistanceBonus(target, type);
@@ -388,7 +388,7 @@ public class ElementDamageHandler {
 			case PHYSICAL -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
-				yield currentDamage * 2.5f;
+				yield currentDamage * 2.0f;
 			}
 			case WIND -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
@@ -396,12 +396,12 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case WATER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 300, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
 				yield currentDamage;
 			}
 			case EARTH -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 120, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
 				yield currentDamage;
 			}
@@ -426,7 +426,7 @@ public class ElementDamageHandler {
 				yield currentDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield currentDamage;
 			}
@@ -449,7 +449,7 @@ public class ElementDamageHandler {
 			case PHYSICAL -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
-				yield originalDamage * 2.5f;
+				yield originalDamage * 2.0f;
 			}
 			case WIND -> {
 				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
@@ -457,12 +457,12 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case WATER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 300, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
 				yield originalDamage;
 			}
 			case EARTH -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 120, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
 				yield originalDamage;
 			}
@@ -487,7 +487,7 @@ public class ElementDamageHandler {
 				yield originalDamage;
 			}
 			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 160, 0, false, true));
+				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
 				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
 				yield originalDamage;
 			}
@@ -547,7 +547,7 @@ public class ElementDamageHandler {
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-			accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
+			accumBonus *= 1.0f + (amplifier + 1) * 0.5f;
 		}
 
 		float finalDamage = amount;
@@ -621,7 +621,7 @@ public class ElementDamageHandler {
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-			accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
+			accumBonus *= 1.0f + (amplifier + 1) * 0.5f;
 		}
 
 		float finalDamage = amount;
@@ -714,7 +714,7 @@ public class ElementDamageHandler {
 		}
 		if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
 			int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-			accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
+			accumBonus *= 1.0f + (amplifier + 1) * 0.5f;
 		}
 
 		float finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, elementalType, baseDamage);

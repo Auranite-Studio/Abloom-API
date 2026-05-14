@@ -20,7 +20,7 @@ public class BreakArmorIgnoreMixin {
         }
         if (target.hasEffect(AbloomModEffects.RUPTURE)) {
             int armorValue = target.getArmorValue();
-            return (int) (armorValue * 0.6);
+            return (int) (armorValue * 0.7);
         }
         return target.getArmorValue();
     }
