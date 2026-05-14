@@ -1,0 +1,10 @@
+{
+  "id": "abloom:sharp_dmg",
+  "damage_source_id": "minecraft:generic",
+  "color": 16748011,
+  "resonance_effect": "minecraft:poison",
+  "resonance_effect_duration": 8,
+  "element_Item_tooltip": "elemental.tooltip.sharp",
+  "element_armor_resistance_tooltip": "elemental.resistance.sharp",
+  "resonance_effect.status_text_display": "elemental.tooltip.sharp"
+}

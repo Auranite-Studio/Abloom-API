@@ -59,17 +59,17 @@ public class ElementDamageHandler {
 	}
 
 	public static void initDamageColors() {
-		ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.WIND, 0x00FFFF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.WATER, 0x0080FF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.EARTH, 0x8B4513);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.ICE, 0x00BFFF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, 0xFF19FF);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.ENERGY, 0xFFFF00);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
-		ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
+		ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, ElementType.FIRE.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, ElementType.PHYSICAL.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.WIND, ElementType.WIND.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.WATER, ElementType.WATER.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.EARTH, ElementType.EARTH.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ICE, ElementType.ICE.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, ElementType.ELECTRIC.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ENERGY, ElementType.ENERGY.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, ElementType.NATURAL.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, ElementType.QUANTUM.getColor());
+		ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, ElementType.ETHER.getColor());
 	}
 
 	public static boolean canSpawnDisplay() {
