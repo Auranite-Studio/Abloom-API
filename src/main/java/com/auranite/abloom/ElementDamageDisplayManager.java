@@ -13,7 +13,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
@@ -60,7 +59,7 @@ public class ElementDamageDisplayManager {
 
     private static final Map<UUID, DisplayInfo> ACTIVE_DAMAGE_DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<UUID, DisplayInfo> ACTIVE_STATUS_DISPLAYS = new ConcurrentHashMap<>();
-    private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
+    private static final Map<ElementType, Integer> DAMAGE_COLORS = new java.util.HashMap<>();
     private static final Map<UUID, double[]> ACTIVE_PHYSICS = new ConcurrentHashMap<>();
 
     private static final CopyOnWriteArrayList<TextDisplay> PENDING_REMOVALS = new CopyOnWriteArrayList<>();
@@ -74,7 +73,7 @@ public class ElementDamageDisplayManager {
     }
 
     public static Map<ElementType, Integer> getAllDamageColors() {
-        return new EnumMap<>(DAMAGE_COLORS);
+        return new java.util.HashMap<>(DAMAGE_COLORS);
     }
 
     private static int getDamageColor(ElementType type) {

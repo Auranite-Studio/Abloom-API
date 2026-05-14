@@ -132,7 +132,7 @@ public class ElementType {
     
     public MobEffect getResonanceEffect() {
         if (resonanceEffectId == null) return null;
-        return net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.get(resonanceEffectId).orElse(null);
+        return net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.getOptional(resonanceEffectId).orElse(null);
     }
     
     public int getResonanceEffectDuration() {
@@ -145,6 +145,15 @@ public class ElementType {
     
     public boolean isCustom() {
         return isCustom;
+    }
+    
+    /**
+     * Gets the unique ID of this element type for serialization.
+     * For built-in types: "fire_dmg", "physical_dmg", etc.
+     * For custom types: "abloom:sharp_dmg", etc.
+     */
+    public String getId() {
+        return isCustom ? "abloom:" + damageTypeId : damageTypeId;
     }
     
     /**

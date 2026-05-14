@@ -20,7 +20,7 @@ public class ElementalWeaponComponent {
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         customData.update(tag -> {
-            tag.putString(ELEMENT_TYPE_KEY, type.name());
+            tag.putString(ELEMENT_TYPE_KEY, type.getId());
             tag.putFloat(ACCUM_POINTS_KEY, accumPoints);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);
@@ -37,11 +37,7 @@ public class ElementalWeaponComponent {
         String typeName = customData.copyTag().getString(ELEMENT_TYPE_KEY);
         if (typeName.isEmpty()) return Optional.empty();
 
-        try {
-            return Optional.of(ElementType.valueOf(typeName));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
+        return ElementType.fromDamageTypeId(typeName);
     }
 
     public static float getAccumMultiplier(ItemStack stack) {

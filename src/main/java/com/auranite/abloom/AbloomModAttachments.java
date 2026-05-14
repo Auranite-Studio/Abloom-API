@@ -7,7 +7,6 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
-import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -18,7 +17,7 @@ public class AbloomModAttachments {
 
     public static final Supplier<AttachmentType<Map<ElementType, Integer>>> ELEMENT_ACCUMULATOR =
             ATTACHMENT_TYPES.register("element_accumulator", () ->
-                    AttachmentType.<Map<ElementType, Integer>>builder(() -> new EnumMap<>(ElementType.class)).build()
+                    AttachmentType.<Map<ElementType, Integer>>builder(() -> new java.util.HashMap<>()).build()
             );
 
     public static final Supplier<AttachmentType<ElementType>> PROJECTILE_ELEMENT =

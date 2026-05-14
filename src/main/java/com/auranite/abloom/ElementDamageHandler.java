@@ -22,7 +22,6 @@ import net.neoforged.neoforge.event.level.ChunkDataEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -284,7 +283,7 @@ public class ElementDamageHandler {
 
 	private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
 		synchronized (LAST_DAMAGE_LOCK) {
-			LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new EnumMap<>(ElementType.class)).put(type, entity.level().getGameTime());
+			LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new java.util.HashMap<>()).put(type, entity.level().getGameTime());
 		}
 	}
 

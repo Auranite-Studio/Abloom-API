@@ -7,7 +7,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,7 +22,7 @@ public class ElementResistanceManager {
 		if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
 
 		Map<ElementType, Resistance> existing = ENTITY_RESISTANCES.computeIfAbsent(
-				entityType, k -> new EnumMap<>(ElementType.class)
+				entityType, k -> new java.util.HashMap<>()
 		);
 		existing.putAll(resistanceMap);
 
@@ -48,7 +47,7 @@ public class ElementResistanceManager {
 				if (entityType == null) continue;
 
 				Map<ElementType, Resistance> resistanceMap = ENTITY_RESISTANCES
-						.computeIfAbsent(entityType, k -> new EnumMap<>(ElementType.class));
+						.computeIfAbsent(entityType, k -> new java.util.HashMap<>());
 				resistanceMap.put(elementType, resistance);
 				count++;
 
@@ -69,7 +68,7 @@ public class ElementResistanceManager {
 		}
 		TAG_CHECKED_ENTITIES.put(entityType, true);
 
-		String elementLower = elementType.name().toLowerCase();
+		String elementLower = elementType.getDamageTypeId().toLowerCase();
 		String modid = AbloomMod.MODID;
 
 		TagKey<EntityType<?>> immuneTag = createTag(modid, elementLower, "immune");

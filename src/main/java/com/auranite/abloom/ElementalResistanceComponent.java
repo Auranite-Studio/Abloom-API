@@ -5,7 +5,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.nbt.CompoundTag;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 public class ElementalResistanceComponent {
@@ -25,7 +24,7 @@ public class ElementalResistanceComponent {
             for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
                 if (entry.getKey() != null && entry.getValue() != null) {
                     float clampedValue = Math.max(0.0f, Math.min(1.0f, entry.getValue()));
-                    resistanceTag.putFloat(entry.getKey().name(), clampedValue);
+                    resistanceTag.putFloat(entry.getKey().getId(), clampedValue);
                 }
             }
             tag.put(ELEMENT_RESISTANCE_KEY, resistanceTag);
@@ -41,7 +40,7 @@ public class ElementalResistanceComponent {
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         customData = customData.update(tag -> {
             var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
-            resistanceTag.putFloat(finalType.name(), clampedResistance);
+            resistanceTag.putFloat(finalType.getId(), clampedResistance);
             tag.put(ELEMENT_RESISTANCE_KEY, resistanceTag);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);
@@ -58,7 +57,7 @@ public class ElementalResistanceComponent {
             for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
                 if (entry.getKey() != null && entry.getValue() != null) {
                     float clampedValue = Math.max(0.0f, Math.min(1.0f, entry.getValue()));
-                    resistanceTag.putFloat(entry.getKey().name(), clampedValue);
+                    resistanceTag.putFloat(entry.getKey().getId(), clampedValue);
                 }
             }
             tag.put(ELEMENT_RESISTANCE_KEY, resistanceTag);
@@ -78,11 +77,11 @@ public class ElementalResistanceComponent {
         if (!tag.contains(ELEMENT_RESISTANCE_KEY)) return 0.0f;
 
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
-        return resistanceTag.contains(type.name()) ? resistanceTag.getFloat(type.name()) : 0.0f;
+        return resistanceTag.contains(type.getId()) ? resistanceTag.getFloat(type.getId()) : 0.0f;
     }
 
     public static Map<ElementType, Float> getAllResistances(ItemStack stack) {
-        Map<ElementType, Float> result = new EnumMap<>(ElementType.class);
+        Map<ElementType, Float> result = new java.util.HashMap<>();
 
         if (stack == null || stack.isEmpty()) return result;
 
@@ -95,7 +94,7 @@ public class ElementalResistanceComponent {
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
 
         for (ElementType type : ElementType.getAllTypes()) {
-            String typeName = type.getDamageTypeId();
+            String typeName = type.getId();
             if (resistanceTag.contains(typeName)) {
                 result.put(type, resistanceTag.getFloat(typeName));
             }
@@ -116,7 +115,7 @@ public class ElementalResistanceComponent {
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
 
         for (ElementType type : ElementType.getAllTypes()) {
-            String typeName = type.getDamageTypeId();
+            String typeName = type.getId();
             if (resistanceTag.contains(typeName) && resistanceTag.getFloat(typeName) > 0.0f) {
                 return true;
             }
@@ -149,7 +148,7 @@ public class ElementalResistanceComponent {
             customData = customData.update(tag -> {
                 if (tag.contains(ELEMENT_RESISTANCE_KEY)) {
                     var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
-                    resistanceTag.remove(type.name());
+                    resistanceTag.remove(type.getId());
 
                     if (resistanceTag.isEmpty()) {
                         tag.remove(ELEMENT_RESISTANCE_KEY);
