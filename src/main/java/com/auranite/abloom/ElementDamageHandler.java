@@ -258,7 +258,7 @@ public class ElementDamageHandler {
 		}
 		String msgId = source.type().msgId();
 		if (msgId != null) {
-			for (ElementType type : ElementType.values()) {
+			for (ElementType type : ElementType.getAllTypes()) {
 				if (type.getDamageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) return type;
 			}
 			ElementType vanillaType = ElementType.fromVanillaDamageType(msgId);
@@ -659,7 +659,7 @@ public class ElementDamageHandler {
 		}
 	}
 	public static void resetAllElementPoints(LivingEntity entity) {
-		for (ElementType type : ElementType.values()) AbloomModAttachments.resetPoints(entity, type);
+		for (ElementType type : ElementType.getAllTypes()) AbloomModAttachments.resetPoints(entity, type);
 		synchronized (LAST_DAMAGE_LOCK) { LAST_DAMAGE_TIME.remove(entity.getId()); }
 	}
 	public static int getAccumulationProgress(LivingEntity entity, ElementType type) {

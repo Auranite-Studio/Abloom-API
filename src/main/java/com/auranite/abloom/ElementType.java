@@ -248,6 +248,30 @@ public class ElementType {
         return input.replaceAll("([a-z])([A-Z]+)", "$1_$2");
     }
     
+    /**
+     * Gets all built-in and custom elemental types.
+     * This method replaces the old ElementType.values() for compatibility with custom types.
+     */
+    public static java.util.Collection<ElementType> getAllTypes() {
+        java.util.List<ElementType> allTypes = new java.util.ArrayList<>(BUILTIN_TYPES.values());
+        allTypes.addAll(CUSTOM_TYPES.values());
+        return allTypes;
+    }
+    
+    /**
+     * Gets all built-in elemental types only.
+     */
+    public static java.util.Collection<ElementType> getBuiltinTypes() {
+        return BUILTIN_TYPES.values();
+    }
+    
+    /**
+     * Gets all custom elemental types loaded from datapacks.
+     */
+    public static java.util.Collection<ElementType> getCustomTypes() {
+        return CUSTOM_TYPES.values();
+    }
+    
     @Override
     public String toString() {
         return isCustom ? "CUSTOM[" + damageTypeId + "]" : damageTypeId;

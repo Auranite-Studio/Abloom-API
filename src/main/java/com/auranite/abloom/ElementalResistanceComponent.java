@@ -94,9 +94,10 @@ public class ElementalResistanceComponent {
 
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
 
-        for (ElementType type : ElementType.values()) {
-            if (resistanceTag.contains(type.name())) {
-                result.put(type, resistanceTag.getFloat(type.name()));
+        for (ElementType type : ElementType.getAllTypes()) {
+            String typeName = type.getDamageTypeId();
+            if (resistanceTag.contains(typeName)) {
+                result.put(type, resistanceTag.getFloat(typeName));
             }
         }
 
@@ -114,8 +115,9 @@ public class ElementalResistanceComponent {
 
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
 
-        for (ElementType type : ElementType.values()) {
-            if (resistanceTag.contains(type.name()) && resistanceTag.getFloat(type.name()) > 0.0f) {
+        for (ElementType type : ElementType.getAllTypes()) {
+            String typeName = type.getDamageTypeId();
+            if (resistanceTag.contains(typeName) && resistanceTag.getFloat(typeName) > 0.0f) {
                 return true;
             }
         }

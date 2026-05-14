@@ -23,8 +23,8 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
 
         try {
-            for (ElementType elementType : ElementType.values()) {
-                String tagName = elementType.name().toLowerCase();
+            for (ElementType elementType : ElementType.getBuiltinTypes()) {
+                String tagName = elementType.getDamageTypeId().replace("_dmg", "").toLowerCase();
 
                 ElementResistanceManager.loadFromTag(
                         elementType,
