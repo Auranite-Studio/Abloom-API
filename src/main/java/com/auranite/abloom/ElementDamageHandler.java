@@ -376,125 +376,107 @@ public class ElementDamageHandler {
 	}
 
 	private static float applyThresholdEffect(LivingEntity target, ElementType type, LivingDamageEvent.Pre event, float currentDamage) {
-		return switch (type) {
-			case FIRE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
-				yield currentDamage;
-			}
-			case PHYSICAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
-				yield currentDamage * 2.0f;
-			}
-			case WIND -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
-				yield currentDamage;
-			}
-			case WATER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
-				yield currentDamage;
-			}
-			case EARTH -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
-				yield currentDamage;
-			}
-			case ICE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
-				yield currentDamage;
-			}
-			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
-				yield currentDamage;
-			}
-			case ENERGY -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
-				yield currentDamage;
-			}
-			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
-				yield currentDamage;
-			}
-			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
-				yield currentDamage;
-			}
-			case ETHER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
-				yield currentDamage;
-			}
-			default -> currentDamage;
-		};
+		String typeId = type.getDamageTypeId();
+		
+		if ("fire_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
+			return currentDamage;
+		} else if ("physical_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
+			return currentDamage * 2.0f;
+		} else if ("wind_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
+			return currentDamage;
+		} else if ("water_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
+			return currentDamage;
+		} else if ("earth_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
+			return currentDamage;
+		} else if ("ice_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
+			return currentDamage;
+		} else if ("electric_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
+			return currentDamage;
+		} else if ("energy_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
+			return currentDamage;
+		} else if ("natural_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
+			return currentDamage;
+		} else if ("quantum_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
+			return currentDamage;
+		} else if ("ether_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
+			return currentDamage;
+		}
+		
+		return currentDamage;
 	}
 
 	private static float applyThresholdEffectWithDamage(LivingEntity target, ElementType type, float originalDamage) {
-		return switch (type) {
-			case FIRE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
-				yield originalDamage;
-			}
-			case PHYSICAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
-				yield originalDamage * 2.0f;
-			}
-			case WIND -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
-				yield originalDamage;
-			}
-			case WATER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
-				yield originalDamage;
-			}
-			case EARTH -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
-				yield originalDamage;
-			}
-			case ICE -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
-				yield originalDamage;
-			}
-			case ELECTRIC -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
-				yield originalDamage;
-			}
-			case ENERGY -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
-				yield originalDamage;
-			}
-			case NATURAL -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
-				yield originalDamage;
-			}
-			case QUANTUM -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
-				yield originalDamage;
-			}
-			case ETHER -> {
-				target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, false, true));
-				spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
-				yield originalDamage;
-			}
-			default -> originalDamage;
-		};
+		String typeId = type.getDamageTypeId();
+		
+		if ("fire_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
+			return originalDamage;
+		} else if ("physical_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
+			return originalDamage * 2.0f;
+		} else if ("wind_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
+			return originalDamage;
+		} else if ("water_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
+			return originalDamage;
+		} else if ("earth_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
+			return originalDamage;
+		} else if ("ice_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
+			return originalDamage;
+		} else if ("electric_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
+			return originalDamage;
+		} else if ("energy_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
+			return originalDamage;
+		} else if ("natural_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
+			return originalDamage;
+		} else if ("quantum_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
+			return originalDamage;
+		} else if ("ether_dmg".equals(typeId)) {
+			target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, false, true));
+			spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
+			return originalDamage;
+		}
+		
+		return originalDamage;
 	}
 
 	public static void setBaseAccumulation(float value) { baseAccumulation = value; }
