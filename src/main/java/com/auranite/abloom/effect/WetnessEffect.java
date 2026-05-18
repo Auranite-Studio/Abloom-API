@@ -6,7 +6,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 public class WetnessEffect extends MobEffect {
 
     public WetnessEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(ResonanceEffectCategory.RESONANCE, color);
     }
 
     @Override

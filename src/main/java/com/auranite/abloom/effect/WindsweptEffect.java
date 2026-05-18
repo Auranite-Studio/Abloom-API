@@ -6,7 +6,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 public class WindsweptEffect extends MobEffect {
 
     public WindsweptEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(ResonanceEffectCategory.RESONANCE, color);
     }
 
     @Override
