@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 
 public class StunEffect extends MobEffect {
     public StunEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(ResonanceEffectCategory.RESONANCE, color);
         this.addAttributeModifier(Attributes.ARMOR, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.stun_0"), -0.2, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
         this.addAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.stun_1"), -99.99, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
         this.addAttributeModifier(Attributes.ATTACK_DAMAGE, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.stun_2"), -99.9, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);

@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class BloomEffect extends MobEffect {
     public BloomEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(ResonanceEffectCategory.RESONANCE, color);
     }
 
     @Override

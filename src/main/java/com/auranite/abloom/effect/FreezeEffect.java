@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class FreezeEffect extends MobEffect {
     public FreezeEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(ResonanceEffectCategory.RESONANCE, color);
     }
 
     @Override

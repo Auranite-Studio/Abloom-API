@@ -6,7 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class BurnEffect extends MobEffect {
     public BurnEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(ResonanceEffectCategory.RESONANCE, color);
     }
     @Override
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
