@@ -180,9 +180,10 @@ public class ElementDamageHandler {
 		int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
 
-		if (erosionActive) {
+		if (erosionActive && type != ElementType.WIND) {
 			spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
 			pointsToAdd = 100;
+			target.removeEffect(AbloomModEffects.WINDSWEPT);
 		}
 
 		AbloomModAttachments.addPoints(target, type, pointsToAdd);
