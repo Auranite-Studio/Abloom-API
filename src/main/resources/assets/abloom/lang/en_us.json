@@ -50,6 +50,7 @@
   "elemental.tooltip.energy_overload": "OVERLOAD!",
   "elemental.tooltip.natural_bloom": "BLOOM!",
   "elemental.tooltip.quantum_flux": "BREAK!",
+  "elemental.tooltip.vortex_convert": "VORTEX!",
   "effect.abloom.burn": "Burn",
   "effect.abloom.wetness": "Wetness",
   "effect.abloom.stun": "Stun",

@@ -180,6 +180,7 @@ public class ElementDamageHandler {
 		pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
 
 		if (erosionActive) {
+			spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
 			pointsToAdd = 100;
 		}
 
