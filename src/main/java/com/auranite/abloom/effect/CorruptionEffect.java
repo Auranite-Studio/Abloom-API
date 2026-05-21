@@ -10,7 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class CorruptionEffect extends MobEffect {
     public CorruptionEffect(int color) {
-        super(ResonanceEffectCategory.RESONANCE, color);
+        super(MobEffectCategory.HARMFUL, color);
     }
 
     @Override

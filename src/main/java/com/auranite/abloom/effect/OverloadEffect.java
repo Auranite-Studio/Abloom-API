@@ -5,7 +5,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 
 public class OverloadEffect extends MobEffect {
     public OverloadEffect(int color) {
-        super(ResonanceEffectCategory.RESONANCE, color);
+        super(MobEffectCategory.HARMFUL, color);
     }
 
     @Override
