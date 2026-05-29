@@ -1,10 +1,14 @@
 package com.auranite.abloom;
 
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.MobCategory;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -115,6 +119,21 @@ public class AbloomMod {
     public static void queueServerWork(int tick, Runnable action) {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
+    }
+
+    @SubscribeEvent
+    public void onEntityJoin(EntityJoinLevelEvent event) {
+        if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide()) {
+            // Фильтр: только враждебные (MONSTER) и нейтральные мобы
+            boolean isHostileOrNeutral = mob.getType().getCategory() == MobCategory.MONSTER ||
+                    (!(mob instanceof net.minecraft.world.entity.animal.Animal) &&
+                            !(mob instanceof net.minecraft.world.entity.animal.WaterAnimal));
+
+            if (isHostileOrNeutral) {
+                // Добавляем цель с высоким приоритетом (1)
+                mob.goalSelector.addGoal(1, new TauntTargetGoal(mob));
+            }
+        }
     }
 
     @SubscribeEvent
