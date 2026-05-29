@@ -30,7 +30,7 @@ public class TauntTargetGoal extends Goal {
             return false;
         }
 
-        this.scanTickCooldown = 20; // Проверка раз в секунду (оптимизация)
+        this.scanTickCooldown = 20;
         this.tauntedTarget = findClosestTauntedEntity();
         return this.tauntedTarget != null;
     }
@@ -49,7 +49,6 @@ public class TauntTargetGoal extends Goal {
 
     @Override
     public void stop() {
-        // Сбрасываем цель, если эффект пропал или цель умерла
         if (this.mob.getTarget() == this.tauntedTarget) {
             this.mob.setTarget(null);
         }
