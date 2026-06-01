@@ -6,6 +6,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.fish.WaterAnimal;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -126,8 +128,8 @@ public class AbloomMod {
         if (event.getEntity() instanceof Mob mob && !mob.level().isClientSide()) {
             // Фильтр: только враждебные (MONSTER) и нейтральные мобы
             boolean isHostileOrNeutral = mob.getType().getCategory() == MobCategory.MONSTER ||
-                    (!(mob instanceof net.minecraft.world.entity.animal.Animal) &&
-                            !(mob instanceof net.minecraft.world.entity.animal.WaterAnimal));
+                    (!(mob instanceof Animal) &&
+                            !(mob instanceof WaterAnimal));
 
             if (isHostileOrNeutral) {
                 // Добавляем цель с высоким приоритетом (1)

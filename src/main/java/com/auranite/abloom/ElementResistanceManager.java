@@ -1,7 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -14,8 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ElementResistanceManager {
 
 	private static final Map<EntityType<?>, Map<ElementType, Resistance>> ENTITY_RESISTANCES = new ConcurrentHashMap<>();
-
-	// Поле TAG_CHECKED_ENTITIES удалено, так как больше не используется.
+	
 
 	private ElementResistanceManager() {}
 
