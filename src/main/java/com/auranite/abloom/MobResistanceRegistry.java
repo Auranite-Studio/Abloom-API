@@ -34,8 +34,8 @@ public class MobResistanceRegistry {
         registerWaterImmune(
                 EntityType.SQUID,
                 EntityType.GLOW_SQUID,
-//                EntityType.NAUTILUS,
-//                EntityType.ZOMBIE_NAUTILUS,
+                EntityType.NAUTILUS,
+                EntityType.ZOMBIE_NAUTILUS,
                 EntityType.DROWNED,
                 EntityType.GUARDIAN,
                 EntityType.ELDER_GUARDIAN,
@@ -81,14 +81,14 @@ public class MobResistanceRegistry {
                 EntityType.PIGLIN_BRUTE,
                 EntityType.ZOGLIN,
                 EntityType.HUSK,
-                EntityType.CAMEL
-//                EntityType.CAMEL_HUSK
+                EntityType.CAMEL,
+                EntityType.CAMEL_HUSK
         );
 
         registerWindResistance(
                 EntityType.ENDER_DRAGON,
                 EntityType.GHAST,
-//                EntityType.HAPPY_GHAST,
+                EntityType.HAPPY_GHAST,
                 EntityType.VEX,
                 EntityType.ALLAY,
                 EntityType.PARROT,
@@ -127,8 +127,8 @@ public class MobResistanceRegistry {
 
         registerEnergyWeakness(
                 EntityType.CREEPER,
-                EntityType.GHAST
-//                EntityType.HAPPY_GHAST
+                EntityType.GHAST,
+                EntityType.HAPPY_GHAST
         );
 
         registerNaturalImmune(
@@ -153,7 +153,7 @@ public class MobResistanceRegistry {
                 EntityType.TURTLE,
                 EntityType.ARMADILLO,
                 EntityType.IRON_GOLEM,
-//                EntityType.COPPER_GOLEM,
+                EntityType.COPPER_GOLEM,
                 EntityType.SHULKER,
                 EntityType.WARDEN,
                 EntityType.ENDER_DRAGON
@@ -176,7 +176,7 @@ public class MobResistanceRegistry {
 
         registerEarthResistance(
                 EntityType.IRON_GOLEM,
-//                EntityType.COPPER_GOLEM,
+                EntityType.COPPER_GOLEM,
                 EntityType.WARDEN,
                 EntityType.GIANT,
                 EntityType.RAVAGER,
@@ -200,7 +200,7 @@ public class MobResistanceRegistry {
                 EntityType.SNIFFER,
                 EntityType.ARMADILLO,
                 EntityType.CAMEL,
-//                EntityType.CAMEL_HUSK,
+                EntityType.CAMEL_HUSK,
                 EntityType.RAVAGER,
                 EntityType.HOGLIN,
                 EntityType.POLAR_BEAR
@@ -208,7 +208,7 @@ public class MobResistanceRegistry {
 
         registerEarthWeakness(
                 EntityType.GHAST,
-//                EntityType.HAPPY_GHAST,
+                EntityType.HAPPY_GHAST,
                 EntityType.PHANTOM,
                 EntityType.VEX,
                 EntityType.ALLAY,
@@ -219,16 +219,16 @@ public class MobResistanceRegistry {
                 EntityType.BLAZE,
                 EntityType.SNOW_GOLEM,
                 EntityType.STRIDER,
-                EntityType.BREEZE
-//                EntityType.PARCHED
+                EntityType.BREEZE,
+                EntityType.PARCHED
         );
 
         registerIceWeakness(
                 EntityType.BLAZE,
                 EntityType.MAGMA_CUBE,
                 EntityType.STRIDER,
-                EntityType.BREEZE
-//                EntityType.PARCHED
+                EntityType.BREEZE,
+                EntityType.PARCHED
         );
 
         registerElectricWeakness(
@@ -244,8 +244,8 @@ public class MobResistanceRegistry {
                 EntityType.DOLPHIN,
                 EntityType.SQUID,
                 EntityType.GLOW_SQUID,
-//                EntityType.NAUTILUS,
-//                EntityType.ZOMBIE_NAUTILUS,
+                EntityType.NAUTILUS,
+                EntityType.ZOMBIE_NAUTILUS,
                 EntityType.GUARDIAN,
                 EntityType.ELDER_GUARDIAN
         );
@@ -254,7 +254,7 @@ public class MobResistanceRegistry {
                 EntityType.VILLAGER,
                 EntityType.WANDERING_TRADER,
                 EntityType.IRON_GOLEM,
-//                EntityType.COPPER_GOLEM,
+                EntityType.COPPER_GOLEM,
                 EntityType.SNOW_GOLEM,
                 EntityType.ALLAY,
                 EntityType.ZOGLIN,
@@ -262,7 +262,7 @@ public class MobResistanceRegistry {
                 EntityType.ZOMBIFIED_PIGLIN,
                 EntityType.ZOMBIE,
                 EntityType.ZOMBIE_VILLAGER,
-//                EntityType.ZOMBIE_NAUTILUS,
+                EntityType.ZOMBIE_NAUTILUS,
                 EntityType.SKELETON,
                 EntityType.AXOLOTL
         );
