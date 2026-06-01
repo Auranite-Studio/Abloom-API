@@ -23,6 +23,7 @@ public class AbloomModItems {
     public static final DeferredItem<Item> NATURAL_STICK;
     public static final DeferredItem<Item> QUANTUM_STICK;
     public static final DeferredItem<Item> ETHER_STICK;
+    public static final DeferredItem<Item> LIGHT_STICK;
 
     private static final Item.Properties STICK_PROPS = new Item.Properties()
             .stacksTo(1)
@@ -40,6 +41,7 @@ public class AbloomModItems {
         NATURAL_STICK  = REGISTRY.register("natural_stick", () -> new Item(STICK_PROPS));
         QUANTUM_STICK  = REGISTRY.register("quantum_stick", () -> new Item(STICK_PROPS));
         ETHER_STICK    = REGISTRY.register("ether_stick", () -> new Item(STICK_PROPS));
+        LIGHT_STICK      = REGISTRY.register("light_stick", () -> new Item(STICK_PROPS));
     }
 
     private static DeferredItem<Item> block(DeferredHolder<Block, Block> block) {

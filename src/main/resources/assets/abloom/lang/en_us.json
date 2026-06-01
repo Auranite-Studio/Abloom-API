@@ -104,5 +104,11 @@
   "effect.abloom.ether_resonance": "Corruption",
   "elemental.resistance.ether": "Ether Resistance",
   "elemental.resistance.tooltip.ether": "Ether DMG Res: +%d%%",
-  "item.abloom.ether_stick": "Ether Stick"
+  "item.abloom.ether_stick": "Ether Stick",
+  "elemental.tooltip.light": "Light DMG",
+  "elemental.tooltip.light_dispersion": "DISPERSION!",
+  "effect.abloom.dispersion": "Dispersion",
+  "elemental.resistance.light": "Light Resistance",
+  "elemental.resistance.tooltip.light": "Light DMG Res: +%d%%",
+  "item.abloom.light_stick": "Light Stick"
 }

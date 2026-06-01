@@ -102,7 +102,13 @@
   "elemental.tooltip.ether": "Эфирный урон",
   "elemental.tooltip.ether_resonance": "ПОВРЕЖДЕНИЕ!",
   "effect.abloom.ether_resonance": "Повреждение",
-  "elemental.resistance.ether": "Сопротивление эфирному урону",
+  "elemental.resistance.ether": "Сопротив��ение эфирному урону",
   "elemental.resistance.tooltip.ether": "Сопр. эфирному урону: +%d%%",
-  "item.abloom.ether_stick": "Эфирная палочка"
+  "item.abloom.ether_stick": "Эфирная палочка",
+  "elemental.tooltip.light": "Световой урон",
+  "elemental.tooltip.light_dispersion": "ДИСПЕРСИЯ!",
+  "effect.abloom.dispersion": "Дисперсия",
+  "elemental.resistance.light": "Сопротивление световому урону",
+  "elemental.resistance.tooltip.light": "Сопр. световому урону: +%d%%",
+  "item.abloom.light_stick": "Световая палочка"
 }

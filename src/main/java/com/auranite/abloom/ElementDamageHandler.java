@@ -70,6 +70,7 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
         ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
         ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
+        ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFFFE0);
     }
 
     public static boolean canSpawnDisplay() {
@@ -122,25 +123,6 @@ public class ElementDamageHandler {
     private static void processLivingHurt(LivingDamageEvent.Pre event) {
         LivingEntity target = event.getEntity();
         LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity e ? e : null;
-        float damage = event.getNewDamage();
-
-        if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
-            int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-            float reduction = 1.0f - ((amplifier + 1) * 0.20f);
-            reduction = Math.max(0.1f, reduction);
-            damage *= reduction;
-        }
-        if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
-            int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
-            damage *= 1.0f + (amplifier + 1) * 0.20f;
-        }
-
-        if (target.hasEffect(AbloomModEffects.BLOOM)) {
-            int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-
-            damage *= 1.0f + (amplifier + 1) * 0.20f;
-        }
-
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
         DamageSource source = event.getSource();
@@ -149,6 +131,35 @@ public class ElementDamageHandler {
             if (canShowDamage(target)) spawnDamageNumber(target, event.getNewDamage(), null);
             return;
         }
+
+        // Собираем все модификаторы урона в один множитель
+        float damageMultiplier = 1.0f;
+
+        // Модификаторы от атакующего
+        if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
+            int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
+            float reduction = 1.0f - ((amplifier + 1) * 0.20f);
+            reduction = Math.max(0.1f, reduction);
+            damageMultiplier *= reduction;
+        }
+
+        // Модификаторы от цели
+        if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
+            int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
+            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+        }
+        if (target.hasEffect(AbloomModEffects.BLOOM)) {
+            int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+        }
+        if (target.hasEffect(AbloomModEffects.DISPERSION)) {
+            float dispersionBonus = getDispersionBonus(type);
+            AbloomMod.LOGGER.info("Applying dispersion bonus of {} for type {}", dispersionBonus, type);
+            damageMultiplier *= 1.0f + dispersionBonus;
+        }
+
+        // Применяем все собранные модификаторы к базовому урону
+        float damage = event.getNewDamage() * damageMultiplier;
 
         float effectiveAccumMultiplier = 1.0f;
         if (source.getDirectEntity() != null) {
@@ -193,7 +204,7 @@ public class ElementDamageHandler {
         int pointsAfter = AbloomModAttachments.getPoints(target, type);
         boolean thresholdReached = pointsAfter >= THRESHOLD;
 
-        float finalDamage = event.getNewDamage();
+        float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
 
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
@@ -403,6 +414,11 @@ public class ElementDamageHandler {
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, LivingDamageEvent.Pre event, float currentDamage) {
         return switch (type) {
+            case LIGHT -> {
+                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 200, 0, false, true));
+                spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
+                yield currentDamage;
+            }
             case FIRE -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
@@ -464,6 +480,11 @@ public class ElementDamageHandler {
 
     private static float applyThresholdEffectWithDamage(LivingEntity target, ElementType type, float originalDamage) {
         return switch (type) {
+            case LIGHT -> {
+                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 200, 0, false, true));
+                spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
+                yield originalDamage;
+            }
             case FIRE -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
@@ -525,6 +546,24 @@ public class ElementDamageHandler {
 
     public static void setBaseAccumulation(float value) {
         baseAccumulation = value;
+    }
+
+    private static float getDispersionBonus(ElementType type) {
+        return switch (type) {
+            case PHYSICAL -> 0.15f;
+            case FIRE -> 0.15f;
+            case WIND -> 0.10f;
+            case WATER -> 0.20f;
+            case EARTH -> 0.15f;
+            case ICE -> 0.15f;
+            case ELECTRIC -> 0.20f;
+            case ENERGY -> 0.15f;
+            case NATURAL -> 0.10f;
+            case QUANTUM -> 0.10f;
+            case ETHER -> 0.10f;
+            case LIGHT -> 0.30f;
+            default -> 0.00f;
+        };
     }
 
     public static float getBaseAccumulation() {
