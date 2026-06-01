@@ -287,123 +287,123 @@ public class MobResistanceRegistry {
 
     // Утилитарные методы для регистрации
     private static void registerFireImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.FIRE, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.FIRE, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerWaterImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.WATER, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.WATER, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerWindImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.WIND, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.WIND, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerIceImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ICE, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ICE, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerQuantumImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.QUANTUM, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.QUANTUM, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerEarthImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.EARTH, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.EARTH, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerEtherImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ETHER, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ETHER, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerFireResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.FIRE, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.FIRE, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerWindResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.WIND, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.WIND, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerElectricImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ELECTRIC, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ELECTRIC, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerElectricResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ELECTRIC, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ELECTRIC, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerWaterResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.WATER, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.WATER, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerEnergyImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ENERGY, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ENERGY, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerEnergyResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ENERGY, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ENERGY, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerEnergyWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ENERGY, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ENERGY, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerNaturalImmune(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.NATURAL, ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.NATURAL, ElementResistanceManager.Resistance.IMMUNE.accumulationResistance(), ElementResistanceManager.Resistance.IMMUNE.damageResistance(), types);
     }
 
     private static void registerNaturalResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.NATURAL, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.NATURAL, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerQuantumResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.QUANTUM, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.QUANTUM, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerEarthResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.EARTH, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.EARTH, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerPhysicalResistance(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.PHYSICAL, ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.PHYSICAL, ElementResistanceManager.Resistance.HALF_RESIST.accumulationResistance(), ElementResistanceManager.Resistance.HALF_RESIST.damageResistance(), types);
     }
 
     private static void registerPhysicalWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.PHYSICAL, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.PHYSICAL, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerFireWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.FIRE, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.FIRE, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerWindWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.WIND, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.WIND, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerEarthWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.EARTH, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.EARTH, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerWaterWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.WATER, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.WATER, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerIceWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ICE, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ICE, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerElectricWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ELECTRIC, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ELECTRIC, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerNaturalWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.NATURAL, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.NATURAL, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerQuantumWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.QUANTUM, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.QUANTUM, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     private static void registerEtherWeakness(EntityType<?>... types) {
-        ElementResistanceRegistry.registerUniform(ElementType.ETHER, ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
+        ElementResistanceRegistry.registerUniform(ElementType.ETHER, ElementResistanceManager.Resistance.WEAKNESS.accumulationResistance(), ElementResistanceManager.Resistance.WEAKNESS.damageResistance(), types);
     }
 
     public static void registerCustomResistance(EntityType<?> entityType, ElementType element, float accumResistance, float damageResistance) {
