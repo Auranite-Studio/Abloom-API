@@ -193,8 +193,10 @@ public class ElementDamageHandler {
         }
 
         int basePoints = (int) baseAccumulation;
-        int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, basePoints);
-        pointsToAdd = Math.round(pointsToAdd * effectiveAccumMultiplier);
+        int pointsToAdd = Math.round(basePoints * effectiveAccumMultiplier);
+        AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {})", pointsToAdd, basePoints, effectiveAccumMultiplier);
+        pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, pointsToAdd);
+        AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
 
         if (erosionActive && type != ElementType.WIND) {
             spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
@@ -205,12 +207,14 @@ public class ElementDamageHandler {
         AbloomModAttachments.addPoints(target, type, pointsToAdd);
         int pointsAfter = AbloomModAttachments.getPoints(target, type);
         boolean thresholdReached = pointsAfter >= THRESHOLD;
+        AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
 
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
 
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
         if (thresholdReached) {
+            AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
             finalDamage = applyThresholdEffect(target, type, event, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
         }
