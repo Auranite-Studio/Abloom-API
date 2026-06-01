@@ -16,7 +16,8 @@ public enum ElementType {
     ENERGY("energy_dmg"),
     NATURAL("natural_dmg"),
     QUANTUM("quantum_dmg"),
-    ETHER("ether_dmg");
+    ETHER("ether_dmg"),
+    LIGHT("light_dmg");
 
     private final String damageTypeId;
 
@@ -69,7 +70,8 @@ public enum ElementType {
                  "trident",
                  "sweep_attack",
                  "fireball",
-                 "thrown" -> PHYSICAL;
+                 "thrown",
+                 "end_crystal" -> PHYSICAL;
 
             case "in_fire",
                  "on_fire",
