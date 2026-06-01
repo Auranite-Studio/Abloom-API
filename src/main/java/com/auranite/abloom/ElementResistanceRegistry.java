@@ -1,7 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -13,51 +13,8 @@ public class ElementResistanceRegistry {
 
     private ElementResistanceRegistry() {}
 
-    public static TagKey<EntityType<?>> createEntityTag(String element, String modifier) {
-        return TagKey.create(Registries.ENTITY_TYPE,
-                Identifier.fromNamespaceAndPath(AbloomMod.MODID,
-                        "element/" + element.toLowerCase() + "/" + modifier));
-    }
-
-    public static void init(net.minecraft.core.HolderLookup.Provider lookupProvider) {
-        AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
-
-        try {
-            for (ElementType elementType : ElementType.values()) {
-                String tagName = elementType.name().toLowerCase();
-
-                ElementResistanceManager.loadFromTag(
-                        elementType,
-                        createEntityTag(tagName, "immune"),
-                        ElementResistanceManager.Resistance.IMMUNE,
-                        lookupProvider
-                );
-
-                ElementResistanceManager.loadFromTag(
-                        elementType,
-                        createEntityTag(tagName, "resistance"),
-                        ElementResistanceManager.Resistance.HALF_RESIST,
-                        lookupProvider
-                );
-
-                ElementResistanceManager.loadFromTag(
-                        elementType,
-                        createEntityTag(tagName, "weakness"),
-                        ElementResistanceManager.Resistance.WEAKNESS,
-                        lookupProvider
-                );
-            }
-
-            AbloomMod.LOGGER.info("Element Resistance Registry initialized! Total: {} entities",
-                    ElementResistanceManager.getRegisteredEntityCount());
-
-        } catch (Exception e) {
-            AbloomMod.LOGGER.error("Failed to initialize Element Resistance Registry!", e);
-        }
-    }
-
     public static void init() {
-        AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Lazy tag loading)...");
+        // Метод оставлен пустым, так как инициализация теперь происходит в MobResistanceRegistry
     }
 
     @SafeVarargs
@@ -121,47 +78,5 @@ public class ElementResistanceRegistry {
         ElementResistanceManager.debugPrintRegistry();
     }
 
-    public static final class Tags {
-        private Tags() {}
 
-        public static final TagKey<EntityType<?>> FIRE_IMMUNE = createEntityTag("fire", "immune");
-        public static final TagKey<EntityType<?>> FIRE_RESISTANCE = createEntityTag("fire", "resistance");
-        public static final TagKey<EntityType<?>> FIRE_WEAKNESS = createEntityTag("fire", "weakness");
-
-        public static final TagKey<EntityType<?>> WATER_IMMUNE = createEntityTag("water", "immune");
-        public static final TagKey<EntityType<?>> WATER_RESISTANCE = createEntityTag("water", "resistance");
-        public static final TagKey<EntityType<?>> WATER_WEAKNESS = createEntityTag("water", "weakness");
-
-        public static final TagKey<EntityType<?>> EARTH_IMMUNE = createEntityTag("earth", "immune");
-        public static final TagKey<EntityType<?>> EARTH_RESISTANCE = createEntityTag("earth", "resistance");
-        public static final TagKey<EntityType<?>> EARTH_WEAKNESS = createEntityTag("earth", "weakness");
-
-        public static final TagKey<EntityType<?>> WIND_IMMUNE = createEntityTag("wind", "immune");
-        public static final TagKey<EntityType<?>> WIND_RESISTANCE = createEntityTag("wind", "resistance");
-        public static final TagKey<EntityType<?>> WIND_WEAKNESS = createEntityTag("wind", "weakness");
-
-        public static final TagKey<EntityType<?>> ICE_IMMUNE = createEntityTag("ice", "immune");
-        public static final TagKey<EntityType<?>> ICE_RESISTANCE = createEntityTag("ice", "resistance");
-        public static final TagKey<EntityType<?>> ICE_WEAKNESS = createEntityTag("ice", "weakness");
-
-        public static final TagKey<EntityType<?>> ELECTRIC_IMMUNE = createEntityTag("electric", "immune");
-        public static final TagKey<EntityType<?>> ELECTRIC_RESISTANCE = createEntityTag("electric", "resistance");
-        public static final TagKey<EntityType<?>> ELECTRIC_WEAKNESS = createEntityTag("electric", "weakness");
-
-        public static final TagKey<EntityType<?>> PHYSICAL_IMMUNE = createEntityTag("physical", "immune");
-        public static final TagKey<EntityType<?>> PHYSICAL_RESISTANCE = createEntityTag("physical", "resistance");
-        public static final TagKey<EntityType<?>> PHYSICAL_WEAKNESS = createEntityTag("physical", "weakness");
-
-        public static final TagKey<EntityType<?>> SOURCE_IMMUNE = createEntityTag("source", "immune");
-        public static final TagKey<EntityType<?>> SOURCE_RESISTANCE = createEntityTag("source", "resistance");
-        public static final TagKey<EntityType<?>> SOURCE_WEAKNESS = createEntityTag("source", "weakness");
-
-        public static final TagKey<EntityType<?>> NATURAL_IMMUNE = createEntityTag("natural", "immune");
-        public static final TagKey<EntityType<?>> NATURAL_RESISTANCE = createEntityTag("natural", "resistance");
-        public static final TagKey<EntityType<?>> NATURAL_WEAKNESS = createEntityTag("natural", "weakness");
-
-        public static final TagKey<EntityType<?>> QUANTUM_IMMUNE = createEntityTag("quantum", "immune");
-        public static final TagKey<EntityType<?>> QUANTUM_RESISTANCE = createEntityTag("quantum", "resistance");
-        public static final TagKey<EntityType<?>> QUANTUM_WEAKNESS = createEntityTag("quantum", "weakness");
-    }
 }

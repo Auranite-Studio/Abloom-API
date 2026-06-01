@@ -25,6 +25,7 @@ The mod defines 11 element types:
 | NATURAL | `natural_dmg` | #32CD32 |
 | QUANTUM | `quantum_dmg` | #9400D3 |
 | ETHER | `ether_dmg` | #24B3A7 |
+| LIGHT | `light_dmg` | #FFFFFF |
 
 ### 2. Resonance Accumulation Mechanics
 
@@ -38,19 +39,21 @@ The mod defines 11 element types:
 
 When reaching 100 accumulation resonance points:
 
-| Element | Effect                                                                                                                                                                                                  | Duration |
-|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| **PHYSICAL** | Physical resonance explosion, applies Rupture effect (target takes 200% initial damage, defense reduced by 30%)                                                                                         | 6 seconds (120 ticks) |
-| **FIRE** | Fire resonance explosion, applies Burning effect                                                                                                                                                        | 10 seconds (200 ticks) |
-| **WIND** | Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and removes Windswept effect | 8 seconds (160 ticks) |
-| **WATER** | Water resonance explosion, applies Wetness effect (increases resonance accumulation by 100%)                                                                                                            | 12 seconds (240 ticks) |
-| **EARTH** | Earth resonance explosion, applies Stun effect (target cannot deal damage or move)                                                                                                                      | 5 seconds (100 ticks) |
-| **ICE** | Ice resonance explosion, applies Freeze effect                                                                                                                                                          | 12 seconds (240 ticks) |
-| **ELECTRIC** | Electric resonance explosion, applies Shock effect (target deals 20% less damage)                                                                                                                       | 10 seconds (200 ticks) |
-| **ENERGY** | Energy resonance explosion, applies Overload effect (damage taken by target increased by 20%)                                                                                                           | 10 seconds (200 ticks) |
-| **NATURAL** | Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)                                                                           | 8 seconds (160 ticks) |
-| **QUANTUM** | Quantum resonance explosion, applies Break effect (all damage to target ignores defense)                                                                                                                | 6 seconds (120 ticks) |
-| **ETHER** | Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)                                                                     | 8 seconds (160 ticks) |
+| Element      | Effect                                                                                                                                                                                                       | Duration                |
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------|
+| **PHYSICAL** | Physical resonance explosion, applies Rupture effect (target takes 200% initial damage, defense reduced by 30%)                                                                                              | 6 seconds (120 ticks)   |
+| **FIRE**     | Fire resonance explosion, applies Burning effect                                                                                                                                                             | 10 seconds (200 ticks)  |
+| **WIND**     | Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and removes Windswept effect | 8 seconds (160 ticks)   |
+| **WATER**    | Water resonance explosion, applies Wetness effect (increases resonance accumulation by 100%)                                                                                                                 | 12 seconds (240 ticks)  |
+| **EARTH**    | Earth resonance explosion, applies Stun effect (target cannot deal damage or move)                                                                                                                           | 5 seconds (100 ticks)   |
+| **ICE**      | Ice resonance explosion, applies Freeze effect                                                                                                                                                               | 12 seconds (240 ticks)  |
+| **ELECTRIC** | Electric resonance explosion, applies Shock effect (target deals 20% less damage)                                                                                                                            | 10 seconds (200 ticks)  |
+| **ENERGY**   | Energy resonance explosion, applies Overload effect (damage taken by target increased by a certain amount %)                                                                                                                | 10 seconds (200 ticks)  |
+| **NATURAL**  | Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)                                                                                | 8 seconds (160 ticks)   |
+| **QUANTUM**  | Quantum resonance explosion, applies Break effect (all damage to target ignores defense)                                                                                                                     | 6 seconds (120 ticks)   |
+| **ETHER**    | Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)                                                                      | 8 seconds (160 ticks)   |
+| **UNKNOWN**  | Unknown resonance explosion, applies Taunt effect (the target is attacked by hostile and neutral mobs while this effect is active.)                                                                          | ??? seconds (??? ticks) |
+| **LIGHT**    | Light resonance explosion, applies Dispersion effect (target emits light level 10 and takes periodic damage)                                                                                                 | 10 seconds (200 ticks)  |
 
 ### 5. Elemental Armor System
 
@@ -152,36 +155,15 @@ ElementalProjectileRegistry.createElementalProjectileWithOverride(
 
 ### Configuring Element Resistances
 
-#### Via Tags (Recommended)
+#### Via MobResistanceRegistry (New)
 
-Create JSON tag files in `data/abloom/tags/entity_type/element/<element>/`:
+The system of data tags for mob resistances has been removed. All resistances are now registered programmatically through the `MobResistanceRegistry` class.
 
-**Example: `data/abloom/tags/entity_type/element/fire/immune.json`**
-```json
-{
-  "values": [
-    "minecraft:blaze",
-    "minecraft:magma_cube"
-  ]
-}
-```
-
-**Example: `data/abloom/tags/entity_type/element/ice/weakness.json`**
-```json
-{
-  "values": [
-    "minecraft:stray",
-    "minecraft:polar_bear"
-  ]
-}
-```
-
-Available modifiers:
-- `immune` — full immunity (damage = 0, accumulation = 0)
-- `resistance` — resistance (damage × 0.5, accumulation × 0.5)
-- `weakness` — weakness (damage × 1.5, accumulation × 1.5)
+The `MobResistanceRegistry` is automatically initialized during mod setup and contains all predefined mob resistances (e.g., Blaze is immune to Fire, Snow Golem is weak to Fire).
 
 #### Programmatic Registration
+
+You can still register custom resistances using the `ElementResistanceRegistry` as before:
 
 ```java
 import com.auranite.abloom.ElementResistanceRegistry;
@@ -210,6 +192,17 @@ resistances.put(ElementType.FIRE, new ElementResistanceManager.Resistance(0.5f, 
         resistances.put(ElementType.ICE, new ElementResistanceManager.Resistance(-0.5f, -0.5f));
 
         ElementResistanceRegistry.registerMultiple(EntityType.CREEPER, resistances);
+```
+
+Or, you can use the new `MobResistanceRegistry` to register custom resistances in a more structured way:
+
+```java
+import com.auranite.abloom.MobResistanceRegistry;
+import com.auranite.abloom.ElementType;
+import net.minecraft.world.entity.EntityType;
+
+// Register a custom resistance
+MobResistanceRegistry.registerCustomResistance(EntityType.CREEPER, ElementType.FIRE, 0.5f, 0.5f); // 50% resistance
 ```
 
 ### Applying Elemental Damage Programmatically
@@ -259,6 +252,7 @@ The following table shows which mobs have immunities, resistances, or weaknesses
 | **NATURAL** | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee | Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Copper Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Zombie Nautilus, Skeleton, Axolotl |
 | **QUANTUM** | Enderman, Endermite, Ender Dragon, Shulker | Wither, Warden | Villager, Wandering Trader, Bat, Allay |
 | **ETHER** | Ender Dragon, Wither | Evoker, Vindicator, Pillager, Witch | Enderman, Endermite, Shulker, Warden |
+| **LIGHT** | *None* | *None* | *None* |
 
 ---
 
@@ -289,21 +283,6 @@ ElementalWeaponRegistry.registerWeapon(
     1.2f
 );
 ```
-
-### Configuring Resistances for Mobs from Other Mods
-
-```java
-// Via tags (recommended)
-// Create file: data/abloom/tags/entity_type/element/fire/immune.json
-{
-        "values": [
-        "othermod:fire_elemental",
-        "othermod:lava_golem"
-        ]
-        }
-```
-
----
 
 ## Usage Examples
 
