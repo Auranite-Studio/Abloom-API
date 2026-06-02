@@ -71,6 +71,7 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
         ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
         ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFFFE0);
+        ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
     }
 
     public static boolean canSpawnDisplay() {
@@ -478,6 +479,11 @@ public class ElementDamageHandler {
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
                 yield currentDamage;
             }
+            case SHADOW -> {
+                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 200, 0, false, true));
+                spawnStatusText(target, Component.translatable("elemental.tooltip.shadow_eclipse"), 0x4B0082);
+                yield currentDamage;
+            }
             default -> currentDamage;
         };
     }
@@ -544,6 +550,11 @@ public class ElementDamageHandler {
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
                 yield originalDamage;
             }
+            case SHADOW -> {
+                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 200, 0, false, true));
+                spawnStatusText(target, Component.translatable("elemental.tooltip.shadow_eclipse"), 0x4B0082);
+                yield originalDamage;
+            }
             default -> originalDamage;
         };
     }
@@ -566,6 +577,7 @@ public class ElementDamageHandler {
             case QUANTUM -> 0.10f;
             case ETHER -> 0.10f;
             case LIGHT -> 0.30f;
+            case SHADOW -> 0.20f;
             default -> 0.00f;
         };
     }

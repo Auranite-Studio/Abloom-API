@@ -25,6 +25,7 @@ public class AbloomModElementalWeapons {
             registerQuantumWeapons();
             registerEtherWeapons();
             registerLightWeapons();
+            registerShadowWeapons();
 
             AbloomMod.LOGGER.info("✅ Elemental weapon registration complete! Total: {}",
                     ElementalWeaponRegistry.getRegisteredCount());
@@ -91,5 +92,9 @@ public class AbloomModElementalWeapons {
 
     private static void registerLightWeapons() {
         ElementalWeaponUtils.registerItem(AbloomModItems.LIGHT_STICK.get(), ElementType.LIGHT, 50f);
+    }
+    
+    private static void registerShadowWeapons() {
+        ElementalWeaponUtils.registerItem(AbloomModItems.SHADOW_STICK.get(), ElementType.SHADOW, 50f);
     }
 }
