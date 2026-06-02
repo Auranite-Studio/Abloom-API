@@ -40,7 +40,7 @@ public class AbloomModItems {
         QUANTUM_STICK  = register("quantum_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
         ETHER_STICK  = register("ether_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
         LIGHT_STICK  = register("light_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
-        SHADOW_STICK  = register("light_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
+        SHADOW_STICK  = register("shadow_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
     }
 
     private static <I extends Item> DeferredItem<I> register(String name, Function<Item.Properties, ? extends I> supplier) {
