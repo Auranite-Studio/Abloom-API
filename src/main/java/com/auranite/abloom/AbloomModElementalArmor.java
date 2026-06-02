@@ -46,11 +46,11 @@ public class AbloomModElementalArmor {
         add(Items.CHAINMAIL_LEGGINGS,   ElementType.WIND, 0.03f);
         add(Items.CHAINMAIL_BOOTS,      ElementType.WIND, 0.02f);
 
-        add(Items.COPPER_HELMET,       ElementType.NATURAL, 0.01f);
-        add(Items.COPPER_CHESTPLATE,   ElementType.NATURAL, 0.02f);
-        add(Items.COPPER_LEGGINGS,     ElementType.NATURAL, 0.01f);
-        add(Items.COPPER_BOOTS,        ElementType.NATURAL, 0.01f);
-        
+        add(Items.COPPER_HELMET,       ElementType.PHYSICAL, 0.01f);
+        add(Items.COPPER_CHESTPLATE,   ElementType.PHYSICAL, 0.02f);
+        add(Items.COPPER_LEGGINGS,     ElementType.PHYSICAL, 0.01f);
+        add(Items.COPPER_BOOTS,        ElementType.PHYSICAL, 0.01f);
+
         add(Items.TURTLE_HELMET,        ElementType.EARTH, 0.02f, ElementType.WATER, 0.05f);
     }
 
