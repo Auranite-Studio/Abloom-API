@@ -17,7 +17,8 @@ public enum ElementType {
     NATURAL("natural_dmg"),
     QUANTUM("quantum_dmg"),
     ETHER("ether_dmg"),
-    LIGHT("light_dmg");
+    LIGHT("light_dmg"),
+    SHADOW("shadow_dmg");
 
     private final String damageTypeId;
 

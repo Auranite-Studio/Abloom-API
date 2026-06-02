@@ -10,7 +10,7 @@
 
 ### 1. Element System
 
-The mod defines 11 element types:
+The mod defines 13 element types:
 
 | Element | Damage ID | Damage Color |
 |---------|----------|------------|
@@ -26,6 +26,7 @@ The mod defines 11 element types:
 | QUANTUM | `quantum_dmg` | #9400D3 |
 | ETHER | `ether_dmg` | #24B3A7 |
 | LIGHT | `light_dmg` | #FFFFFF |
+| SHADOW | `shadow_dmg` | #4B0082 |
 
 ### 2. Resonance Accumulation Mechanics
 
@@ -54,6 +55,7 @@ When reaching 100 accumulation resonance points:
 | **ETHER**    | Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)                                                                       | 8 seconds (160 ticks)   |
 | **UNKNOWN**  | Unknown resonance explosion, applies Taunt effect (the target is attacked by hostile and neutral mobs while this effect is active.)                                                                           | ??? seconds (??? ticks) |
 | **LIGHT**    | Light resonance explosion, applies Dispersion effect (damage taken by target increased by a certain amount %)                                                                                                  | 10 seconds (200 ticks)  |
+| **SHADOW**   | Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 5% per additional negative effect, max 50% reduction) | 10 seconds (200 ticks)   |
 
 ### 5. Elemental Armor System
 
@@ -239,20 +241,21 @@ ElementDamageHandler.spawnStatusText(entity, "Overheating!", 0xFF5500);
 
 The following table shows which mobs have immunities, resistances, or weaknesses to each element type:
 
-| Element | Immune | Resistant | Weak |
-|---------|--------|-----------|------|
-| **FIRE** | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton | Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel Husk | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged |
+| Element      | Immune | Resistant | Weak |
+|--------------|--------|-----------|------|
+| **FIRE**     | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton | Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel Husk | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged |
 | **PHYSICAL** | *None* | Turtle, Armadillo, Iron Golem, Copper Golem, Shulker, Warden, Ender Dragon | Slime, Magma Cube, Phantom, Vex, Allay, Glow Squid, Squid |
-| **WIND** | Phantom, Breeze | Ender Dragon, Ghast, Happy Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf | Turtle, Sniffer, Armadillo, Camel, Camel Husk, Ravager, Hoglin, Polar Bear |
-| **EARTH** | Endermite, Silverfish, Shulker | Iron Golem, Copper Golem, Warden, Giant, Ravager, Armadillo, Sniffer | Ghast, Happy Ghast, Phantom, Vex, Allay, Breeze, Ender Dragon |
-| **WATER** | Squid, Glow Squid, Nautilus, Zombie Nautilus, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin | Witch | Blaze, Snow Golem, Strider, Breeze, Parched |
-| **ICE** | Snow Golem, Stray, Polar Bear, Goat | *None* | Blaze, Magma Cube, Strider, Breeze, Parched |
+| **WIND**     | Phantom, Breeze | Ender Dragon, Ghast, Happy Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf | Turtle, Sniffer, Armadillo, Camel, Camel Husk, Ravager, Hoglin, Polar Bear |
+| **EARTH**    | Endermite, Silverfish, Shulker | Iron Golem, Copper Golem, Warden, Giant, Ravager, Armadillo, Sniffer | Ghast, Happy Ghast, Phantom, Vex, Allay, Breeze, Ender Dragon |
+| **WATER**    | Squid, Glow Squid, Nautilus, Zombie Nautilus, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin | Witch | Blaze, Snow Golem, Strider, Breeze, Parched |
+| **ICE**      | Snow Golem, Stray, Polar Bear, Goat | *None* | Blaze, Magma Cube, Strider, Breeze, Parched |
 | **ELECTRIC** | Creeper | Enderman, Phantom, Allay, Breeze | Drowned, Turtle, Axolotl, Frog, Tadpole, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Squid, Glow Squid, Nautilus, Zombie Nautilus, Guardian, Elder Guardian |
-| **ENERGY** | Enderman, Shulker, Warden | Ender Dragon, Wither, Elder Guardian, Evoker, Witch | Creeper, Ghast, Happy Ghast |
-| **NATURAL** | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee | Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Copper Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Zombie Nautilus, Skeleton, Axolotl |
-| **QUANTUM** | Enderman, Endermite, Ender Dragon, Shulker | Wither, Warden | Villager, Wandering Trader, Bat, Allay |
-| **ETHER** | Ender Dragon, Wither | Evoker, Vindicator, Pillager, Witch | Enderman, Endermite, Shulker, Warden |
-| **LIGHT** | *None* | *None* | *None* |
+| **ENERGY**   | Enderman, Shulker, Warden | Ender Dragon, Wither, Elder Guardian, Evoker, Witch | Creeper, Ghast, Happy Ghast |
+| **NATURAL**  | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee | Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Copper Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Zombie Nautilus, Skeleton, Axolotl |
+| **QUANTUM**  | Enderman, Endermite, Ender Dragon, Shulker | Wither, Warden | Villager, Wandering Trader, Bat, Allay |
+| **ETHER**    | Ender Dragon, Wither | Evoker, Vindicator, Pillager, Witch | Enderman, Endermite, Shulker, Warden |
+| **LIGHT**    | *None* | *None* | *None* |
+| **SHADOW**   | *None* | *None* | *None* |
 
 ---
 

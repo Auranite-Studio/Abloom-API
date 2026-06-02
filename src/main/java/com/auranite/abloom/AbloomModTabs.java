@@ -29,6 +29,7 @@ public class AbloomModTabs {
                         tabData.accept(AbloomModItems.QUANTUM_STICK.get());
                         tabData.accept(AbloomModItems.ETHER_STICK.get());
                         tabData.accept(AbloomModItems.LIGHT_STICK.get());
+                        tabData.accept(AbloomModItems.SHADOW_STICK.get());
                     })
                     .build());
 }

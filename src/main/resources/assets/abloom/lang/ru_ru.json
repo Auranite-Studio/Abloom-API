@@ -109,5 +109,11 @@
   "effect.abloom.dispersion": "Дисперсия",
   "elemental.resistance.light": "Сопротивление световому урону",
   "elemental.resistance.tooltip.light": "Сопр. световому урону: +%d%%",
-  "item.abloom.light_stick": "Световая палочка"
+  "item.abloom.light_stick": "Световая палочка",
+  "elemental.tooltip.shadow": "Теневой урон",
+  "elemental.tooltip.shadow_eclipse": "ЗАТМЕНИЕ!",
+  "effect.abloom.eclipse": "Затмение",
+  "elemental.resistance.shadow": "Сопротивление теневому урону",
+  "elemental.resistance.tooltip.shadow": "Сопр. теневому урону: +%d%%",
+  "item.abloom.shadow_stick": "Теневая палочка"
 }
