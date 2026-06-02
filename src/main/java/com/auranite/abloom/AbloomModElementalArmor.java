@@ -45,6 +45,8 @@ public class AbloomModElementalArmor {
         add(Items.CHAINMAIL_CHESTPLATE, ElementType.WIND, 0.04f);
         add(Items.CHAINMAIL_LEGGINGS,   ElementType.WIND, 0.03f);
         add(Items.CHAINMAIL_BOOTS,      ElementType.WIND, 0.02f);
+
+        add(Items.TURTLE_HELMET,        ElementType.EARTH, 0.02f, ElementType.WATER, 0.05f);
     }
 
     private static void add(Item item, ElementType t1, float v1, ElementType t2, float v2) {
