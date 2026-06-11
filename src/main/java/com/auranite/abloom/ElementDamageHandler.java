@@ -650,12 +650,15 @@ public class ElementDamageHandler {
         } else {
             basePoints = (accumulationPoints > 0) ? accumulationPoints : (int) baseAccumulation;
         }
+        AbloomMod.LOGGER.debug("[dealElementDamage] Base accumulation points: {} (type: {}, multiplier: {})", basePoints, type, weaponAccumMultiplier);
         int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
+        AbloomMod.LOGGER.debug("[dealElementDamage] Accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, livingTarget.getName().getString(), type);
         pointsToAdd = Math.round(pointsToAdd * weaponAccumMultiplier * accumBonus);
 
         if (pointsToAdd > 0) {
             AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
             boolean thresholdReached = AbloomModAttachments.getPoints(livingTarget, type) >= THRESHOLD;
+            AbloomMod.LOGGER.debug("[dealElementDamage] Accumulation threshold check: {}/{} points. Threshold reached: {}", AbloomModAttachments.getPoints(livingTarget, type), THRESHOLD, thresholdReached);
             if (thresholdReached) {
                 finalDamage = applyThresholdEffectWithDamage(livingTarget, type, amount);
                 AbloomModAttachments.resetPoints(livingTarget, type);
@@ -721,12 +724,15 @@ public class ElementDamageHandler {
         finalDamage *= damageMultiplier;
 
         int basePoints = (int) baseAccumulation;
+        AbloomMod.LOGGER.debug("[dealElementDamageWithAccum] Base accumulation points: {} (type: {}, accumPoints: {})", basePoints, type, accumPoints);
         int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
+        AbloomMod.LOGGER.debug("[dealElementDamageWithAccum] Accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, livingTarget.getName().getString(), type);
         pointsToAdd = Math.round(pointsToAdd * accumPoints * accumBonus);
 
         if (pointsToAdd > 0) {
             AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
             boolean thresholdReached = AbloomModAttachments.getPoints(livingTarget, type) >= THRESHOLD;
+            AbloomMod.LOGGER.debug("[dealElementDamageWithAccum] Accumulation threshold check: {}/{} points. Threshold reached: {}", AbloomModAttachments.getPoints(livingTarget, type), THRESHOLD, thresholdReached);
             if (thresholdReached) {
                 finalDamage = applyThresholdEffectWithDamage(livingTarget, type, amount);
                 AbloomModAttachments.resetPoints(livingTarget, type);
@@ -827,7 +833,9 @@ public class ElementDamageHandler {
         finalDamage *= damageMultiplier;
 
         int basePoints = (int) baseAccumulation;
+        AbloomMod.LOGGER.debug("[applyElementalDamageInstant] Base accumulation points: {} (type: {}, accumPoints: {})", basePoints, elementalType, accumPoints);
         int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, elementalType, basePoints);
+        AbloomMod.LOGGER.debug("[applyElementalDamageInstant] Accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, livingTarget.getName().getString(), elementalType);
         pointsToAdd = Math.round(pointsToAdd * accumPoints * accumBonus);
 
         if (pointsToAdd > 0) {
@@ -836,6 +844,10 @@ public class ElementDamageHandler {
                 finalDamage = applyThresholdEffectWithDamage(livingTarget, elementalType, baseDamage);
                 AbloomModAttachments.resetPoints(livingTarget, elementalType);
             }
+            AbloomMod.LOGGER.debug("[applyElementalDamageInstant] Accumulation threshold check: {}/{} points. Threshold reached: {}", AbloomModAttachments.getPoints(livingTarget, elementalType), THRESHOLD, true);
+            if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, elementalType);
+            target.hurt(dmgSource, finalDamage);
+            updateLastDamageTime(livingTarget, elementalType);
         }
         if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, elementalType);
         target.hurt(dmgSource, finalDamage);
