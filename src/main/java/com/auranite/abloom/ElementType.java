@@ -173,4 +173,12 @@ public enum ElementType {
     public String getDisplayName() {
         return name().charAt(0) + name().substring(1).toLowerCase();
     }
+
+    public static ElementType safeValueOf(String name) {
+        try {
+            return ElementType.valueOf(name);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return null;
+        }
+    }
 }

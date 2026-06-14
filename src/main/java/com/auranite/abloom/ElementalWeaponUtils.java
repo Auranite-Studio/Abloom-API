@@ -17,7 +17,7 @@ public class ElementalWeaponUtils {
 
     public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
-        ElementalWeaponRegistry.registerWeapon(vanillaItem, type, accumulationMultiplier);
+        ElementalWeaponRegistry.registerWeapon(vanillaItem, type, Math.max(0f, accumulationMultiplier));
         AbloomMod.LOGGER.info("⚔️ Registered item {} as {} elemental (accum x{})",
                 BuiltInRegistries.ITEM.getKey(vanillaItem), type, accumulationMultiplier);
     }
@@ -47,13 +47,17 @@ public class ElementalWeaponUtils {
 
     @SafeVarargs
     public static void registerMultiple(ElementType type, float accumulationMultiplier, Item... items) {
-        if (items == null) return;
+        if (items == null || items.length == 0) return;
+        int registered = 0;
         for (Item item : items) {
             if (item != null) {
-                ElementalWeaponRegistry.registerWeapon(item, type, accumulationMultiplier);
+                ElementalWeaponRegistry.registerWeapon(item, type, Math.max(0f, accumulationMultiplier));
+                registered++;
             }
         }
-        AbloomMod.LOGGER.info("⚔️ Registered {} items as {} elemental (accum x{})", items.length, type, accumulationMultiplier);
+        if (registered > 0) {
+            AbloomMod.LOGGER.info("⚔️ Registered {} items as {} elemental (accum x{})", registered, type, accumulationMultiplier);
+        }
     }
 
     public static boolean isElemental(ItemStack stack) {
@@ -80,7 +84,8 @@ public class ElementalWeaponUtils {
             return componentAccum;
         }
 
-        return ElementalWeaponRegistry.getAccumulationMultiplier(stack);
+        float registryAccum = ElementalWeaponRegistry.getAccumulationMultiplier(stack);
+        return registryAccum != 1.0f ? registryAccum : 1.0f;
     }
 
     public static ItemStack addElementToStack(ItemStack stack, ElementType type) {

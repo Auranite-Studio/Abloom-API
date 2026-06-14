@@ -46,6 +46,8 @@ public class ElementDamageDisplayManager {
     private static final double BREAK_SHIMMER_SPEED = 0.3;
     private static final float BREAK_SHIMMER_INTENSITY = 0.6f;
 
+    private static final int PHYSICS_UPDATE_INTERVAL = 1;
+
     private static class DisplayInfo {
         final TextDisplay display;
         final int targetEntityId;
@@ -204,7 +206,7 @@ public class ElementDamageDisplayManager {
                     ACTIVE_PHYSICS.remove(entry.getKey());
                     count++;
                 }
-            } else if (info == null || info.display == null || info.display.isRemoved()) {
+            } else {
                 damageIterator.remove();
                 ACTIVE_PHYSICS.remove(entry.getKey());
             }
@@ -225,7 +227,7 @@ public class ElementDamageDisplayManager {
                     ACTIVE_PHYSICS.remove(entry.getKey());
                     count++;
                 }
-            } else if (info == null || info.display == null || info.display.isRemoved()) {
+            } else {
                 statusIterator.remove();
                 ACTIVE_PHYSICS.remove(entry.getKey());
             }
