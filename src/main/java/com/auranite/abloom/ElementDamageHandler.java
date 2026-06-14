@@ -188,11 +188,6 @@ public class ElementDamageHandler {
 
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
-        if (ElementResistanceManager.isImmune(target, type)) {
-            event.setNewDamage(0f);
-            return;
-        }
-
         int basePoints = (int) baseAccumulation;
         int pointsToAdd = Math.round(basePoints * effectiveAccumMultiplier);
         if (AbloomMod.LOGGER.isDebugEnabled()) {
@@ -550,7 +545,6 @@ public class ElementDamageHandler {
 
     private static void processDealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
         if (!(target instanceof LivingEntity livingTarget)) return;
-        if (ElementResistanceManager.isImmune(target, type)) return;
 
         float damageMultiplier = 1.0f;
         if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {

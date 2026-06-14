@@ -19,32 +19,25 @@ public class ElementResistanceRegistry {
 
     @SafeVarargs
     public static void registerUniform(ElementType elementType, float resistance, EntityType<?>... entityTypes) {
-        registerUniform(elementType, resistance, resistance, entityTypes);
-    }
-
-    @SafeVarargs
-    public static void registerUniform(ElementType elementType, float accumulationResistance,
-                                       float damageResistance, EntityType<?>... entityTypes) {
         if (elementType == null || entityTypes == null) return;
 
         for (EntityType<?> type : entityTypes) {
             if (type == null) continue;
             ElementResistanceManager.registerResistance(type, Map.of(
-                    elementType, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance)
+                    elementType, new ElementResistanceManager.Resistance(resistance)
             ));
         }
     }
 
-    public static void registerSingle(EntityType<?> entityType, ElementType elementType,
-                                      float accumulationResistance, float damageResistance) {
+    public static void registerSingle(EntityType<?> entityType, ElementType elementType, float resistance) {
         if (entityType == null || elementType == null) return;
         ElementResistanceManager.registerResistance(entityType, Map.of(
-                elementType, new ElementResistanceManager.Resistance(accumulationResistance, damageResistance)
+                elementType, new ElementResistanceManager.Resistance(resistance)
         ));
     }
 
     public static void registerSingleUniform(EntityType<?> entityType, ElementType elementType, float resistance) {
-        registerSingle(entityType, elementType, resistance, resistance);
+        registerSingle(entityType, elementType, resistance);
     }
 
     public static void registerMultiple(EntityType<?> entityType,
