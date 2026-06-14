@@ -78,9 +78,8 @@ public class AbloomModAttachments {
     }
 
     public static void clearProjectileElement(Entity entity) {
-
         if (entity != null && !entity.level().isClientSide) {
-
+            entity.setData(PROJECTILE_ELEMENT.get(), null);
         }
     }
 }

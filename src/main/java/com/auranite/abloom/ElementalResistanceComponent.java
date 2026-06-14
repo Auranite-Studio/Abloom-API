@@ -15,6 +15,9 @@ public class ElementalResistanceComponent {
     public static final String ELEMENT_TYPE_KEY = "element_type";
     public static final String RESISTANCE_VALUE_KEY = "resistance_value";
 
+    private static final float MIN_RESISTANCE = 0.0f;
+    private static final float MAX_RESISTANCE = 1.0f;
+
     public static CustomData createDefaultResistanceData(Map<ElementType, Float> resistanceMap) {
         if (resistanceMap == null || resistanceMap.isEmpty()) {
             return CustomData.EMPTY;
@@ -24,7 +27,7 @@ public class ElementalResistanceComponent {
             var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
             for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
                 if (entry.getKey() != null && entry.getValue() != null) {
-                    float clampedValue = Math.max(0.0f, Math.min(1.0f, entry.getValue()));
+                    float clampedValue = Math.max(MIN_RESISTANCE, Math.min(MAX_RESISTANCE, entry.getValue()));
                     resistanceTag.putFloat(entry.getKey().name(), clampedValue);
                 }
             }
@@ -35,7 +38,7 @@ public class ElementalResistanceComponent {
     public static ItemStack withResistance(ItemStack stack, ElementType type, float resistance) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
-        final float clampedResistance = Math.max(0.0f, Math.min(1.0f, resistance));
+        final float clampedResistance = Math.max(MIN_RESISTANCE, Math.min(MAX_RESISTANCE, resistance));
         final ElementType finalType = type;
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);

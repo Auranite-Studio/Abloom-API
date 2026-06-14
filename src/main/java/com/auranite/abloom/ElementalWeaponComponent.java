@@ -11,6 +11,8 @@ public class ElementalWeaponComponent {
     public static final String ELEMENT_TYPE_KEY = "element_type";
     public static final String ACCUM_POINTS_KEY = "accum_points";
 
+    private static final CustomData EMPTY_DATA = CustomData.EMPTY;
+
     public static ItemStack withElement(ItemStack stack, ElementType type) {
         return withElementAndAccum(stack, type, 1f);
     }
@@ -18,7 +20,7 @@ public class ElementalWeaponComponent {
     public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
-        CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+        CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, EMPTY_DATA);
         customData.update(tag -> {
             tag.putString(ELEMENT_TYPE_KEY, type.name());
             tag.putFloat(ACCUM_POINTS_KEY, accumPoints);
@@ -35,13 +37,7 @@ public class ElementalWeaponComponent {
         if (customData == null) return Optional.empty();
 
         String typeName = customData.copyTag().getString(ELEMENT_TYPE_KEY);
-        if (typeName.isEmpty()) return Optional.empty();
-
-        try {
-            return Optional.of(ElementType.valueOf(typeName));
-        } catch (IllegalArgumentException e) {
-            return Optional.empty();
-        }
+        return typeName.isEmpty() ? Optional.empty() : Optional.ofNullable(ElementType.safeValueOf(typeName));
     }
 
     public static float getAccumMultiplier(ItemStack stack) {

@@ -61,6 +61,10 @@ public class ElementResistanceManager {
 		float multiplier = 1f - resistance.damageResistance();
 		multiplier = Math.max(0f, multiplier);
 
+		if (multiplier >= 1f) {
+			return baseDamage;
+		}
+
 		if (entity instanceof LivingEntity livingEntity &&
 				livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
 			float resistanceReduction = resistance.damageResistance() * 0.2f;
@@ -91,12 +95,8 @@ public class ElementResistanceManager {
 		if (entityType == null || type == null) return false;
 
 		Map<ElementType, Resistance> typeMap = ENTITY_RESISTANCES.get(entityType);
-		if (typeMap != null && typeMap.containsKey(type)) {
-			Resistance res = typeMap.get(type);
-			return res != null && res != Resistance.ZERO;
-		}
-
 		if (typeMap == null) return false;
+
 		Resistance res = typeMap.get(type);
 		return res != null && res != Resistance.ZERO;
 	}
