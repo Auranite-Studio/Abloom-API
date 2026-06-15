@@ -34,7 +34,7 @@ public class BreakArmorIgnoreMixin {
                 MobEffect effectInstance = effect.getEffect().value();
                 if (effectInstance.getCategory() == MobEffectCategory.HARMFUL && 
                         effectInstance != AbloomModEffects.ECLIPSE.get()) {
-                    reduction -= 0.05f; // 5% additional reduction per harmful effect
+                    reduction -= 0.10f; // 10% additional reduction per harmful effect
                 }
             }
             
