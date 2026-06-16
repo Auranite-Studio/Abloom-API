@@ -15,7 +15,7 @@ public class ElementalWeaponRegistry {
 	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier) {
 		if (item == null || type == null) return;
 		WEAPON_DATA.put(item, new WeaponData(type, Math.max(0f, accumulationMultiplier)));
-		AbloomMod.LOGGER.debug("⚔️ Registered elemental weapon: {} → {} (accum: x{})",
+		AbloomMod.LOGGER.debug("Registered elemental weapon: {} → {} (accum: x{})",
 				item.getDescriptionId(), type, accumulationMultiplier);
 	}
 

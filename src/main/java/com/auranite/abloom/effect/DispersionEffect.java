@@ -18,12 +18,10 @@ public class DispersionEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        // Применяем эффект каждую тиковую обнову
         return true;
     }
 
     @Override
     public void applyInstantenousEffect(Entity source, Entity attacker, LivingEntity target, int amplifier, double health) {
-        // Немедленный эффект при нанесении урона
     }
 }

@@ -11,7 +11,7 @@ public class AbloomModElementalWeapons {
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            AbloomMod.LOGGER.info("⚔️ Registering elemental weapons...");
+            AbloomMod.LOGGER.info("Registering elemental weapons...");
 
             registerFireWeapons();
             registerPhysicalWeapons();
@@ -27,7 +27,7 @@ public class AbloomModElementalWeapons {
             registerLightWeapons();
             registerShadowWeapons();
 
-            AbloomMod.LOGGER.info("✅ Elemental weapon registration complete! Total: {}",
+            AbloomMod.LOGGER.info("Elemental weapon registration complete! Total: {}",
                     ElementalWeaponRegistry.getRegisteredCount());
         });
     }

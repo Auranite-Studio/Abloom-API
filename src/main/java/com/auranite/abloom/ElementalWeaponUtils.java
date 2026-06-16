@@ -18,7 +18,7 @@ public class ElementalWeaponUtils {
     public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
         ElementalWeaponRegistry.registerWeapon(vanillaItem, type, Math.max(0f, accumulationMultiplier));
-        AbloomMod.LOGGER.info("⚔️ Registered item {} as {} elemental (accum x{})",
+        AbloomMod.LOGGER.info("Registered item {} as {} elemental (accum x{})",
                 BuiltInRegistries.ITEM.getKey(vanillaItem), type, accumulationMultiplier);
     }
 
@@ -32,10 +32,10 @@ public class ElementalWeaponUtils {
 
         if (itemOpt.isPresent()) {
             ElementalWeaponRegistry.registerWeapon(itemOpt.get(), type, accumulationMultiplier);
-            AbloomMod.LOGGER.info("⚔️ Registered {}:{} as {} elemental (accum x{})", modId, itemName, type, accumulationMultiplier);
+            AbloomMod.LOGGER.info("Registered {}:{} as {} elemental (accum x{})", modId, itemName, type, accumulationMultiplier);
             return true;
         } else {
-            AbloomMod.LOGGER.warn("❌ Item not found: {}:{}", modId, itemName);
+            AbloomMod.LOGGER.warn("Item not found: {}:{}", modId, itemName);
             return false;
         }
     }
@@ -56,7 +56,7 @@ public class ElementalWeaponUtils {
             }
         }
         if (registered > 0) {
-            AbloomMod.LOGGER.info("⚔️ Registered {} items as {} elemental (accum x{})", registered, type, accumulationMultiplier);
+            AbloomMod.LOGGER.info("Registered {} items as {} elemental (accum x{})", registered, type, accumulationMultiplier);
         }
     }
 

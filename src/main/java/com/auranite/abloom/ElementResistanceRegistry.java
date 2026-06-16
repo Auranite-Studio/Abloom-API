@@ -14,7 +14,6 @@ public class ElementResistanceRegistry {
     private ElementResistanceRegistry() {}
 
     public static void init() {
-        // Метод оставлен пустым, так как инициализация теперь происходит в MobResistanceRegistry
     }
 
     @SafeVarargs

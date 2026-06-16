@@ -22,7 +22,6 @@ public class TauntTargetGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        // ИИ целей выполняется только на сервере
         if (this.mob.level().isClientSide()) return false;
 
         if (this.scanTickCooldown > 0) {

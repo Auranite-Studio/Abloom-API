@@ -73,6 +73,6 @@ public class AbloomModElementalArmor {
             ));
         });
 
-        AbloomMod.LOGGER.info("🛡️ Vanilla armor resistances registered via DataComponents.");
+        AbloomMod.LOGGER.info("Vanilla armor resistances registered via DataComponents.");
     }
 }

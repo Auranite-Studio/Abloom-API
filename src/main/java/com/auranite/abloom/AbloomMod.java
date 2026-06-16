@@ -132,7 +132,6 @@ public class AbloomMod {
                             !(mob instanceof WaterAnimal));
 
             if (isHostileOrNeutral) {
-                // Добавляем цель с высоким приоритетом (1)
                 mob.goalSelector.addGoal(1, new TauntTargetGoal(mob));
             }
         }
