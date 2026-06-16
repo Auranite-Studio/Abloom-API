@@ -52,7 +52,8 @@ public class ElementResistanceManager {
 	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.resistance();
-		return Math.round(basePoints * Math.max(0f, multiplier));
+		// Защита от нулевого или отрицательного множителя (если resistance > 1, что невозможно по constraints)
+		return Math.round(basePoints * Math.max(0.001f, multiplier));
 	}
 
 	public static float calculateReducedDamage(Entity entity, ElementType type, float baseDamage) {
@@ -61,11 +62,12 @@ public class ElementResistanceManager {
 		
 		if (entity instanceof LivingEntity livingEntity &&
 				livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
-			float resistanceReduction = Math.max(0f, resistance.resistance()) * 0.2f;
-			multiplier = Math.min(1.0f, Math.max(0.0f, multiplier + resistanceReduction));
+			// CORRUPTION снижает сопротивление на 20% (making entity more vulnerable)
+			float newResistance = resistance.resistance() * 0.8f;
+			multiplier = 1f - newResistance;
 		}
 		
-		return Math.max(0f, baseDamage * Math.max(0f, multiplier));
+		return Math.max(0.001f, baseDamage * multiplier);
 	}
 
 	public static boolean isImmune(Entity entity, ElementType type) {
