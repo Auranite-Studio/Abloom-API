@@ -136,6 +136,9 @@ public class ElementDamageHandler {
         // Собираем все модификаторы урона в один множитель
         float damageMultiplier = 1.0f;
 
+        // Применяем модификаторы исходящего урона от других модов
+        damageMultiplier = calculateOutgoingDamageMultiplier(type, damageMultiplier);
+
         // Модификаторы от атакующего
         if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
@@ -213,6 +216,9 @@ public class ElementDamageHandler {
 
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+        
+        // Применяем модификаторы входящего урона от других модов
+        finalDamage = calculateIncomingDamageMultiplier(type, finalDamage);
 
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
         if (thresholdReached) {
@@ -418,6 +424,12 @@ public class ElementDamageHandler {
             }
         }
 
+        totalResistance = Math.min(totalResistance, 0.99f);
+        
+        // Применяем модификаторы сопротивления от других модов
+        totalResistance = reduceResistance(type, totalResistance);
+        totalResistance = bonusResistance(type, totalResistance);
+        
         return Math.min(totalResistance, 0.99f);
     }
 
@@ -547,6 +559,10 @@ public class ElementDamageHandler {
         if (!(target instanceof LivingEntity livingTarget)) return;
 
         float damageMultiplier = 1.0f;
+        
+        // Применяем модификаторы исходящего урона от других модов
+        damageMultiplier = calculateOutgoingDamageMultiplier(type, damageMultiplier);
+        
         if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
             float reduction = 1.0f - ((amplifier + 1) * 0.20f);
@@ -569,6 +585,10 @@ public class ElementDamageHandler {
 
         float finalDamage = amount;
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
+        
+        // Применяем модификаторы входящего урона от других модов
+        finalDamage = calculateIncomingDamageMultiplier(type, finalDamage);
+        
         finalDamage *= damageMultiplier;
 
         int basePoints = (int) baseAccumulation;
@@ -647,5 +667,141 @@ public class ElementDamageHandler {
         } finally {
             IS_PROCESSING_DAMAGE.set(false);
         }
+    }
+
+    // ============================================
+    // ПУБЛИЧНЫЙ API ДЛЯ ДРУГИХ МОДОВ
+    // ============================================
+
+    /**
+     * Базовый класс для модификаторов урона
+     */
+    public static class DamageModifier {
+        private final String name;
+        private final float value;
+        private final ModifierType type;
+
+        public DamageModifier(String name, float value, ModifierType type) {
+            this.name = name;
+            this.value = value;
+            this.type = type;
+        }
+
+        public String getName() { return name; }
+        public float getValue() { return value; }
+        public ModifierType getType() { return type; }
+    }
+
+    /**
+     * Типы модификаторов
+     */
+    public enum ModifierType {
+        OUTGOING_DAMAGE,    // Модификатор исходящего урона
+        INCOMING_DAMAGE,    // Модификатор входящего урона
+        RESISTANCE_REDUCTION, // Снижение сопротивления
+        RESISTANCE_BONUS    // Бонус к сопротивлению
+    }
+
+    private static final Map<String, DamageModifier> DAMAGE_MODIFIERS = new ConcurrentHashMap<>();
+
+    /**
+     * Регистрация модификатора урона
+     * @param id Уникальный ID модификатора (например, "mymod:fire_bonus")
+     * @param modifier Модификатор
+     */
+    public static void registerDamageModifier(String id, DamageModifier modifier) {
+        DAMAGE_MODIFIERS.put(id, modifier);
+    }
+
+    /**
+     * Удаление модификатора урона
+     * @param id ID модификатора
+     */
+    public static void removeDamageModifier(String id) {
+        DAMAGE_MODIFIERS.remove(id);
+    }
+
+    /**
+     * Получение всех модификаторов по типу
+     * @param type Тип модификатора
+     * @return Список модификаторов
+     */
+    public static List<DamageModifier> getModifiersByType(ModifierType type) {
+        return DAMAGE_MODIFIERS.values().stream()
+            .filter(m -> m.getType() == type)
+            .toList();
+    }
+
+    /**
+     * Расчет множителя исходящего урона
+     * @param type Тип урона
+     * @param originalMultiplier Базовый множитель
+     * @return Итоговый множитель
+     */
+    public static float calculateOutgoingDamageMultiplier(ElementType type, float originalMultiplier) {
+        float multiplier = originalMultiplier;
+        for (DamageModifier modifier : getModifiersByType(ModifierType.OUTGOING_DAMAGE)) {
+            multiplier += modifier.getValue();
+        }
+        return Math.max(0.0f, multiplier);
+    }
+
+    /**
+     * Расчет множителя входящего урона
+     * @param type Тип урона
+     * @param originalMultiplier Базовый множитель
+     * @return Итоговый множитель
+     */
+    public static float calculateIncomingDamageMultiplier(ElementType type, float originalMultiplier) {
+        float multiplier = originalMultiplier;
+        for (DamageModifier modifier : getModifiersByType(ModifierType.INCOMING_DAMAGE)) {
+            multiplier += modifier.getValue();
+        }
+        return Math.max(0.0f, multiplier);
+    }
+
+    /**
+     * Снижение сопротивления (в процентах от 0.0 до 1.0)
+     * @param type Тип урона
+     * @param originalResistance Базовое сопротивление
+     * @return Итоговое сопротивление
+     */
+    public static float reduceResistance(ElementType type, float originalResistance) {
+        float reduction = 0.0f;
+        for (DamageModifier modifier : getModifiersByType(ModifierType.RESISTANCE_REDUCTION)) {
+            reduction += modifier.getValue();
+        }
+        return Math.max(0.0f, originalResistance - reduction);
+    }
+
+    /**
+     * Бонус к сопротивлению (в процентах от 0.0 до 1.0)
+     * @param type Тип урона
+     * @param originalResistance Базовое сопротивление
+     * @return Итоговое сопротивление
+     */
+    public static float bonusResistance(ElementType type, float originalResistance) {
+        float bonus = 0.0f;
+        for (DamageModifier modifier : getModifiersByType(ModifierType.RESISTANCE_BONUS)) {
+            bonus += modifier.getValue();
+        }
+        return Math.min(0.99f, originalResistance + bonus);
+    }
+
+    /**
+     * Получение модификатора по ID
+     * @param id ID модификатора
+     * @return Модификатор или null
+     */
+    public static DamageModifier getDamageModifier(String id) {
+        return DAMAGE_MODIFIERS.get(id);
+    }
+
+    /**
+     * Получение всех зарегистрированных модификаторов
+     * @return Карта всех модификаторов
+     */
+    public static Map<String, DamageModifier> getAllDamageModifiers() {
+        return new ConcurrentHashMap<>(DAMAGE_MODIFIERS);
     }
 }
