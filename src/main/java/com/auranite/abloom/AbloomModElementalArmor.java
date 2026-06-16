@@ -51,7 +51,7 @@ public class AbloomModElementalArmor {
         add(Items.COPPER_LEGGINGS,     ElementType.PHYSICAL, 0.01f);
         add(Items.COPPER_BOOTS,        ElementType.PHYSICAL, 0.01f);
 
-        add(Items.TURTLE_HELMET,        ElementType.EARTH, 0.02f, ElementType.WATER, 0.05f);
+        add(Items.TURTLE_HELMET,        ElementType.EARTH, 0.02f, ElementType.WATER, 0.05f, ElementType.NATURAL, -0.03f);
     }
 
     private static void add(Item item, ElementType t1, float v1, ElementType t2, float v2) {

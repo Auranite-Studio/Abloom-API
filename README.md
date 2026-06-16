@@ -367,6 +367,222 @@ ItemStack sword = ElementDamageHandler.createElementalItem(Items.DIAMOND_SWORD, 
 ItemStack axe = ElementDamageHandler.createElementalItemWithAccum(Items.NETHERITE_AXE, ElementType.ICE, 1, 2.0f);
 ```
 
+---
+
+## Damage Modifier API (For Mod Developers)
+
+The Abloom API provides a flexible system for other mods to add damage bonuses and penalties. This allows you to create mods that interact with the elemental damage system without modifying the core code.
+
+### DamageModifier Class
+
+```java
+import com.auranite.abloom.ElementDamageHandler;
+import com.auranite.abloom.ElementDamageHandler.DamageModifier;
+import com.auranite.abloom.ElementDamageHandler.ModifierType;
+
+// Create a damage modifier
+DamageModifier modifier = new DamageModifier(
+    "mymod:fire_bonus",   // Unique ID
+    0.20f,                 // Value (0.20 = +20%)
+    ModifierType.OUTGOING_DAMAGE  // Type
+);
+
+// Register the modifier
+ElementDamageHandler.registerDamageModifier("mymod:fire_bonus", modifier);
+```
+
+### Modifier Types
+
+| Type | Description | Example Use Case |
+|------|-------------|------------------|
+| `OUTGOING_DAMAGE` | Increases damage dealt by attacker | Fire damage bonus in Nether |
+| `INCOMING_DAMAGE` | Increases damage received by target | Vulnerability effects |
+| `RESISTANCE_REDUCTION` | Reduces entity resistance | Armor penetration |
+| `RESISTANCE_BONUS` | Increases entity resistance | Shield buffs |
+
+### Modifier Type
+
+The value field uses **signed floats** to represent both bonuses and penalties:
+
+| Modifier Type | Positive Value (+) | Negative Value (-) |
+|---------------|-------------------|-------------------|
+| `OUTGOING_DAMAGE` | +20% damage dealt | -20% damage dealt |
+| `INCOMING_DAMAGE` | +20% damage received | -20% damage received |
+| `RESISTANCE` | +20% resistance (buffer) | -20% resistance (penetration) |
+
+### API Methods
+
+```java
+import com.auranite.abloom.ElementDamageHandler;
+import com.auranite.abloom.ElementType;
+
+// Register a modifier
+ElementDamageHandler.registerDamageModifier("mymod:fire_bonus", modifier);
+
+// Remove a modifier
+ElementDamageHandler.removeDamageModifier("mymod:fire_bonus");
+
+// Get modifier by ID
+DamageModifier modifier = ElementDamageHandler.getDamageModifier("mymod:fire_bonus");
+
+// Get all modifiers by type
+List<DamageModifier> fireModifiers = ElementDamageHandler.getModifiersByType(
+    ModifierType.OUTGOING_DAMAGE
+);
+
+// Calculate outgoing damage multiplier (includes all registered modifiers)
+float multiplier = ElementDamageHandler.calculateOutgoingDamageMultiplier(
+    ElementType.FIRE, 1.0f
+);
+// Returns: 1.0 + all OUTGOING_DAMAGE modifiers for FIRE type
+
+// Calculate incoming damage multiplier
+float incomingMultiplier = ElementDamageHandler.calculateIncomingDamageMultiplier(
+    ElementType.ICE, 1.0f
+);
+
+// Reduce resistance (for penetration effects)
+float reducedResistance = ElementDamageHandler.reduceResistance(
+    ElementType.PHYSICAL, 0.30f
+);
+// Reduces 30% resistance by all RESISTANCE_REDUCTION modifiers
+
+// Bonus to resistance
+float bonusResistance = ElementDamageHandler.bonusResistance(
+    ElementType.FIRE, 0.20f
+);
+// Adds to 20% resistance from all RESISTANCE_BONUS modifiers
+```
+
+### Complete Example: Fire Master Mod (with Penalties)
+
+```java
+import com.auranite.abloom.ElementDamageHandler;
+import com.auranite.abloom.ElementDamageHandler.DamageModifier;
+import com.auranite.abloom.ElementDamageHandler.ModifierType;
+import com.auranite.abloom.ElementType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.damagesource.DamageSource;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+
+@EventBusSubscriber(modid = "mymod")
+public class FirePassiveSkills {
+
+    // Register the modifier during mod setup
+    public static void registerDamageModifiers() {
+        // Positive bonus: +20% fire damage in Nether/around lava
+        DamageModifier fireBonus = new DamageModifier(
+            "mymod:fire_master",
+            0.20f,  // +20% fire damage (positive = bonus)
+            ModifierType.OUTGOING_DAMAGE
+        );
+        ElementDamageHandler.registerDamageModifier("mymod:fire_master", fireBonus);
+
+        // Negative penalty: -15% fire damage when in water (vulnerability to water)
+        DamageModifier waterPenalty = new DamageModifier(
+            "mymod:fire_weakness_water",
+            -0.15f,  // -15% fire damage (negative = penalty)
+            ModifierType.OUTGOING_DAMAGE
+        );
+        ElementDamageHandler.registerDamageModifier("mymod:fire_weakness_water", waterPenalty);
+
+        // Resistance modifier: 20% armor penetration on fire attacks
+        DamageModifier penetration = new DamageModifier(
+            "mymod:fire_penetration",
+            -0.20f,  // -20% resistance (subtracts from target's resistance)
+            ModifierType.RESISTANCE
+        );
+        ElementDamageHandler.registerDamageModifier("mymod:fire_penetration", penetration);
+    }
+
+    // Check if Fire Master condition is active
+    private static boolean hasFireMasterCondition(ServerPlayer player) {
+        if (!player.hasEffect(PowerModMobEffects.FIRE_MASTER)) {
+            return false;
+        }
+
+        Level level = player.level();
+
+        // Auto-activate in Nether
+        if (level.dimension() == Level.NETHER) {
+            return true;
+        }
+
+        // Check for lava/fire in 16-block radius
+        BlockPos center = player.blockPosition();
+        int range = 16;
+
+        for (int x = -range; x <= range; x++) {
+            for (int y = -range; y <= range; y++) {
+                for (int z = -range; z <= range; z++) {
+                    BlockPos pos = center.offset(x, y, z);
+                    BlockState state = level.getBlockState(pos);
+                    if (state.getFluidState().is(FluidTags.LAVA) || state.is(BlockTags.FIRE)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Handle damage events
+    @SubscribeEvent
+    public static void onLivingDamage(LivingDamageEvent.Pre event) {
+        LivingEntity target = event.getEntity();
+        DamageSource source = event.getSource();
+
+        if (source.getEntity() instanceof ServerPlayer attacker) {
+            if (hasFireMasterCondition(attacker)) {
+                ElementType type = ElementDamageHandler.getElementTypeFromSource(source);
+                
+                if (type == ElementType.FIRE) {
+                    float original = event.getNewDamage();
+                    // Calculate multiplier (1.0 + all registered OUTGOING_DAMAGE modifiers)
+                    // With +0.20 bonus and -0.15 penalty: 1.0 + 0.20 - 0.15 = 1.05 (5% bonus)
+                    float multiplier = ElementDamageHandler.calculateOutgoingDamageMultiplier(
+                        type, 1.0f
+                    );
+                    event.setNewDamage(original * multiplier);
+                }
+            }
+        }
+    }
+}
+```
+
+### Integration Example: Multiple Modifiers
+
+```java
+// Mod A: Fire damage bonus
+DamageModifier fireBonus = new DamageModifier(
+    "moda:fire_bonus", 0.20f, ModifierType.OUTGOING_DAMAGE
+);
+ElementDamageHandler.registerDamageModifier("moda:fire_bonus", fireBonus);
+
+// Mod B: Additional fire damage bonus
+DamageModifier fireBonus2 = new DamageModifier(
+    "modb:fire_boost", 0.15f, ModifierType.OUTGOING_DAMAGE
+);
+ElementDamageHandler.registerDamageModifier("modb:fire_boost", fireBonus2);
+
+// Result: Total fire damage multiplier = 1.0 + 0.20 + 0.15 = 1.35 (35% bonus)
+float totalMultiplier = ElementDamageHandler.calculateOutgoingDamageMultiplier(
+    ElementType.FIRE, 1.0f
+);
+// Returns: 1.35f
+```
+
+---
+
 ## Usage Examples
 
 ### Creating an Elemental Sword
