@@ -196,6 +196,8 @@ public class ElementDamageHandler {
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {})", pointsToAdd, basePoints, effectiveAccumMultiplier);
         }
+        // Применяем модификаторы накопления резонанса от других модов
+        pointsToAdd = Math.round(ElementDamageHandler.calculateResonanceBuildupMultiplier(type, pointsToAdd));
         pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, pointsToAdd);
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
@@ -583,16 +585,22 @@ public class ElementDamageHandler {
         }
 
         float finalDamage = amount;
+        
+        // Применяем модификаторы исходящего урона от других модов (к значению damageMultiplier он уже применен, но finalDamage еще не умножен)
+        // Умножаем finalDamage на накопленный damageMultiplier
+        finalDamage *= damageMultiplier;
+        
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
         
         // Применяем модификаторы входящего урона от других модов
         finalDamage = calculateIncomingDamageMultiplier(type, finalDamage);
-        
-        finalDamage *= damageMultiplier;
 
         int basePoints = (int) baseAccumulation;
         int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
         pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
+        
+        // Применяем модификаторы накопления резонанса от других модов
+        pointsToAdd = Math.round(calculateResonanceBuildupMultiplier(type, pointsToAdd));
 
         if (pointsToAdd > 0) {
             AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
@@ -619,6 +627,8 @@ public class ElementDamageHandler {
     }
 
     public static void addElementPoints(LivingEntity entity, ElementType type, int points) {
+        // Применяем модификаторы накопления резонанса от других модов
+        points = Math.round(ElementDamageHandler.calculateResonanceBuildupMultiplier(type, points));
         AbloomModAttachments.addPoints(entity, type, ElementResistanceManager.calculateAccumulationPoints(entity, type, points));
         updateLastDamageTime(entity, type);
     }
@@ -692,9 +702,11 @@ public class ElementDamageHandler {
     }
 
     public enum ModifierType {
-        OUTGOING_DAMAGE,    // Бонус к исходящему урону (положительное = +%, отрицательное = -%)
-        INCOMING_DAMAGE,    // Бонус к входящему урону (положительное = +% к получаемому урону, отрицательное = -%)
-        RESISTANCE          // Модификатор сопротивления (положительное = +%, отрицательное = -%)
+        OUTGOING_DAMAGE,        // Бонус к исходящему урону (положительное = +%, отрицательное = -%)
+        INCOMING_DAMAGE,        // Бонус к входящему урону (положительное = +% к получаемому урону, отрицательное = -%)
+        RESISTANCE,             // Модификатор сопротивления (положительное = +%, отрицательное = -%)
+        DEFENCE,                // Модификатор защиты (положительное = +защита, отрицательное = игнорирование)
+        RESONANCE_BUILDUP       // Модификатор накопления резонанса (положительное = +% к накоплению, отрицательное = -%)
     }
 
     private static final Map<String, DamageModifier> DAMAGE_MODIFIERS = new ConcurrentHashMap<>();
@@ -797,6 +809,25 @@ public class ElementDamageHandler {
     }
 
     /**
+     * Расчет итогового значения защиты
+     * @param originalArmorValue Исходное значение брони
+     * @param target Целевое существо
+     * @return Итоговое значение брони после применения модификаторов
+     */
+    public static int calculateArmorValue(int originalArmorValue, LivingEntity target) {
+        int adjustment = 0;
+        
+        // Применяем модификаторы защиты
+        for (DamageModifier modifier : getModifiersByType(ModifierType.DEFENCE)) {
+            // Знаковое значение: +10 = +10 к броне, -10 = игнорирование 10 единиц брони
+            adjustment += (int) modifier.getValue();
+        }
+        
+        // Защита не может быть отрицательной
+        return Math.max(0, originalArmorValue + adjustment);
+    }
+
+    /**
      * Получение модификатора по ID
      * @param id ID модификатора
      * @return Модификатор или null
@@ -811,5 +842,21 @@ public class ElementDamageHandler {
      */
     public static Map<String, DamageModifier> getAllDamageModifiers() {
         return new ConcurrentHashMap<>(DAMAGE_MODIFIERS);
+    }
+
+    /**
+     * Расчет множителя накопления резонанса
+     * @param type Тип урона
+     * @param originalMultiplier Базовый множитель
+     * @return Итоговый множитель
+     */
+    public static float calculateResonanceBuildupMultiplier(ElementType type, float originalMultiplier) {
+        float adjustment = 0.0f;
+        for (DamageModifier modifier : getModifiersByType(ModifierType.RESONANCE_BUILDUP)) {
+            // Знаковое значение: +0.50 = +50% к накоплению, -0.50 = -50% к накоплению
+            adjustment += modifier.getValue();
+        }
+        // Множитель накопления не может быть отрицательным или нулевым
+        return Math.max(0.001f, originalMultiplier + adjustment);
     }
 }

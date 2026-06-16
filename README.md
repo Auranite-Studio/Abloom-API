@@ -397,10 +397,11 @@ ElementDamageHandler.registerDamageModifier("mymod:fire_bonus", modifier);
 |------|-------------|------------------|
 | `OUTGOING_DAMAGE` | Increases damage dealt by attacker | Fire damage bonus in Nether |
 | `INCOMING_DAMAGE` | Increases damage received by target | Vulnerability effects |
-| `RESISTANCE_REDUCTION` | Reduces entity resistance | Armor penetration |
-| `RESISTANCE_BONUS` | Increases entity resistance | Shield buffs |
+| `RESISTANCE` | Reduces entity resistance (positive = less resistance, negative = more resistance) | Armor penetration |
+| `DEFENCE` | Changes armor value (positive = +armor, negative = armor ignore) | Armor penetration/boost |
+| `RESONANCE_BUILDUP` | Modifies resonance accumulation points (positive = faster accumulation, negative = slower) | Speed up or slow down resonance charging |
 
-### Modifier Type
+### Modifier Type Details
 
 The value field uses **signed floats** to represent both bonuses and penalties:
 
@@ -408,7 +409,9 @@ The value field uses **signed floats** to represent both bonuses and penalties:
 |---------------|-------------------|-------------------|
 | `OUTGOING_DAMAGE` | +20% damage dealt | -20% damage dealt |
 | `INCOMING_DAMAGE` | +20% damage received | -20% damage received |
-| `RESISTANCE` | +20% resistance (buffer) | -20% resistance (penetration) |
+| `RESISTANCE` | +0.20 adds to resistance (more buffer) | -0.20 subtracts from resistance (penetration) |
+| `DEFENCE` | +10 adds to armor value | -10 ignores 10 armor units |
+| `RESONANCE_BUILDUP` | +0.50 adds 50% to accumulation points | -0.50 reduces accumulation by 50% |
 
 ### API Methods
 
@@ -441,17 +444,40 @@ float incomingMultiplier = ElementDamageHandler.calculateIncomingDamageMultiplie
     ElementType.ICE, 1.0f
 );
 
-// Reduce resistance (for penetration effects)
-float reducedResistance = ElementDamageHandler.reduceResistance(
+// Calculate resistance with modifiers
+float finalResistance = ElementDamageHandler.calculateResistance(
     ElementType.PHYSICAL, 0.30f
 );
-// Reduces 30% resistance by all RESISTANCE_REDUCTION modifiers
+// 0.30 + all RESISTANCE modifiers
 
-// Bonus to resistance
-float bonusResistance = ElementDamageHandler.bonusResistance(
-    ElementType.FIRE, 0.20f
+// Calculate armor value with DEFENCE modifiers
+int finalArmor = ElementDamageHandler.calculateArmorValue(
+    20, livingEntity
 );
-// Adds to 20% resistance from all RESISTANCE_BONUS modifiers
+// 20 + all DEFENCE modifiers
+
+// Calculate resonance buildup multiplier
+float resonanceMultiplier = ElementDamageHandler.calculateResonanceBuildupMultiplier(
+    ElementType.FIRE, 1.0f
+);
+// 1.0 + all RESONANCE_BUILDUP modifiers
+```
+
+### Resonance Accumulation Formula
+
+The resonance accumulation system uses the following formula:
+
+```
+basePoints = baseAccumulation (default: 1.0)
+effectivePoints = basePoints * effectiveAccumMultiplier * weaponMultiplier * effectMultiplier
+resonancePoints = effectivePoints * (1.0 - resistance) * (1.0 + resistanceBuildupModifiers)
+
+Where:
+- effectiveAccumMultiplier: from projectiles/weapon accumulation
+- weaponMultiplier: from ElementalWeaponComponent/Registry
+- effectMultiplier: from BLOOM/WETNESS effects
+- resistance: from entity's ElementResistanceManager
+- resistanceBuildupModifiers: from RESONANCE_BUILDUP API modifiers
 ```
 
 ### Complete Example: Fire Master Mod (with Penalties)
@@ -496,45 +522,29 @@ public class FirePassiveSkills {
         // Resistance modifier: 20% armor penetration on fire attacks
         DamageModifier penetration = new DamageModifier(
             "mymod:fire_penetration",
-            -0.20f,  // -20% resistance (subtracts from target's resistance)
+            -0.20f,  // -0.20 subtracts from target's resistance (penetration)
             ModifierType.RESISTANCE
         );
         ElementDamageHandler.registerDamageModifier("mymod:fire_penetration", penetration);
+
+        // Resonance buildup: speed up fire resonance charging by 50%
+        DamageModifier resonanceSpeed = new DamageModifier(
+            "mymod:fire_resonance_boost",
+            0.50f,  // +50% faster resonance accumulation
+            ModifierType.RESONANCE_BUILDUP
+        );
+        ElementDamageHandler.registerDamageModifier("mymod:fire_resonance_boost", resonanceSpeed);
+
+        // Negative resonance: slow down fire resonance when wet
+        DamageModifier resonanceSlow = new DamageModifier(
+            "mymod:fire_resonance_slow",
+            -0.30f,  // -30% slower resonance accumulation
+            ModifierType.RESONANCE_BUILDUP
+        );
+        ElementDamageHandler.registerDamageModifier("mymod:fire_resonance_slow", resonanceSlow);
     }
 
-    // Check if Fire Master condition is active
-    private static boolean hasFireMasterCondition(ServerPlayer player) {
-        if (!player.hasEffect(PowerModMobEffects.FIRE_MASTER)) {
-            return false;
-        }
-
-        Level level = player.level();
-
-        // Auto-activate in Nether
-        if (level.dimension() == Level.NETHER) {
-            return true;
-        }
-
-        // Check for lava/fire in 16-block radius
-        BlockPos center = player.blockPosition();
-        int range = 16;
-
-        for (int x = -range; x <= range; x++) {
-            for (int y = -range; y <= range; y++) {
-                for (int z = -range; z <= range; z++) {
-                    BlockPos pos = center.offset(x, y, z);
-                    BlockState state = level.getBlockState(pos);
-                    if (state.getFluidState().is(FluidTags.LAVA) || state.is(BlockTags.FIRE)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    // Handle damage events
+    // Handle resonance accumulation directly
     @SubscribeEvent
     public static void onLivingDamage(LivingDamageEvent.Pre event) {
         LivingEntity target = event.getEntity();
@@ -545,13 +555,9 @@ public class FirePassiveSkills {
                 ElementType type = ElementDamageHandler.getElementTypeFromSource(source);
                 
                 if (type == ElementType.FIRE) {
-                    float original = event.getNewDamage();
-                    // Calculate multiplier (1.0 + all registered OUTGOING_DAMAGE modifiers)
-                    // With +0.20 bonus and -0.15 penalty: 1.0 + 0.20 - 0.15 = 1.05 (5% bonus)
-                    float multiplier = ElementDamageHandler.calculateOutgoingDamageMultiplier(
-                        type, 1.0f
-                    );
-                    event.setNewDamage(original * multiplier);
+                    // Add resonance points with custom modifier
+                    // Points are automatically multiplied by RESONANCE_BUILDUP modifiers
+                    ElementDamageHandler.addElementPoints(target, type, 30);
                 }
             }
         }
@@ -745,6 +751,28 @@ The mod implements 14 status effects that trigger on resonance threshold:
 | **Taunt** | 30s | Attracts hostile and neutral mobs |
 | **Dispersion** | 10s | Increases damage taken by 10-30% depending on element |
 | **Eclipse** | 10s | Reduces defense and damage by 10% + 5% per effect, max 50% |
+
+### Damage Calculation Formula
+
+The final damage is calculated in the following order:
+
+```
+// Step 1: Base damage with outgoing modifiers
+baseDamage * (1.0 + OUTGOING_DAMAGE_modifiers)
+
+// Step 2: Apply resistance (1.0 - resistance)
+ damage * (1.0 - entity_resistance - armor_resistance)
+
+// Step 3: Apply incoming damage modifiers
+ damage * (1.0 + INCOMING_DAMAGE_modifiers)
+
+// Step 4: Apply armor resistance (final multiplier from armor)
+ damage * (1.0 - total_resistance_bonus)
+
+// Step 5: Threshold effect (if resonance threshold reached)
+// Resonance points calculation:
+basePoints * accumulation_multiplier * (1.0 - resistance) * (1.0 + RESONANCE_BUILDUP_modifiers)
+```
 
 ### Network Synchronization
 
