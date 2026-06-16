@@ -127,7 +127,6 @@ public class ElementalTooltipHandler {
             ElementType type = entry.getKey();
             float resistance = entry.getValue();
 
-            // Показываем только не нулевые сопротивления
             if (resistance != 0.0f) {
                 MutableComponent resistanceText = getResistanceText(type, resistance);
                 event.getToolTip().add(resistanceText);
@@ -157,7 +156,6 @@ public class ElementalTooltipHandler {
         String sign = percentage > 0 ? "+" : "";
         MutableComponent percentageText = Component.literal(" " + sign + percentage + "%");
         
-        // Зеленый цвет для защиты, красный для уязвимости (отрицательное сопротивление)
         int color = percentage >= 0 ? 0x00FF00 : 0xFF0000;
         percentageText.setStyle(percentageText.getStyle().withColor(color));
 

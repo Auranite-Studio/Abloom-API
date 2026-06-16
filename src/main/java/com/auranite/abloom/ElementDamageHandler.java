@@ -44,7 +44,7 @@ public class ElementDamageHandler {
 
     private static MinecraftServer currentServer = null;
     private static int serverTickCounter = 0;
-    private static final int CLEANUP_INTERVAL = 20; // Уменьшено с 100 до 20 для более частой оптимизированной очистки
+    private static final int CLEANUP_INTERVAL = 20;
 
     private static ElementDamageDisplayManager displayManager;
 
@@ -133,10 +133,8 @@ public class ElementDamageHandler {
             return;
         }
 
-        // Собираем все модификаторы урона в один множитель
         float damageMultiplier = 1.0f;
 
-        // Применяем модификаторы исходящего урона от других модов
         damageMultiplier = calculateOutgoingDamageMultiplier(type, damageMultiplier);
 
         // Модификаторы от атакующего
@@ -164,7 +162,6 @@ public class ElementDamageHandler {
             damageMultiplier *= 1.0f + dispersionBonus;
         }
 
-        // Применяем все собранные модификаторы к базовому урону
         float damage = event.getNewDamage() * damageMultiplier;
 
         float effectiveAccumMultiplier = 1.0f;
@@ -196,7 +193,6 @@ public class ElementDamageHandler {
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {})", pointsToAdd, basePoints, effectiveAccumMultiplier);
         }
-        // Применяем модификаторы накопления резонанса от других модов
         pointsToAdd = Math.round(ElementDamageHandler.calculateResonanceBuildupMultiplier(type, pointsToAdd));
         pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, pointsToAdd);
         if (AbloomMod.LOGGER.isDebugEnabled()) {
@@ -219,7 +215,6 @@ public class ElementDamageHandler {
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
         
-        // Применяем модификаторы входящего урона от других модов
         finalDamage = calculateIncomingDamageMultiplier(type, finalDamage);
 
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);

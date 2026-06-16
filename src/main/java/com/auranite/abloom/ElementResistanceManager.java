@@ -15,8 +15,6 @@ public class ElementResistanceManager {
 
 	private static final Map<EntityType<?>, Map<ElementType, Resistance>> ENTITY_RESISTANCES = new ConcurrentHashMap<>();
 
-	// Поле TAG_CHECKED_ENTITIES удалено, так как больше не используется.
-
 	private ElementResistanceManager() {}
 
 	public static void registerResistance(EntityType<?> entityType, Map<ElementType, Resistance> resistanceMap) {
@@ -30,9 +28,6 @@ public class ElementResistanceManager {
 		AbloomMod.LOGGER.debug("Registered resistance for {}: {}",
 				entityType.getDescriptionId(), resistanceMap);
 	}
-
-	// Все методы, связанные с тегами данных, были удалены.
-	// Регистрация сопротивлений теперь осуществляется исключительно через MobResistanceRegistry.
 
 	public static Resistance getResistance(Entity entity, ElementType type) {
 		if (entity == null || type == null) return Resistance.ZERO;
@@ -52,7 +47,6 @@ public class ElementResistanceManager {
 	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.resistance();
-		// Защита от нулевого или отрицательного множителя (если resistance > 1, что невозможно по constraints)
 		return Math.round(basePoints * Math.max(0.001f, multiplier));
 	}
 
@@ -62,7 +56,6 @@ public class ElementResistanceManager {
 		
 		if (entity instanceof LivingEntity livingEntity &&
 				livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
-			// CORRUPTION снижает сопротивление на 20% (making entity more vulnerable)
 			float newResistance = resistance.resistance() * 0.8f;
 			multiplier = 1f - newResistance;
 		}

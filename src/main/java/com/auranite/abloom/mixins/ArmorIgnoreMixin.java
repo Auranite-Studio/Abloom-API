@@ -21,35 +21,31 @@ public class ArmorIgnoreMixin {
     private int breakBypassesArmor(LivingEntity target, DamageSource source) {
         int baseArmorValue = target.getArmorValue();
         
-        // BREAK имеет максимальный приоритет - полностью игнорирует броню (без модификаторов)
         if (target.hasEffect(AbloomModEffects.BREAK)) {
             return 0;
         }
         
-        // RUPTURE и ECLIPSE могут складываться
         float armorMultiplier = 1.0f;
         
         if (target.hasEffect(AbloomModEffects.RUPTURE)) {
-            armorMultiplier *= 0.7f; // 30% reduction
+            armorMultiplier *= 0.7f;
         }
         
         if (target.hasEffect(AbloomModEffects.ECLIPSE)) {
-            float reduction = 0.9f; // 10% reduction
+            float reduction = 0.9f;
             
-            // Calculate additional reduction for each harmful effect
             for (MobEffectInstance effect : target.getActiveEffects()) {
                 MobEffect effectInstance = effect.getEffect().value();
                 if (effectInstance.getCategory() == MobEffectCategory.HARMFUL && 
                         effectInstance != AbloomModEffects.ECLIPSE.get()) {
-                    reduction -= 0.10f; // 10% additional reduction per harmful effect
+                    reduction -= 0.10f;
                 }
             }
             
-            reduction = Math.max(0.5f, reduction); // Maximum 50% reduction
+            reduction = Math.max(0.5f, reduction);
             armorMultiplier *= reduction;
         }
         
-        // Применяем множители к броне, потом модификаторы
         int affectedArmorValue = (int) (baseArmorValue * armorMultiplier);
         return ElementDamageHandler.calculateArmorValue(affectedArmorValue, target);
     }
