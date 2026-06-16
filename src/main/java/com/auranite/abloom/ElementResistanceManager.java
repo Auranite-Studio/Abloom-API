@@ -52,26 +52,20 @@ public class ElementResistanceManager {
 	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.resistance();
-		multiplier = Math.max(0f, multiplier);
-		return Math.round(basePoints * multiplier);
+		return Math.round(basePoints * Math.max(0f, multiplier));
 	}
 
 	public static float calculateReducedDamage(Entity entity, ElementType type, float baseDamage) {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.resistance();
-		multiplier = Math.max(0f, multiplier);
-
-		if (multiplier >= 1f) {
-			return baseDamage;
-		}
-
+		
 		if (entity instanceof LivingEntity livingEntity &&
 				livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
-			float resistanceReduction = resistance.resistance() * 0.2f;
-			multiplier = Math.min(1.0f, multiplier + resistanceReduction);
+			float resistanceReduction = Math.max(0f, resistance.resistance()) * 0.2f;
+			multiplier = Math.min(1.0f, Math.max(0.0f, multiplier + resistanceReduction));
 		}
 		
-		return Math.max(0f, baseDamage * multiplier);
+		return Math.max(0f, baseDamage * Math.max(0f, multiplier));
 	}
 
 	public static boolean isImmune(Entity entity, ElementType type) {
@@ -130,6 +124,6 @@ public class ElementResistanceManager {
 		public static final Resistance WEAKNESS = new Resistance(-0.5f);
 
 		public boolean isWeakness() { return resistance < 0f; }
-		public float getMultiplier() { return Math.max(0f, 1f - resistance); }
+		public float getMultiplier() { return 1f - resistance; }
 	}
 }

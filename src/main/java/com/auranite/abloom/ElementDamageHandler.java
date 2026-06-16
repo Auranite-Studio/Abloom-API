@@ -424,18 +424,17 @@ public class ElementDamageHandler {
             }
         }
 
-        totalResistance = Math.min(totalResistance, 0.99f);
-        
         // Применяем модификаторы сопротивления от других модов
-        totalResistance = reduceResistance(type, totalResistance);
-        totalResistance = bonusResistance(type, totalResistance);
+        // Модификаторы могут уменьшить сопротивление ниже 0 (для увеличения урона)
+        totalResistance = calculateResistance(type, totalResistance);
         
-        return Math.min(totalResistance, 0.99f);
+        return Math.max(-0.99f, Math.min(totalResistance, 0.99f));
     }
 
     private static float applyArmorResistance(float damage, float resistanceBonus) {
-        if (resistanceBonus <= 0.0f) return damage;
         float multiplier = 1.0f - resistanceBonus;
+        // multiplier > 1.0 when resistanceBonus < 0 (penetration increases damage)
+        // multiplier < 1.0 when resistanceBonus > 0 (resistance decreases damage)
         return Math.max(0.0f, damage * multiplier);
     }
 
@@ -692,14 +691,10 @@ public class ElementDamageHandler {
         public ModifierType getType() { return type; }
     }
 
-    /**
-     * Типы модификаторов
-     */
     public enum ModifierType {
-        OUTGOING_DAMAGE,    // Модификатор исходящего урона
-        INCOMING_DAMAGE,    // Модификатор входящего урона
-        RESISTANCE_REDUCTION, // Снижение сопротивления
-        RESISTANCE_BONUS    // Бонус к сопротивлению
+        OUTGOING_DAMAGE,    // Бонус к исходящему урону (положительное = +%, отрицательное = -%)
+        INCOMING_DAMAGE,    // Бонус к входящему урону (положительное = +% к получаемому урону, отрицательное = -%)
+        RESISTANCE          // Модификатор сопротивления (положительное = +%, отрицательное = -%)
     }
 
     private static final Map<String, DamageModifier> DAMAGE_MODIFIERS = new ConcurrentHashMap<>();
@@ -741,9 +736,11 @@ public class ElementDamageHandler {
     public static float calculateOutgoingDamageMultiplier(ElementType type, float originalMultiplier) {
         float multiplier = originalMultiplier;
         for (DamageModifier modifier : getModifiersByType(ModifierType.OUTGOING_DAMAGE)) {
+            // Знаковое значение: +0.20 = +20%, -0.20 = -20%
             multiplier += modifier.getValue();
         }
-        return Math.max(0.0f, multiplier);
+        // Множитель урона не может быть отрицательным или нулевым
+        return Math.max(0.001f, multiplier);
     }
 
     /**
@@ -755,37 +752,48 @@ public class ElementDamageHandler {
     public static float calculateIncomingDamageMultiplier(ElementType type, float originalMultiplier) {
         float multiplier = originalMultiplier;
         for (DamageModifier modifier : getModifiersByType(ModifierType.INCOMING_DAMAGE)) {
+            // Знаковое значение: +0.20 = +% к получаемому урону, -0.20 = -% к получаемому урону
             multiplier += modifier.getValue();
         }
-        return Math.max(0.0f, multiplier);
+        // Множитель урона не может быть отрицательным или нулевым
+        return Math.max(0.001f, multiplier);
     }
 
     /**
-     * Снижение сопротивления (в процентах от 0.0 до 1.0)
+     * Модификатор сопротивления (в процентах от 0.0 до 1.0)
      * @param type Тип урона
      * @param originalResistance Базовое сопротивление
      * @return Итоговое сопротивление
+     */
+    public static float calculateResistance(ElementType type, float originalResistance) {
+        float adjustment = 0.0f;
+        for (DamageModifier modifier : getModifiersByType(ModifierType.RESISTANCE)) {
+            // Знаковое значение: +0.20 = +20% к сопротивлению, -0.20 = -20% к сопротивлению
+            adjustment += modifier.getValue();
+        }
+        // Модификаторы могут уменьшить сопротивление ниже 0 (для увеличения урона)
+        // Но броня не может дать более чем 99% сопротивления
+        return Math.max(-0.99f, originalResistance + adjustment);
+    }
+
+    /**
+     * Снижение сопротивления (для эффектов проникновения)
+     * @param type Тип урона
+     * @param originalResistance Базовое сопротивление
+     * @return Сниженное сопротивление
      */
     public static float reduceResistance(ElementType type, float originalResistance) {
-        float reduction = 0.0f;
-        for (DamageModifier modifier : getModifiersByType(ModifierType.RESISTANCE_REDUCTION)) {
-            reduction += modifier.getValue();
-        }
-        return Math.max(0.0f, originalResistance - reduction);
+        return calculateResistance(type, originalResistance);
     }
 
     /**
-     * Бонус к сопротивлению (в процентах от 0.0 до 1.0)
+     * Бонус к сопротивлению (для эффектов защиты)
      * @param type Тип урона
      * @param originalResistance Базовое сопротивление
-     * @return Итоговое сопротивление
+     * @return Увеличенное сопротивление
      */
     public static float bonusResistance(ElementType type, float originalResistance) {
-        float bonus = 0.0f;
-        for (DamageModifier modifier : getModifiersByType(ModifierType.RESISTANCE_BONUS)) {
-            bonus += modifier.getValue();
-        }
-        return Math.min(0.99f, originalResistance + bonus);
+        return calculateResistance(type, originalResistance);
     }
 
     /**
