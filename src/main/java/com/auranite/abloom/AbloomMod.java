@@ -25,7 +25,6 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.bus.api.IEventBus;
 
-import net.minecraft.util.Tuple;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.FriendlyByteBuf;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Collection;
 import java.util.ArrayList;
+import java.util.AbstractMap;
 
 @Mod("abloom")
 public class AbloomMod {
@@ -116,11 +116,11 @@ public class AbloomMod {
         networkingRegistered = true;
     }
 
-    private static final Collection<Tuple<Runnable, Integer>> workQueue = new ConcurrentLinkedQueue<>();
+    private static final Collection<Map.Entry<Runnable, Integer>> workQueue = new ConcurrentLinkedQueue<>();
 
     public static void queueServerWork(int tick, Runnable action) {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
-            workQueue.add(new Tuple<>(action, tick));
+            workQueue.add(new AbstractMap.SimpleEntry<>(action, tick));
     }
 
     @SubscribeEvent
@@ -139,13 +139,14 @@ public class AbloomMod {
 
     @SubscribeEvent
     public void tick(ServerTickEvent.Post event) {
-        List<Tuple<Runnable, Integer>> actions = new ArrayList<>();
+        List<Map.Entry<Runnable, Integer>> actions = new ArrayList<>();
         workQueue.forEach(work -> {
-            work.setB(work.getB() - 1);
-            if (work.getB() == 0)
+            int newTick = work.getValue() - 1;
+            work.setValue(newTick);
+            if (newTick == 0)
                 actions.add(work);
         });
-        actions.forEach(e -> e.getA().run());
+        actions.forEach(e -> e.getKey().run());
         workQueue.removeAll(actions);
     }
 }

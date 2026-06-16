@@ -2,6 +2,7 @@ package com.auranite.abloom;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.EnumMap;

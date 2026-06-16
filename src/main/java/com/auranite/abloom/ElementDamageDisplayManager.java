@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.Display.BillboardConstraints;
 import net.minecraft.world.entity.Display.TextDisplay;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.phys.AABB;
 
 import java.util.EnumMap;
@@ -259,7 +260,7 @@ public class ElementDamageDisplayManager {
 
         Predicate<Entity> hasCleanupTag = e -> e.entityTags().contains(CLEANUP_TAG) && !e.isRemoved();
 
-        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasCleanupTag)) {
+        for (TextDisplay display : level.getEntities(EntityTypes.TEXT_DISPLAY, hasCleanupTag)) {
             if (display != null && !display.isRemoved()) {
                 display.discard();
                 removedCount++;
@@ -280,7 +281,7 @@ public class ElementDamageDisplayManager {
             return tag.getBooleanOr(SELF_DESTRUCT_TAG,false) && !e.isRemoved();
         };
 
-        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasSelfDestruct)) {
+        for (TextDisplay display : level.getEntities(EntityTypes.TEXT_DISPLAY, hasSelfDestruct)) {
             if (display == null || display.isRemoved()) continue;
 
             CompoundTag tag = display.getPersistentData();
@@ -560,7 +561,7 @@ public class ElementDamageDisplayManager {
     }
 
     private static TextDisplay createTextDisplay(ServerLevel level, double x, double y, double z, Component textComponent, int color, int maxLifetime) {
-        TextDisplay display = EntityType.TEXT_DISPLAY.create(level, EntitySpawnReason.EVENT);
+        TextDisplay display = EntityTypes.TEXT_DISPLAY.create(level, EntitySpawnReason.EVENT);
         if (display == null) {
             AbloomMod.LOGGER.error("Failed to create TextDisplay entity at ({}, {}, {})", x, y, z);
             return null;

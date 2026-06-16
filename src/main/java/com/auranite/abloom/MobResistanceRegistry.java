@@ -1,6 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 
 public class MobResistanceRegistry {
 
@@ -11,264 +12,264 @@ public class MobResistanceRegistry {
 
         // Регистрация иммунитетов
         registerEarthResistance(
-                EntityType.ENDERMITE,
-                EntityType.SILVERFISH,
-                EntityType.SHULKER
+                EntityTypes.ENDERMITE,
+                EntityTypes.SILVERFISH,
+                EntityTypes.SHULKER
         );
 
         registerFireResistance(
-                EntityType.BLAZE,
-                EntityType.MAGMA_CUBE,
-                EntityType.WITHER,
-                EntityType.ENDER_DRAGON,
-                EntityType.STRIDER,
-                EntityType.ZOMBIFIED_PIGLIN,
-                EntityType.WITHER_SKELETON
+                EntityTypes.BLAZE,
+                EntityTypes.MAGMA_CUBE,
+                EntityTypes.WITHER,
+                EntityTypes.ENDER_DRAGON,
+                EntityTypes.STRIDER,
+                EntityTypes.ZOMBIFIED_PIGLIN,
+                EntityTypes.WITHER_SKELETON
         );
 
         registerWindResistance(
-                EntityType.PHANTOM,
-                EntityType.BREEZE
+                EntityTypes.PHANTOM,
+                EntityTypes.BREEZE
         );
 
         registerWaterResistance(
-                EntityType.SQUID,
-                EntityType.GLOW_SQUID,
-//                EntityType.NAUTILUS,
-//                EntityType.ZOMBIE_NAUTILUS,
-                EntityType.DROWNED,
-                EntityType.GUARDIAN,
-                EntityType.ELDER_GUARDIAN,
-                EntityType.AXOLOTL,
-                EntityType.TADPOLE,
-                EntityType.FROG,
-                EntityType.TURTLE,
-                EntityType.COD,
-                EntityType.SALMON,
-                EntityType.PUFFERFISH,
-                EntityType.TROPICAL_FISH,
-                EntityType.DOLPHIN,
-                EntityType.WITCH
+                EntityTypes.SQUID,
+                EntityTypes.GLOW_SQUID,
+                EntityTypes.NAUTILUS,
+                EntityTypes.ZOMBIE_NAUTILUS,
+                EntityTypes.DROWNED,
+                EntityTypes.GUARDIAN,
+                EntityTypes.ELDER_GUARDIAN,
+                EntityTypes.AXOLOTL,
+                EntityTypes.TADPOLE,
+                EntityTypes.FROG,
+                EntityTypes.TURTLE,
+                EntityTypes.COD,
+                EntityTypes.SALMON,
+                EntityTypes.PUFFERFISH,
+                EntityTypes.TROPICAL_FISH,
+                EntityTypes.DOLPHIN,
+                EntityTypes.WITCH
         );
 
         registerIceResistance(
-                EntityType.SNOW_GOLEM,
-                EntityType.STRAY,
-                EntityType.POLAR_BEAR,
-                EntityType.GOAT
+                EntityTypes.SNOW_GOLEM,
+                EntityTypes.STRAY,
+                EntityTypes.POLAR_BEAR,
+                EntityTypes.GOAT
         );
 
         registerQuantumResistance(
-                EntityType.ENDERMAN,
-                EntityType.ENDERMITE,
-                EntityType.ENDER_DRAGON,
-                EntityType.SHULKER
+                EntityTypes.ENDERMAN,
+                EntityTypes.ENDERMITE,
+                EntityTypes.ENDER_DRAGON,
+                EntityTypes.SHULKER
         );
 
         registerEtherResistance(
-                EntityType.ENDER_DRAGON,
-                EntityType.WITHER
+                EntityTypes.ENDER_DRAGON,
+                EntityTypes.WITHER
         );
 
         registerFireResistance(
-                EntityType.GHAST,
-                EntityType.WARDEN,
-                EntityType.HOGLIN,
-                EntityType.PIGLIN,
-                EntityType.PIGLIN_BRUTE,
-                EntityType.ZOGLIN,
-                EntityType.HUSK,
-                EntityType.CAMEL,
-//                EntityType.CAMEL_HUSK
-                EntityType.ENDER_DRAGON,
-                EntityType.WITHER
+                EntityTypes.GHAST,
+                EntityTypes.WARDEN,
+                EntityTypes.HOGLIN,
+                EntityTypes.PIGLIN,
+                EntityTypes.PIGLIN_BRUTE,
+                EntityTypes.ZOGLIN,
+                EntityTypes.HUSK,
+                EntityTypes.CAMEL,
+                EntityTypes.CAMEL_HUSK,
+                EntityTypes.ENDER_DRAGON,
+                EntityTypes.WITHER
         );
 
         registerWindResistance(
-                EntityType.ENDER_DRAGON,
-                EntityType.GHAST,
-//                EntityType.HAPPY_GHAST,
-                EntityType.VEX,
-                EntityType.ALLAY,
-                EntityType.PARROT,
-                EntityType.CHICKEN,
-                EntityType.OCELOT,
-                EntityType.CAT,
-                EntityType.FOX,
-                EntityType.WOLF
+                EntityTypes.ENDER_DRAGON,
+                EntityTypes.GHAST,
+                EntityTypes.HAPPY_GHAST,
+                EntityTypes.VEX,
+                EntityTypes.ALLAY,
+                EntityTypes.PARROT,
+                EntityTypes.CHICKEN,
+                EntityTypes.OCELOT,
+                EntityTypes.CAT,
+                EntityTypes.FOX,
+                EntityTypes.WOLF
         );
 
 
         registerElectricResistance(
-                EntityType.CREEPER,
-                EntityType.ENDERMAN,
-                EntityType.PHANTOM,
-                EntityType.ALLAY,
-                EntityType.BREEZE
+                EntityTypes.CREEPER,
+                EntityTypes.ENDERMAN,
+                EntityTypes.PHANTOM,
+                EntityTypes.ALLAY,
+                EntityTypes.BREEZE
         );
 
         registerEnergyResistance(
-                EntityType.ENDERMAN,
-                EntityType.SHULKER,
-                EntityType.WARDEN,
-                EntityType.ENDER_DRAGON,
-                EntityType.WITHER,
-                EntityType.ELDER_GUARDIAN,
-                EntityType.EVOKER,
-                EntityType.WITCH
+                EntityTypes.ENDERMAN,
+                EntityTypes.SHULKER,
+                EntityTypes.WARDEN,
+                EntityTypes.ENDER_DRAGON,
+                EntityTypes.WITHER,
+                EntityTypes.ELDER_GUARDIAN,
+                EntityTypes.EVOKER,
+                EntityTypes.WITCH
         );
 
         registerEnergyWeakness(
-                EntityType.CREEPER,
-                EntityType.GHAST
-//                EntityType.HAPPY_GHAST
+                EntityTypes.CREEPER,
+                EntityTypes.GHAST,
+                EntityTypes.HAPPY_GHAST
         );
 
         registerNaturalResistance(
-                EntityType.BOGGED,
-                EntityType.WITHER_SKELETON,
-                EntityType.WITHER,
-                EntityType.SLIME,
-                EntityType.MAGMA_CUBE,
-                EntityType.BEE,
-                EntityType.WOLF,
-                EntityType.OCELOT,
-                EntityType.CAT,
-                EntityType.PANDA,
-                EntityType.FOX,
-                EntityType.RABBIT
+                EntityTypes.BOGGED,
+                EntityTypes.WITHER_SKELETON,
+                EntityTypes.WITHER,
+                EntityTypes.SLIME,
+                EntityTypes.MAGMA_CUBE,
+                EntityTypes.BEE,
+                EntityTypes.WOLF,
+                EntityTypes.OCELOT,
+                EntityTypes.CAT,
+                EntityTypes.PANDA,
+                EntityTypes.FOX,
+                EntityTypes.RABBIT
         );
 
         registerPhysicalResistance(
-                EntityType.TURTLE,
-                EntityType.ARMADILLO,
-                EntityType.IRON_GOLEM,
+                EntityTypes.TURTLE,
+                EntityTypes.ARMADILLO,
+                EntityTypes.IRON_GOLEM,
 //                EntityType.COPPER_GOLEM,
-                EntityType.SHULKER,
-                EntityType.WARDEN,
-                EntityType.ENDER_DRAGON
+                EntityTypes.SHULKER,
+                EntityTypes.WARDEN,
+                EntityTypes.ENDER_DRAGON
         );
 
         registerPhysicalWeakness(
-                EntityType.SLIME,
-                EntityType.MAGMA_CUBE,
-                EntityType.PHANTOM,
-                EntityType.VEX,
-                EntityType.ALLAY,
-                EntityType.GLOW_SQUID,
-                EntityType.SQUID
+                EntityTypes.SLIME,
+                EntityTypes.MAGMA_CUBE,
+                EntityTypes.PHANTOM,
+                EntityTypes.VEX,
+                EntityTypes.ALLAY,
+                EntityTypes.GLOW_SQUID,
+                EntityTypes.SQUID
         );
 
         registerQuantumResistance(
-                EntityType.WITHER,
-                EntityType.WARDEN
+                EntityTypes.WITHER,
+                EntityTypes.WARDEN
         );
 
         registerEarthResistance(
-                EntityType.IRON_GOLEM,
-//                EntityType.COPPER_GOLEM,
-                EntityType.WARDEN,
-                EntityType.GIANT,
-                EntityType.RAVAGER,
-                EntityType.ARMADILLO,
-                EntityType.SNIFFER
+                EntityTypes.IRON_GOLEM,
+                EntityTypes.COPPER_GOLEM,
+                EntityTypes.WARDEN,
+                EntityTypes.GIANT,
+                EntityTypes.RAVAGER,
+                EntityTypes.ARMADILLO,
+                EntityTypes.SNIFFER
         );
 
         // Регистрация уязвимостей
         registerFireWeakness(
-                EntityType.SNOW_GOLEM,
-                EntityType.DOLPHIN,
-                EntityType.ZOMBIE,
-                EntityType.ZOMBIE_VILLAGER,
-                EntityType.DROWNED,
-                EntityType.STRAY,
-                EntityType.BOGGED
+                EntityTypes.SNOW_GOLEM,
+                EntityTypes.DOLPHIN,
+                EntityTypes.ZOMBIE,
+                EntityTypes.ZOMBIE_VILLAGER,
+                EntityTypes.DROWNED,
+                EntityTypes.STRAY,
+                EntityTypes.BOGGED
         );
 
         registerWindWeakness(
-                EntityType.TURTLE,
-                EntityType.SNIFFER,
-                EntityType.ARMADILLO,
-                EntityType.CAMEL,
-//                EntityType.CAMEL_HUSK,
-                EntityType.RAVAGER,
-                EntityType.HOGLIN,
-                EntityType.POLAR_BEAR
+                EntityTypes.TURTLE,
+                EntityTypes.SNIFFER,
+                EntityTypes.ARMADILLO,
+                EntityTypes.CAMEL,
+                EntityTypes.CAMEL_HUSK,
+                EntityTypes.RAVAGER,
+                EntityTypes.HOGLIN,
+                EntityTypes.POLAR_BEAR
         );
 
         registerEarthWeakness(
-                EntityType.GHAST,
-//                EntityType.HAPPY_GHAST,
-                EntityType.PHANTOM,
-                EntityType.VEX,
-                EntityType.ALLAY,
-                EntityType.BREEZE
+                EntityTypes.GHAST,
+                EntityTypes.HAPPY_GHAST,
+                EntityTypes.PHANTOM,
+                EntityTypes.VEX,
+                EntityTypes.ALLAY,
+                EntityTypes.BREEZE
         );
 
         registerWaterWeakness(
-                EntityType.BLAZE,
-                EntityType.SNOW_GOLEM,
-                EntityType.STRIDER,
-                EntityType.BREEZE
-//                EntityType.PARCHED
+                EntityTypes.BLAZE,
+                EntityTypes.SNOW_GOLEM,
+                EntityTypes.STRIDER,
+                EntityTypes.BREEZE,
+                EntityTypes.PARCHED
         );
 
         registerIceWeakness(
-                EntityType.BLAZE,
-                EntityType.MAGMA_CUBE,
-                EntityType.STRIDER,
-                EntityType.BREEZE
-//                EntityType.PARCHED
+                EntityTypes.BLAZE,
+                EntityTypes.MAGMA_CUBE,
+                EntityTypes.STRIDER,
+                EntityTypes.BREEZE,
+                EntityTypes.PARCHED
         );
 
         registerElectricWeakness(
-                EntityType.DROWNED,
-                EntityType.TURTLE,
-                EntityType.AXOLOTL,
-                EntityType.FROG,
-                EntityType.TADPOLE,
-                EntityType.COD,
-                EntityType.SALMON,
-                EntityType.PUFFERFISH,
-                EntityType.TROPICAL_FISH,
-                EntityType.DOLPHIN,
-                EntityType.SQUID,
-                EntityType.GLOW_SQUID,
-//                EntityType.NAUTILUS,
-//                EntityType.ZOMBIE_NAUTILUS,
-                EntityType.GUARDIAN,
-                EntityType.ELDER_GUARDIAN
+                EntityTypes.DROWNED,
+                EntityTypes.TURTLE,
+                EntityTypes.AXOLOTL,
+                EntityTypes.FROG,
+                EntityTypes.TADPOLE,
+                EntityTypes.COD,
+                EntityTypes.SALMON,
+                EntityTypes.PUFFERFISH,
+                EntityTypes.TROPICAL_FISH,
+                EntityTypes.DOLPHIN,
+                EntityTypes.SQUID,
+                EntityTypes.GLOW_SQUID,
+                EntityTypes.NAUTILUS,
+                EntityTypes.ZOMBIE_NAUTILUS,
+                EntityTypes.GUARDIAN,
+                EntityTypes.ELDER_GUARDIAN
         );
 
         registerNaturalWeakness(
-                EntityType.VILLAGER,
-                EntityType.WANDERING_TRADER,
-                EntityType.IRON_GOLEM,
-//                EntityType.COPPER_GOLEM,
-                EntityType.SNOW_GOLEM,
-                EntityType.ALLAY,
-                EntityType.ZOGLIN,
-                EntityType.STRAY,
-                EntityType.ZOMBIFIED_PIGLIN,
-                EntityType.ZOMBIE,
-                EntityType.ZOMBIE_VILLAGER,
-//                EntityType.ZOMBIE_NAUTILUS,
-                EntityType.SKELETON,
-                EntityType.AXOLOTL
+                EntityTypes.VILLAGER,
+                EntityTypes.WANDERING_TRADER,
+                EntityTypes.IRON_GOLEM,
+                EntityTypes.COPPER_GOLEM,
+                EntityTypes.SNOW_GOLEM,
+                EntityTypes.ALLAY,
+                EntityTypes.ZOGLIN,
+                EntityTypes.STRAY,
+                EntityTypes.ZOMBIFIED_PIGLIN,
+                EntityTypes.ZOMBIE,
+                EntityTypes.ZOMBIE_VILLAGER,
+                EntityTypes.ZOMBIE_NAUTILUS,
+                EntityTypes.SKELETON,
+                EntityTypes.AXOLOTL
         );
 
         registerQuantumWeakness(
-                EntityType.VILLAGER,
-                EntityType.WANDERING_TRADER,
-                EntityType.BAT,
-                EntityType.ALLAY
+                EntityTypes.VILLAGER,
+                EntityTypes.WANDERING_TRADER,
+                EntityTypes.BAT,
+                EntityTypes.ALLAY
         );
 
         registerEtherWeakness(
-                EntityType.ENDERMAN,
-                EntityType.ENDERMITE,
-                EntityType.SHULKER,
-                EntityType.WARDEN
+                EntityTypes.ENDERMAN,
+                EntityTypes.ENDERMITE,
+                EntityTypes.SHULKER,
+                EntityTypes.WARDEN
         );
 
 
