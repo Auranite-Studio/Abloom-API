@@ -24,7 +24,7 @@ public class ElementalResistanceComponent {
         }
 
         return CustomData.EMPTY.update(tag -> {
-            var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
+            var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
             for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
                 if (entry.getKey() != null && entry.getValue() != null) {
                     float clampedValue = Math.max(-0.99f, Math.min(0.99f, entry.getValue()));
@@ -43,7 +43,7 @@ public class ElementalResistanceComponent {
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         customData = customData.update(tag -> {
-            var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
+            var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
             resistanceTag.putFloat(finalType.name(), clampedResistance);
             tag.put(ELEMENT_RESISTANCE_KEY, resistanceTag);
         });
@@ -57,7 +57,7 @@ public class ElementalResistanceComponent {
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
         customData = customData.update(tag -> {
-            var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
+            var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
             for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
                 if (entry.getKey() != null && entry.getValue() != null) {
                     float clampedValue = Math.max(-0.99f, Math.min(0.99f, entry.getValue()));
@@ -80,8 +80,8 @@ public class ElementalResistanceComponent {
         var tag = customData.copyTag();
         if (!tag.contains(ELEMENT_RESISTANCE_KEY)) return 0.0f;
 
-        var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
-        return resistanceTag.contains(type.name()) ? resistanceTag.getFloat(type.name()) : 0.0f;
+        var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
+        return resistanceTag.contains(type.name()) ? resistanceTag.getFloatOr(type.name(), 0) : 0.0f;
     }
 
     public static Map<ElementType, Float> getAllResistances(ItemStack stack) {
@@ -95,11 +95,11 @@ public class ElementalResistanceComponent {
         var tag = customData.copyTag();
         if (!tag.contains(ELEMENT_RESISTANCE_KEY)) return result;
 
-        var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
+        var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
 
         for (ElementType type : ElementType.values()) {
             if (resistanceTag.contains(type.name())) {
-                result.put(type, resistanceTag.getFloat(type.name()));
+                result.put(type, resistanceTag.getFloatOr(type.name(),0));
             }
         }
 
@@ -115,10 +115,10 @@ public class ElementalResistanceComponent {
         var tag = customData.copyTag();
         if (!tag.contains(ELEMENT_RESISTANCE_KEY)) return false;
 
-        var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
+        var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
 
         for (ElementType type : ElementType.values()) {
-            if (resistanceTag.contains(type.name()) && resistanceTag.getFloat(type.name()) != 0.0f) {
+            if (resistanceTag.contains(type.name()) && resistanceTag.getFloatOr(type.name(), 0) != 0.0f) {
                 return true;
             }
         }
@@ -149,7 +149,7 @@ public class ElementalResistanceComponent {
         if (customData != null) {
             customData = customData.update(tag -> {
                 if (tag.contains(ELEMENT_RESISTANCE_KEY)) {
-                    var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
+                    var resistanceTag = tag.getCompoundOrEmpty(ELEMENT_RESISTANCE_KEY);
                     resistanceTag.remove(type.name());
 
                     if (resistanceTag.isEmpty()) {

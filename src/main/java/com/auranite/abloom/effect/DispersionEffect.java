@@ -1,5 +1,6 @@
 package com.auranite.abloom.effect;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -17,11 +18,7 @@ public class DispersionEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         return true;
-    }
-
-    @Override
-    public void applyInstantenousEffect(Entity source, Entity attacker, LivingEntity target, int amplifier, double health) {
     }
 }
