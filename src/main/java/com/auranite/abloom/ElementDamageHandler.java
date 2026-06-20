@@ -135,8 +135,6 @@ public class ElementDamageHandler {
 
         float damageMultiplier = 1.0f;
 
-        damageMultiplier = calculateOutgoingDamageMultiplier(type, damageMultiplier);
-
         // Модификаторы от атакующего
         if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
@@ -193,7 +191,6 @@ public class ElementDamageHandler {
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {})", pointsToAdd, basePoints, effectiveAccumMultiplier);
         }
-        pointsToAdd = Math.round(ElementDamageHandler.calculateResonanceBuildupMultiplier(type, pointsToAdd));
         pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, pointsToAdd);
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
@@ -215,8 +212,6 @@ public class ElementDamageHandler {
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
         
-        finalDamage = calculateIncomingDamageMultiplier(type, finalDamage);
-
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
         if (thresholdReached) {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
@@ -420,10 +415,6 @@ public class ElementDamageHandler {
                 totalResistance += resistance;
             }
         }
-
-        // Применяем модификаторы сопротивления от других модов
-        // Модификаторы могут уменьшить сопротивление ниже 0 (для увеличения урона)
-        totalResistance = calculateResistance(type, totalResistance);
         
         return Math.max(-0.99f, Math.min(totalResistance, 0.99f));
     }
@@ -555,9 +546,7 @@ public class ElementDamageHandler {
         if (!(target instanceof LivingEntity livingTarget)) return;
 
         float damageMultiplier = 1.0f;
-        
-        // Применяем модификаторы исходящего урона от других модов
-        damageMultiplier = calculateOutgoingDamageMultiplier(type, damageMultiplier);
+        float accumBonus = 1.0f;
         
         if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
@@ -565,10 +554,10 @@ public class ElementDamageHandler {
             damageMultiplier *= Math.max(0.1f, reduction);
         }
 
-        float accumBonus = 1.0f;
         if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-            damageMultiplier *= 1.20f;
-            accumBonus *= 1.20f;
+            int amplifier = livingTarget.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+            damageMultiplier *= 1.20f * (amplifier + 1);
+            accumBonus *= 1.20f * (amplifier + 1);
         }
         if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
@@ -581,21 +570,14 @@ public class ElementDamageHandler {
 
         float finalDamage = amount;
         
-        // Применяем модификаторы исходящего урона от других модов (к значению damageMultiplier он уже применен, но finalDamage еще не умножен)
         // Умножаем finalDamage на накопленный damageMultiplier
         finalDamage *= damageMultiplier;
         
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
-        
-        // Применяем модификаторы входящего урона от других модов
-        finalDamage = calculateIncomingDamageMultiplier(type, finalDamage);
 
         int basePoints = (int) baseAccumulation;
-        int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, basePoints);
-        pointsToAdd = Math.round(pointsToAdd * accumMultiplier * accumBonus);
-        
-        // Применяем модификаторы накопления резонанса от других модов
-        pointsToAdd = Math.round(calculateResonanceBuildupMultiplier(type, pointsToAdd));
+        int pointsToAdd = Math.round(basePoints * accumMultiplier * accumBonus);
+        pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, pointsToAdd);
 
         if (pointsToAdd > 0) {
             AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
@@ -622,8 +604,6 @@ public class ElementDamageHandler {
     }
 
     public static void addElementPoints(LivingEntity entity, ElementType type, int points) {
-        // Применяем модификаторы накопления резонанса от других модов
-        points = Math.round(ElementDamageHandler.calculateResonanceBuildupMultiplier(type, points));
         AbloomModAttachments.addPoints(entity, type, ElementResistanceManager.calculateAccumulationPoints(entity, type, points));
         updateLastDamageTime(entity, type);
     }
@@ -673,185 +653,5 @@ public class ElementDamageHandler {
         }
     }
 
-    // ============================================
-    // ПУБЛИЧНЫЙ API ДЛЯ ДРУГИХ МОДОВ
-    // ============================================
 
-    /**
-     * Базовый класс для модификаторов урона
-     */
-    public static class DamageModifier {
-        private final String name;
-        private final float value;
-        private final ModifierType type;
-
-        public DamageModifier(String name, float value, ModifierType type) {
-            this.name = name;
-            this.value = value;
-            this.type = type;
-        }
-
-        public String getName() { return name; }
-        public float getValue() { return value; }
-        public ModifierType getType() { return type; }
-    }
-
-    public enum ModifierType {
-        OUTGOING_DAMAGE,        // Бонус к исходящему урону (положительное = +%, отрицательное = -%)
-        INCOMING_DAMAGE,        // Бонус к входящему урону (положительное = +% к получаемому урону, отрицательное = -%)
-        RESISTANCE,             // Модификатор сопротивления (положительное = +%, отрицательное = -%)
-        DEFENCE,                // Модификатор защиты (положительное = +защита, отрицательное = игнорирование)
-        RESONANCE_BUILDUP       // Модификатор накопления резонанса (положительное = +% к накоплению, отрицательное = -%)
-    }
-
-    private static final Map<String, DamageModifier> DAMAGE_MODIFIERS = new ConcurrentHashMap<>();
-
-    /**
-     * Регистрация модификатора урона
-     * @param id Уникальный ID модификатора (например, "mymod:fire_bonus")
-     * @param modifier Модификатор
-     */
-    public static void registerDamageModifier(String id, DamageModifier modifier) {
-        DAMAGE_MODIFIERS.put(id, modifier);
-    }
-
-    /**
-     * Удаление модификатора урона
-     * @param id ID модификатора
-     */
-    public static void removeDamageModifier(String id) {
-        DAMAGE_MODIFIERS.remove(id);
-    }
-
-    /**
-     * Получение всех модификаторов по типу
-     * @param type Тип модификатора
-     * @return Список модификаторов
-     */
-    public static List<DamageModifier> getModifiersByType(ModifierType type) {
-        return DAMAGE_MODIFIERS.values().stream()
-            .filter(m -> m.getType() == type)
-            .toList();
-    }
-
-    /**
-     * Расчет множителя исходящего урона
-     * @param type Тип урона
-     * @param originalMultiplier Базовый множитель
-     * @return Итоговый множитель
-     */
-    public static float calculateOutgoingDamageMultiplier(ElementType type, float originalMultiplier) {
-        float multiplier = originalMultiplier;
-        for (DamageModifier modifier : getModifiersByType(ModifierType.OUTGOING_DAMAGE)) {
-            // Знаковое значение: +0.20 = +20%, -0.20 = -20%
-            multiplier += modifier.getValue();
-        }
-        // Множитель урона не может быть отрицательным или нулевым
-        return Math.max(0.001f, multiplier);
-    }
-
-    /**
-     * Расчет множителя входящего урона
-     * @param type Тип урона
-     * @param originalMultiplier Базовый множитель
-     * @return Итоговый множитель
-     */
-    public static float calculateIncomingDamageMultiplier(ElementType type, float originalMultiplier) {
-        float multiplier = originalMultiplier;
-        for (DamageModifier modifier : getModifiersByType(ModifierType.INCOMING_DAMAGE)) {
-            // Знаковое значение: +0.20 = +% к получаемому урону, -0.20 = -% к получаемому урону
-            multiplier += modifier.getValue();
-        }
-        // Множитель урона не может быть отрицательным или нулевым
-        return Math.max(0.001f, multiplier);
-    }
-
-    /**
-     * Модификатор сопротивления (в процентах от 0.0 до 1.0)
-     * @param type Тип урона
-     * @param originalResistance Базовое сопротивление
-     * @return Итоговое сопротивление
-     */
-    public static float calculateResistance(ElementType type, float originalResistance) {
-        float adjustment = 0.0f;
-        for (DamageModifier modifier : getModifiersByType(ModifierType.RESISTANCE)) {
-            // Знаковое значение: +0.20 = +20% к сопротивлению, -0.20 = -20% к сопротивлению
-            adjustment += modifier.getValue();
-        }
-        // Модификаторы могут уменьшить сопротивление ниже 0 (для увеличения урона)
-        // Но броня не может дать более чем 99% сопротивления
-        return Math.max(-0.99f, originalResistance + adjustment);
-    }
-
-    /**
-     * Снижение сопротивления (для эффектов проникновения)
-     * @param type Тип урона
-     * @param originalResistance Базовое сопротивление
-     * @return Сниженное сопротивление
-     */
-    public static float reduceResistance(ElementType type, float originalResistance) {
-        return calculateResistance(type, originalResistance);
-    }
-
-    /**
-     * Бонус к сопротивлению (для эффектов защиты)
-     * @param type Тип урона
-     * @param originalResistance Базовое сопротивление
-     * @return Увеличенное сопротивление
-     */
-    public static float bonusResistance(ElementType type, float originalResistance) {
-        return calculateResistance(type, originalResistance);
-    }
-
-    /**
-     * Расчет итогового значения защиты
-     * @param originalArmorValue Исходное значение брони
-     * @param target Целевое существо
-     * @return Итоговое значение брони после применения модификаторов
-     */
-    public static int calculateArmorValue(int originalArmorValue, LivingEntity target) {
-        int adjustment = 0;
-        
-        // Применяем модификаторы защиты
-        for (DamageModifier modifier : getModifiersByType(ModifierType.DEFENCE)) {
-            // Знаковое значение: +10 = +10 к броне, -10 = игнорирование 10 единиц брони
-            adjustment += (int) modifier.getValue();
-        }
-        
-        // Защита не может быть отрицательной
-        return Math.max(0, originalArmorValue + adjustment);
-    }
-
-    /**
-     * Получение модификатора по ID
-     * @param id ID модификатора
-     * @return Модификатор или null
-     */
-    public static DamageModifier getDamageModifier(String id) {
-        return DAMAGE_MODIFIERS.get(id);
-    }
-
-    /**
-     * Получение всех зарегистрированных модификаторов
-     * @return Карта всех модификаторов
-     */
-    public static Map<String, DamageModifier> getAllDamageModifiers() {
-        return new ConcurrentHashMap<>(DAMAGE_MODIFIERS);
-    }
-
-    /**
-     * Расчет множителя накопления резонанса
-     * @param type Тип урона
-     * @param originalMultiplier Базовый множитель
-     * @return Итоговый множитель
-     */
-    public static float calculateResonanceBuildupMultiplier(ElementType type, float originalMultiplier) {
-        float adjustment = 0.0f;
-        for (DamageModifier modifier : getModifiersByType(ModifierType.RESONANCE_BUILDUP)) {
-            // Знаковое значение: +0.50 = +50% к накоплению, -0.50 = -50% к накоплению
-            adjustment += modifier.getValue();
-        }
-        // Множитель накопления не может быть отрицательным или нулевым
-        return Math.max(0.001f, originalMultiplier + adjustment);
-    }
 }
