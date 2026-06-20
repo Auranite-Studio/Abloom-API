@@ -47,6 +47,6 @@ public class ArmorIgnoreMixin {
         }
         
         int affectedArmorValue = (int) (baseArmorValue * armorMultiplier);
-        return ElementDamageHandler.calculateArmorValue(affectedArmorValue, target);
+        return affectedArmorValue;
     }
 }
