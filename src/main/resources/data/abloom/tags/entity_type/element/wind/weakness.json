@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:turtle",
+    "minecraft:sniffer",
+    "minecraft:armadillo",
+    "minecraft:camel",
+    "minecraft:ravager",
+    "minecraft:hoglin",
+    "minecraft:polar_bear"
+  ]
+}

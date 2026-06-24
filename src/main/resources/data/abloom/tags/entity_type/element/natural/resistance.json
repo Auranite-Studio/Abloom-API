@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:wolf",
+    "minecraft:ocelot",
+    "minecraft:cat",
+    "minecraft:panda",
+    "minecraft:fox",
+    "minecraft:rabbit",
+    "minecraft:bogged",
+    "minecraft:wither_skeleton",
+    "minecraft:wither",
+    "minecraft:slime",
+    "minecraft:magma_cube",
+    "minecraft:bee"
+  ]
+}

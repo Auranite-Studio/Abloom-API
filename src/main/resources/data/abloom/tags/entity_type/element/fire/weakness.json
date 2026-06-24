@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:snow_golem",
+    "minecraft:dolphin",
+    "minecraft:zombie",
+    "minecraft:zombie_villager",
+    "minecraft:drowned",
+    "minecraft:stray",
+    "minecraft:bogged"
+  ]
+}
