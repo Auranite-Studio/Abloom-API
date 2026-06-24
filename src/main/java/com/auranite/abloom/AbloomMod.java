@@ -56,7 +56,6 @@ public class AbloomMod {
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
         ElementResistanceRegistry.init();
-        MobResistanceRegistry.init();
         ElementResistanceManager.debugPrintRegistry();
         ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
         ElementDamageHandler.setDisplayManager(displayManager);

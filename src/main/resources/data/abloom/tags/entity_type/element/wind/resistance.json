@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:ender_dragon",
+    "minecraft:ghast",
+    "minecraft:vex",
+    "minecraft:allay",
+    "minecraft:parrot",
+    "minecraft:chicken",
+    "minecraft:ocelot",
+    "minecraft:cat",
+    "minecraft:fox",
+    "minecraft:wolf",
+    "minecraft:phantom",
+    "minecraft:breeze"
+  ]
+}
