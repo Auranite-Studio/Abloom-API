@@ -57,8 +57,6 @@ public class AbloomMod {
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
-        ElementResistanceRegistry.init();
-        ElementResistanceManager.debugPrintRegistry();
         ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
         ElementDamageHandler.setDisplayManager(displayManager);
         ElementDamageHandler.initDamageColors();
@@ -147,5 +145,14 @@ public class AbloomMod {
         });
         actions.forEach(e -> e.getKey().run());
         workQueue.removeAll(actions);
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(net.neoforged.neoforge.event.level.LevelEvent.Load event) {
+        if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+            net.minecraft.core.HolderLookup.Provider lookupProvider = serverLevel.registryAccess();
+            ElementResistanceRegistry.init(lookupProvider);
+            ElementResistanceManager.debugPrintRegistry();
+        }
     }
 }

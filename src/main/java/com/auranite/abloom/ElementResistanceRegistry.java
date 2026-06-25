@@ -50,10 +50,6 @@ public class ElementResistanceRegistry {
         }
     }
 
-    public static void init() {
-        AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Lazy tag loading)...");
-    }
-
     @SafeVarargs
     public static void registerUniform(ElementType elementType, float resistance, EntityType<?>... entityTypes) {
         if (elementType == null || entityTypes == null) return;
