@@ -15,7 +15,7 @@ public class ElementResistanceRegistry {
 
     public static TagKey<EntityType<?>> createEntityTag(String element, String modifier) {
         return TagKey.create(Registries.ENTITY_TYPE,
-                ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID,
+                Identifier.fromNamespaceAndPath(AbloomMod.MODID,
                         "element_resistance/" + element.toLowerCase() + "/" + modifier));
     }
 
