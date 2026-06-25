@@ -16,7 +16,7 @@ public class ElementResistanceRegistry {
     public static TagKey<EntityType<?>> createEntityTag(String element, String modifier) {
         return TagKey.create(Registries.ENTITY_TYPE,
                 ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID,
-                        "element/" + element.toLowerCase() + "/" + modifier));
+                        "element_resistance/" + element.toLowerCase() + "/" + modifier));
     }
 
     public static void init(net.minecraft.core.HolderLookup.Provider lookupProvider) {
