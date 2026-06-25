@@ -1,5 +1,8 @@
 package com.auranite.abloom;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
@@ -70,14 +73,14 @@ public class ElementResistanceManager {
 		String modid = AbloomMod.MODID;
 
 		TagKey<EntityType<?>> resistTag = createTag(modid, elementLower, "resistance");
-		if (entityType.is(resistTag)) {
+		if (entityType.getTags().equals(resistTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.HALF_RESIST));
 			AbloomMod.LOGGER.debug("Lazy-loaded RESIST for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
 		TagKey<EntityType<?>> weaknessTag = createTag(modid, elementLower, "weakness");
-		if (entityType.is(weaknessTag)) {
+		if (entityType.getTags().equals(weaknessTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.WEAKNESS));
 			AbloomMod.LOGGER.debug("Lazy-loaded WEAKNESS for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
@@ -88,7 +91,7 @@ public class ElementResistanceManager {
 
 	private static TagKey<EntityType<?>> createTag(String modid, String element, String modifier) {
 		return TagKey.create(Registries.ENTITY_TYPE,
-				ResourceLocation.fromNamespaceAndPath(modid, "element_resistance/" + element + "/" + modifier));
+				Identifier.fromNamespaceAndPath(modid, "element_resistance/" + element + "/" + modifier));
 	}
 
 	public static Resistance getResistance(Entity entity, ElementType type) {
