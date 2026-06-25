@@ -88,7 +88,7 @@ public class ElementResistanceManager {
 
 	private static TagKey<EntityType<?>> createTag(String modid, String element, String modifier) {
 		return TagKey.create(Registries.ENTITY_TYPE,
-				ResourceLocation.fromNamespaceAndPath(modid, "element/" + element + "/" + modifier));
+				ResourceLocation.fromNamespaceAndPath(modid, "element_resistance/" + element + "/" + modifier));
 	}
 
 	public static Resistance getResistance(Entity entity, ElementType type) {
