@@ -22,46 +22,56 @@ public class ElementalWeaponProvider {
     public static final String DATAPACK_PATH = "elemental_weapons";
 
     public static void loadFromResources() {
-        var modFileInfo = ModList.get().getModFileById("abloom");
-        if (modFileInfo == null) {
-            AbloomMod.LOGGER.error("Mod 'abloom' not found in ModList!");
-            return;
+        var modList = ModList.get();
+
+        AtomicInteger totalLoadedCount = new AtomicInteger();
+
+        for (var modInfo : modList.getMods()) {
+            String modId = modInfo.getModId();
+            var modFileInfo = modList.getModFileById(modId);
+            if (modFileInfo == null) {
+                continue;
+            }
+
+            IModFile modFile = modFileInfo.getFile();
+            Path rootPath = modFile.getSecureJar().getRootPath();
+
+            // Ищем файлы в папке data/{modid}/elemental_weapons/
+            Path weaponsDir = rootPath.resolve("data/" + modId + "/" + DATAPACK_PATH);
+
+            if (!Files.exists(weaponsDir)) {
+                continue; // В этом моде нет файлов elemental weapons
+            }
+
+            AtomicInteger loadedCount = new AtomicInteger();
+
+            try (Stream<Path> paths = Files.walk(weaponsDir)) {
+                paths.filter(Files::isRegularFile)
+                        .filter(p -> p.toString().endsWith(".json"))
+                        .forEach(path -> {
+                            try {
+                                String jsonContent = Files.readString(path, StandardCharsets.UTF_8);
+                                String sourcePath = rootPath.relativize(path).toString().replace('\\', '/');
+
+                                loadWeaponFromJson(sourcePath, jsonContent, loadedCount, modId);
+                            } catch (IOException e) {
+                                AbloomMod.LOGGER.error("Failed to read elemental weapon from {}", path, e);
+                            }
+                        });
+            } catch (IOException e) {
+                AbloomMod.LOGGER.error("Failed to scan directory for elemental weapons in mod {}", modId, e);
+            }
+
+            if (loadedCount.get() > 0) {
+                AbloomMod.LOGGER.info("Loaded {} elemental weapons from mod '{}'", loadedCount.get(), modId);
+                totalLoadedCount.addAndGet(loadedCount.get());
+            }
         }
 
-        IModFile modFile = modFileInfo.getFile();
-        Path rootPath = modFile.getSecureJar().getRootPath(); // Корень мода (JAR или папка resources в dev)
-        Path weaponsDir = rootPath.resolve("data/abloom/" + DATAPACK_PATH);
-
-        if (!Files.exists(weaponsDir)) {
-            AbloomMod.LOGGER.warn("Elemental weapons directory not found: {}", weaponsDir);
-            return;
-        }
-
-        AtomicInteger loadedCount = new AtomicInteger();
-
-        try (Stream<Path> paths = Files.walk(weaponsDir)) {
-            paths.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".json"))
-                    .forEach(path -> {
-                        try {
-                            // Читаем содержимое файла напрямую через NIO
-                            String jsonContent = Files.readString(path, StandardCharsets.UTF_8);
-                            // Получаем относительный путь для красивого логирования
-                            String sourcePath = rootPath.relativize(path).toString().replace('\\', '/');
-
-                            loadWeaponFromJson(sourcePath, jsonContent, loadedCount);
-                        } catch (IOException e) {
-                            AbloomMod.LOGGER.error("Failed to read elemental weapon from {}", path, e);
-                        }
-                    });
-        } catch (IOException e) {
-            AbloomMod.LOGGER.error("Failed to scan directory for elemental weapons", e);
-        }
-
-        AbloomMod.LOGGER.info("Loaded {} elemental weapons from mod resources", loadedCount);
+        AbloomMod.LOGGER.info("Total: Loaded {} elemental weapons from all mods", totalLoadedCount);
     }
 
-    private static void loadWeaponFromJson(String sourcePath, String jsonContent, AtomicInteger loadedCount) {
+    private static void loadWeaponFromJson(String sourcePath, String jsonContent, AtomicInteger loadedCount, String modId) {
         try {
             JsonObject jsonObject = JsonParser.parseString(jsonContent).getAsJsonObject();
 
@@ -73,21 +83,22 @@ public class ElementalWeaponProvider {
 
             ElementType elementType = ElementType.safeValueOf(element);
             if (elementType == null) {
-                AbloomMod.LOGGER.warn("Invalid element type in {}: {}", sourcePath, element);
+                AbloomMod.LOGGER.warn("Invalid element type in {} (from mod {}): {}", sourcePath, modId, element);
                 return;
             }
 
             if (ElementalWeaponRegistry.isBuiltinRegistered(itemLocation)) {
-                AbloomMod.LOGGER.warn("Duplicate builtin registration for {} in {}, skipping", itemLocation, sourcePath);
+                AbloomMod.LOGGER.warn("Duplicate builtin registration for {} in {} (from mod {}), skipping", 
+                        itemLocation, sourcePath, modId);
                 return;
             }
 
             ElementalWeaponRegistry.registerBuiltinWeapon(itemLocation, elementType, accumMultiplier);
             loadedCount.getAndIncrement();
-            AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {})",
-                    itemLocation, elementType, accumMultiplier);
+            AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {}) from mod {}",
+                    itemLocation, elementType, accumMultiplier, modId);
         } catch (Exception e) {
-            AbloomMod.LOGGER.error("Failed to load elemental weapon from {}", sourcePath, e);
+            AbloomMod.LOGGER.error("Failed to load elemental weapon from {} (from mod {})", sourcePath, modId, e);
         }
     }
 }
