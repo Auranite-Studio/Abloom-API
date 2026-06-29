@@ -26,9 +26,6 @@ public class ElementResistanceManager {
 				entityType, k -> new EnumMap<>(ElementType.class)
 		);
 		existing.putAll(resistanceMap);
-
-		AbloomMod.LOGGER.debug("Registered resistance for {}: {}",
-				entityType.getDescriptionId(), resistanceMap);
 	}
 
 	public static void loadFromTag(ElementType elementType, TagKey<EntityType<?>> tag,
@@ -51,9 +48,6 @@ public class ElementResistanceManager {
 						.computeIfAbsent(entityType, k -> new EnumMap<>(ElementType.class));
 				resistanceMap.put(elementType, resistance);
 				count++;
-
-				AbloomMod.LOGGER.debug("  └─ Loaded {} for {} from tag {}",
-						resistance, entityType.getDescriptionId(), tag.location());
 			}
 			AbloomMod.LOGGER.info("Loaded {} entities from tag {} → {}", count, tag.location(), resistance);
 		}, () -> {
@@ -75,18 +69,14 @@ public class ElementResistanceManager {
 		TagKey<EntityType<?>> resistTag = createTag(modid, elementLower, "resistance");
 		if (entityType.getTags().equals(resistTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.HALF_RESIST));
-			AbloomMod.LOGGER.debug("Lazy-loaded RESIST for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
 
 		TagKey<EntityType<?>> weaknessTag = createTag(modid, elementLower, "weakness");
 		if (entityType.getTags().equals(weaknessTag)) {
 			registerResistance(entityType, Map.of(elementType, Resistance.WEAKNESS));
-			AbloomMod.LOGGER.debug("Lazy-loaded WEAKNESS for {} ({})", entityType.getDescriptionId(), elementType);
 			return;
 		}
-
-		AbloomMod.LOGGER.debug("No tag found for {} ({})", entityType.getDescriptionId(), elementType);
 	}
 
 	private static TagKey<EntityType<?>> createTag(String modid, String element, String modifier) {
