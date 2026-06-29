@@ -2,7 +2,7 @@ package com.auranite.abloom.datapack;
 
 import com.auranite.abloom.ElementType;
 import com.auranite.abloom.AbloomMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 
 import java.util.Optional;
@@ -31,9 +31,9 @@ public class ElementalWeaponData {
         return accumulationMultiplier;
     }
 
-    public Optional<ResourceLocation> getItemResourceLocation() {
+    public Optional<Identifier> getItemResourceLocation() {
         try {
-            return Optional.of(ResourceLocation.parse(item));
+            return Optional.of(Identifier.parse(item));
         } catch (Exception e) {
             AbloomMod.LOGGER.warn("Invalid item registry name: {}", item, e);
             return Optional.empty();

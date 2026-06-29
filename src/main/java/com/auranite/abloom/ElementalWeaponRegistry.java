@@ -1,7 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -13,8 +13,8 @@ import java.util.Set;
 public class ElementalWeaponRegistry {
 
 	private static final Map<Item, WeaponData> WEAPON_DATA = new WeakHashMap<>();
-	private static final Map<ResourceLocation, WeaponData> WEAPON_DATA_BY_ID = new WeakHashMap<>();
-	private static final Set<ResourceLocation> BUILTIN_REGISTRATIONS = new HashSet<>();
+	private static final Map<Identifier, WeaponData> WEAPON_DATA_BY_ID = new WeakHashMap<>();
+	private static final Set<Identifier> BUILTIN_REGISTRATIONS = new HashSet<>();
 
 	private ElementalWeaponRegistry() {}
 
@@ -32,7 +32,7 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Register weapon from datapack (builtin)
 	 */
-	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier) {
+	public static void registerBuiltinWeapon(Identifier itemLocation, ElementType type, float accumulationMultiplier) {
 		if (itemLocation == null || type == null) return;
 		
 		// Check for conflicts
@@ -60,7 +60,7 @@ public class ElementalWeaponRegistry {
 		return WEAPON_DATA.get(stack.getItem());
 	}
 
-	public static WeaponData getWeaponDataById(ResourceLocation itemLocation) {
+	public static WeaponData getWeaponDataById(Identifier itemLocation) {
 		if (itemLocation == null) return null;
 		return WEAPON_DATA_BY_ID.get(itemLocation);
 	}
@@ -73,7 +73,7 @@ public class ElementalWeaponRegistry {
 		return data != null ? data.type() : ElementType.PHYSICAL;
 	}
 
-	public static boolean isBuiltinRegistered(ResourceLocation itemLocation) {
+	public static boolean isBuiltinRegistered(Identifier itemLocation) {
 		return BUILTIN_REGISTRATIONS.contains(itemLocation);
 	}
 

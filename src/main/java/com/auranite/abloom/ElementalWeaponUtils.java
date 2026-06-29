@@ -19,7 +19,7 @@ public class ElementalWeaponUtils {
         if (vanillaItem == null || type == null) return;
         
         // Проверяем, не зарегистрировано ли уже через datapack
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
         if (ElementalWeaponRegistry.isBuiltinRegistered(itemId)) {
             AbloomMod.LOGGER.debug("Item {} already registered via datapack, skipping code registration", itemId);
             return;
