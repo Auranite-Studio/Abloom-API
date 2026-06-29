@@ -1,14 +1,20 @@
 package com.auranite.abloom;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ElementalWeaponRegistry {
 
 	private static final Map<Item, WeaponData> WEAPON_DATA = new WeakHashMap<>();
+	private static final Map<ResourceLocation, WeaponData> WEAPON_DATA_BY_ID = new WeakHashMap<>();
+	private static final Set<ResourceLocation> BUILTIN_REGISTRATIONS = new HashSet<>();
 
 	private ElementalWeaponRegistry() {}
 
@@ -23,9 +29,40 @@ public class ElementalWeaponRegistry {
 		registerWeapon(item, type, 1.0f);
 	}
 
+	/**
+	 * Register weapon from datapack (builtin)
+	 */
+	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier) {
+		if (itemLocation == null || type == null) return;
+		
+		// Check for conflicts
+		if (BUILTIN_REGISTRATIONS.contains(itemLocation)) {
+			AbloomMod.LOGGER.warn("Duplicate builtin registration for {}: skipping", itemLocation);
+			return;
+		}
+		
+		// Try to get the item from registry
+		var optionalItem = BuiltInRegistries.ITEM.getOptional(itemLocation);
+		if (optionalItem.isPresent()) {
+			Item item = optionalItem.get();
+			registerWeapon(item, type, accumulationMultiplier);
+			BUILTIN_REGISTRATIONS.add(itemLocation);
+			WEAPON_DATA_BY_ID.put(itemLocation, new WeaponData(type, Math.max(0f, accumulationMultiplier)));
+			AbloomMod.LOGGER.info("Registered builtin elemental weapon: {} → {} (accum: x{})",
+					itemLocation, type, accumulationMultiplier);
+		} else {
+			AbloomMod.LOGGER.warn("Item not found for builtin registration: {}", itemLocation);
+		}
+	}
+
 	public static WeaponData getWeaponData(ItemStack stack) {
 		if (stack == null || stack.isEmpty()) return null;
 		return WEAPON_DATA.get(stack.getItem());
+	}
+
+	public static WeaponData getWeaponDataById(ResourceLocation itemLocation) {
+		if (itemLocation == null) return null;
+		return WEAPON_DATA_BY_ID.get(itemLocation);
 	}
 
 	public static ElementType getElementType(ItemStack stack) {
@@ -34,6 +71,10 @@ public class ElementalWeaponRegistry {
 		}
 		WeaponData data = getWeaponData(stack);
 		return data != null ? data.type() : ElementType.PHYSICAL;
+	}
+
+	public static boolean isBuiltinRegistered(ResourceLocation itemLocation) {
+		return BUILTIN_REGISTRATIONS.contains(itemLocation);
 	}
 
 	public static float getAccumulationMultiplier(ItemStack stack) {
@@ -53,6 +94,8 @@ public class ElementalWeaponRegistry {
 
 	public static void clear() {
 		WEAPON_DATA.clear();
+		WEAPON_DATA_BY_ID.clear();
+		BUILTIN_REGISTRATIONS.clear();
 	}
 
 	public static int getRegisteredCount() {
