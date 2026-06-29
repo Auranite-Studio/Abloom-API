@@ -5,7 +5,7 @@ import com.auranite.abloom.ElementType;
 import com.auranite.abloom.ElementalWeaponRegistry;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforgespi.locating.IModFile;
@@ -69,7 +69,7 @@ public class ElementalWeaponProvider {
             String element = GsonHelper.getAsString(jsonObject, "element");
             float accumMultiplier = GsonHelper.getAsFloat(jsonObject, "accumulation_multiplier", 1.0f);
 
-            ResourceLocation itemLocation = ResourceLocation.parse(item);
+            Identifier itemLocation = Identifier.parse(item);
 
             ElementType elementType = ElementType.safeValueOf(element);
             if (elementType == null) {
