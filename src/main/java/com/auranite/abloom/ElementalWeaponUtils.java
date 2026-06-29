@@ -17,9 +17,17 @@ public class ElementalWeaponUtils {
 
     public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
+        
+        // Проверяем, не зарегистрировано ли уже через datapack
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
+        if (ElementalWeaponRegistry.isBuiltinRegistered(itemId)) {
+            AbloomMod.LOGGER.debug("Item {} already registered via datapack, skipping code registration", itemId);
+            return;
+        }
+        
         ElementalWeaponRegistry.registerWeapon(vanillaItem, type, Math.max(0f, accumulationMultiplier));
         AbloomMod.LOGGER.info("Registered item {} as {} elemental (accum x{})",
-                BuiltInRegistries.ITEM.getKey(vanillaItem), type, accumulationMultiplier);
+                itemId, type, accumulationMultiplier);
     }
 
     public static boolean registerItemById(String modId, String itemName, ElementType type) {

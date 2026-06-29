@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Elemental Weapon Configuration",
+  "description": "Configuration for registering an elemental weapon via datapack",
+  "type": "object",
+  "required": ["item", "element"],
+  "properties": {
+    "item": {
+      "type": "string",
+      "description": "Registry name of the item (modid:item_name)",
+      "pattern": "^[a-z][a-z0-9_-]*:[a-z0-9/_.-]+$"
+    },
+    "element": {
+      "type": "string",
+      "description": "Element type",
+      "enum": [
+        "FIRE",
+        "PHYSICAL",
+        "WIND",
+        "EARTH",
+        "WATER",
+        "ICE",
+        "ELECTRIC",
+        "ENERGY",
+        "NATURAL",
+        "QUANTUM",
+        "ETHER",
+        "LIGHT",
+        "SHADOW"
+      ]
+    },
+    "accumulation_multiplier": {
+      "type": "number",
+      "description": "Multiplier for resonance accumulation per hit (default: 1.0)",
+      "minimum": 0.0,
+      "default": 1.0
+    }
+  },
+  "additionalProperties": false
+}

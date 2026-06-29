@@ -4,6 +4,54 @@
 
 **Abloom API** is a library mod for NeoForge (1.21.1) that adds an elemental damage system, elemental energy accumulation, and threshold effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, armor with elemental resistances, and a resistance system for mobs.
 
+## Creating a Datapack
+
+To create a datapack for Abloom API:
+
+1. Create a new folder in your `.minecraft/saves/[worldname]/datapacks/` directory
+2. Create the structure: `data/abloom/elemental_weapons/`
+3. Add JSON files for each elemental weapon configuration
+
+**Example datapack structure:**
+```
+your_datapack_name.zip
+└── data
+    └── abloom
+        ├── damage_type
+        │   └── (optional custom damage types)
+        └── elemental_weapons
+            ├── iron_sword_fire.json
+            ├── diamond_axe_wind.json
+            └── bow_electric.json
+```
+
+**Example datapack JSON files:**
+
+`data/abloom/elemental_weapons/iron_sword_fire.json`
+```json
+{
+  "item": "minecraft:iron_sword",
+  "element": "FIRE",
+  "accumulation_multiplier": 3.0
+}
+```
+
+`data/abloom/elemental_weapons/diamond_axe_wind.json`
+```json
+{
+  "item": "minecraft:diamond_axe",
+  "element": "WIND",
+  "accumulation_multiplier": 5.0
+}
+```
+
+**Loading:**
+- Place datapack in `.minecraft/saves/[worldname]/datapacks/`
+- Reload with `/reload` command
+- Check logs for confirmation: `Loaded X elemental weapon configurations from datapacks`
+
+For detailed documentation, see `src/main/resources/assets/abloom/docs/DATAPACK_GUIDE.md`.
+
 ---
 
 ## Key Features
@@ -27,6 +75,44 @@ The mod defines 13 element types:
 | ETHER | `ether_dmg` | #24B3A7 |
 | LIGHT | `light_dmg` | #FFFFE0 |
 | SHADOW | `shadow_dmg` | #4B0082 |
+
+### 2. Element Registration
+
+#### Datapack Registration (Recommended)
+
+Create datapack files in `data/abloom/elemental_weapons/` with the following structure:
+
+```json
+{
+  "item": "modid:item_name",
+  "element": "ELEMENT_NAME",
+  "accumulation_multiplier": 2.0
+}
+```
+
+**Example:** `data/abloom/elemental_weapons/iron_sword_fire.json`
+
+```json
+{
+  "item": "minecraft:iron_sword",
+  "element": "FIRE",
+  "accumulation_multiplier": 3.0
+}
+```
+
+**Parameters:**
+- `item`: The item registry name (modid:item_name)
+- `element`: One of the 13 element types (FIRE, PHYSICAL, WIND, etc.)
+- `accumulation_multiplier`: How much resonance points the weapon adds per hit (default: 1.0)
+
+**Element Types:** FIRE, PHYSICAL, WIND, EARTH, WATER, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW
+
+**Loading:**
+1. Place your datapack in `.minecraft/saves/[worldname]/datapacks/`
+2. Reload with `/reload` command
+3. Check the logs for confirmation messages
+
+For detailed documentation, see `src/main/resources/assets/abloom/docs/DATAPACK_GUIDE.md`.
 
 ### 2. Resonance Accumulation Mechanics
 

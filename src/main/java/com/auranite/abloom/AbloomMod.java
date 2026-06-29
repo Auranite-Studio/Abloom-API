@@ -1,6 +1,7 @@
 package com.auranite.abloom;
 
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -28,6 +29,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.FriendlyByteBuf;
+
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Map;
@@ -62,8 +65,16 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
-        modEventBus.addListener(AbloomModElementalWeapons::onCommonSetup);
-
+        // Register datapack for elemental weapons
+        modEventBus.addListener(this::setup);
+    }
+    
+    private void setup(final FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> {
+            AbloomMod.LOGGER.info("Loading elemental weapons datapack...");
+            ElementalWeaponProvider.loadFromResources();
+            AbloomMod.LOGGER.info("Elemental weapons datapack loaded");
+        });
     }
     @SubscribeEvent
     public void onLevelLoad(LevelEvent.Load event) {
