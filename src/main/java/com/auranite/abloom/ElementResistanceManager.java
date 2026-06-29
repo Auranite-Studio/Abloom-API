@@ -26,16 +26,11 @@ public class ElementResistanceManager {
 				entityType, k -> new EnumMap<>(ElementType.class)
 		);
 		existing.putAll(resistanceMap);
-
-		AbloomMod.LOGGER.debug("Registered resistance for {}: {}",
-				entityType.getDescriptionId(), resistanceMap);
-	}
+		}
 
 	public static void loadFromTag(ElementType elementType, TagKey<EntityType<?>> tag,
 								   Resistance resistance, net.minecraft.core.HolderLookup.Provider lookupProvider) {
 		if (elementType == null || tag == null || resistance == null || lookupProvider == null) {
-			AbloomMod.LOGGER.warn("loadFromTag called with null params: element={}, tag={}, resistance={}, lookup={}",
-					elementType, tag, resistance, lookupProvider != null);
 			return;
 		}
 
