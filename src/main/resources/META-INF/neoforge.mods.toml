@@ -15,7 +15,7 @@ description="Abloom API is a library mod for NeoForge that adds an elemental dam
 [[dependencies.abloom]]
 modId="neoforge"
 type="required"
-versionRange="[26.1.2.10-beta,)"
+versionRange="[26.1.2.76,)"
 ordering="AFTER"
 side="BOTH"
 
