@@ -4,7 +4,7 @@ import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.ElementType;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 
 import java.util.EnumMap;
@@ -29,9 +29,9 @@ public class ArmorResistanceData {
         return resistances;
     }
 
-    public Optional<ResourceLocation> getItemResourceLocation() {
+    public Optional<Identifier> getItemResourceLocation() {
         try {
-            return Optional.of(ResourceLocation.parse(item));
+            return Optional.of(Identifier.parse(item));
         } catch (Exception e) {
             AbloomMod.LOGGER.warn("Invalid item registry name: {}", item, e);
             return Optional.empty();

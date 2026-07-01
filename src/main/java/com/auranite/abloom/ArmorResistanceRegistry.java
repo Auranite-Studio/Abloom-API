@@ -1,7 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -14,8 +14,8 @@ import java.util.Set;
 public class ArmorResistanceRegistry {
 
     private static final Map<Item, Map<ElementType, Float>> ARMOR_RESISTANCES = new WeakHashMap<>();
-    private static final Map<ResourceLocation, Map<ElementType, Float>> ARMOR_RESISTANCES_BY_ID = new WeakHashMap<>();
-    private static final Set<ResourceLocation> BUILTIN_REGISTRATIONS = new HashSet<>();
+    private static final Map<Identifier, Map<ElementType, Float>> ARMOR_RESISTANCES_BY_ID = new WeakHashMap<>();
+    private static final Set<Identifier> BUILTIN_REGISTRATIONS = new HashSet<>();
 
     private ArmorResistanceRegistry() {}
 
@@ -43,7 +43,7 @@ public class ArmorResistanceRegistry {
     /**
      * Register armor from datapack (builtin)
      */
-    public static void registerBuiltinArmor(ResourceLocation itemLocation, Map<ElementType, Float> resistanceMap) {
+    public static void registerBuiltinArmor(Identifier itemLocation, Map<ElementType, Float> resistanceMap) {
         if (itemLocation == null || resistanceMap == null || resistanceMap.isEmpty()) return;
         
         // Check for conflicts
@@ -80,7 +80,7 @@ public class ArmorResistanceRegistry {
         return ARMOR_RESISTANCES.getOrDefault(stack.getItem(), Map.of());
     }
 
-    public static Map<ElementType, Float> getResistancesById(ResourceLocation itemLocation) {
+    public static Map<ElementType, Float> getResistancesById(Identifier itemLocation) {
         if (itemLocation == null) return Map.of();
         return ARMOR_RESISTANCES_BY_ID.getOrDefault(itemLocation, Map.of());
     }
@@ -91,7 +91,7 @@ public class ArmorResistanceRegistry {
         return resistances.getOrDefault(type, 0.0f);
     }
 
-    public static boolean isBuiltinRegistered(ResourceLocation itemLocation) {
+    public static boolean isBuiltinRegistered(Identifier itemLocation) {
         return BUILTIN_REGISTRATIONS.contains(itemLocation);
     }
 
@@ -113,7 +113,7 @@ public class ArmorResistanceRegistry {
     /**
      * Get all registered armor resistances by item location
      */
-    public static Map<ResourceLocation, Map<ElementType, Float>> getAllRegisteredResistances() {
+    public static Map<Identifier, Map<ElementType, Float>> getAllRegisteredResistances() {
         return new java.util.HashMap<>(ARMOR_RESISTANCES_BY_ID);
     }
 }

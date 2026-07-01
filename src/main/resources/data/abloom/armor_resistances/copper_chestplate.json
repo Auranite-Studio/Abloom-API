@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:copper_chestplate",
+  "resistances": {
+    "PHYSICAL": 0.02,
+    "ELECTRIC": -0.02
+  }
+}
