@@ -1,14 +1,20 @@
 package com.auranite.abloom;
 
 import com.auranite.abloom.effect.*;
+import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
+
+import java.util.List;
 
 public class AbloomModEffects {
     public static final DeferredRegister<MobEffect> REGISTRY = DeferredRegister.create(Registries.MOB_EFFECT, AbloomMod.MODID);
@@ -44,5 +50,31 @@ public class AbloomModEffects {
     }
 
     private static void expireEffects(Entity entity, MobEffectInstance effectInstance) {
+        if (effectInstance.is(AbloomModEffects.TAUNT)) {
+            // Сброс агрессии мобов, когда эффект Taunt заканчивается
+            if (entity.level() instanceof ServerLevel serverLevel) {
+                List<Mob> mobs = serverLevel.getEntitiesOfClass(Mob.class, entity.getBoundingBox().inflate(16.0));
+                for (Mob mob : mobs) {
+                    // Если текущая цель моба имеет эффект Taunt, проверяем, нужен ли ему TauntTargetGoal
+                    if (mob.getTarget() != null && mob.getTarget().hasEffect(AbloomModEffects.TAUNT)) {
+                        // Проверяем, есть ли активный TauntTargetGoal
+                        boolean hasActiveTauntGoal = false;
+                        for (Goal goal : mob.goalSelector.getAvailableGoals()) {
+                            if (goal instanceof TauntTargetGoal && goal.canUse()) {
+                                hasActiveTauntGoal = true;
+                                break;
+                            }
+                        }
+                        // Если нет активного TauntGoal и у цели больше нет эффекта Taunt, сбрасываем цель
+                        if (!hasActiveTauntGoal) {
+                            mob.setTarget(null);
+                        }
+                    } else if (mob.getTarget() == entity) {
+                        // Если цель моба - это тот, у кого закончился эффект Taunt
+                        mob.setTarget(null);
+                    }
+                }
+            }
+        }
     }
 }
