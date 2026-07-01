@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:leather_chestplate",
+  "resistances": {
+    "ELECTRIC": 0.03,
+    "ICE": 0.02
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:netherite_helmet",
+  "resistances": {
+    "FIRE": 0.02,
+    "PHYSICAL": 0.02
+  }
+}

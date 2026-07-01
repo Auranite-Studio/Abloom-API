@@ -2,6 +2,7 @@ package com.auranite.abloom;
 
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
+import com.auranite.abloom.datapack.ArmorResistanceProvider;
 import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -11,6 +12,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -72,6 +74,12 @@ public class AbloomMod {
             AbloomMod.LOGGER.info("Loading elemental weapons datapack...");
             ElementalWeaponProvider.loadFromResources();
             AbloomMod.LOGGER.info("Elemental weapons datapack loaded");
+            
+            AbloomMod.LOGGER.info("Loading armor resistances datapack...");
+            ArmorResistanceProvider.loadFromResources();
+            AbloomMod.LOGGER.info("Armor resistances datapack loaded");
+            
+            AbloomMod.LOGGER.info("Datapack loading complete");
         });
     }
     @SubscribeEvent

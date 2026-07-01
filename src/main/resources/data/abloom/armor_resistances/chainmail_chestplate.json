@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:chainmail_chestplate",
+  "resistances": {
+    "WIND": 0.04
+  }
+}

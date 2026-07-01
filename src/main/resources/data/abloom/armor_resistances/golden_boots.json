@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:golden_boots",
+  "resistances": {
+    "QUANTUM": 0.02
+  }
+}

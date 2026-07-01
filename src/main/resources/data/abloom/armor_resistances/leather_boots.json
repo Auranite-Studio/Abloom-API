@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:leather_boots",
+  "resistances": {
+    "ELECTRIC": 0.02,
+    "ICE": 0.01
+  }
+}
