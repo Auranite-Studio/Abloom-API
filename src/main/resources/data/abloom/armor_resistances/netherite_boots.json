@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:netherite_boots",
+  "resistances": {
+    "FIRE": 0.02,
+    "PHYSICAL": 0.02
+  }
+}
