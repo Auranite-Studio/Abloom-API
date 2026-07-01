@@ -83,7 +83,7 @@ public class ElementalTooltipHandler {
 
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_POINTS,
-                    String.format("%.1f", accumPoints)
+                    String.format("%d", Math.round(accumPoints))
             );
             accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
             event.getToolTip().add(Component.literal(" ").append(accumText));
