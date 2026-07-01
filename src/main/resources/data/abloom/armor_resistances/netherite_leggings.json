@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:netherite_leggings",
+  "resistances": {
+    "FIRE": 0.03,
+    "PHYSICAL": 0.03
+  }
+}

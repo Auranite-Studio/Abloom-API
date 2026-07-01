@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:diamond_boots",
+  "resistances": {
+    "FIRE": 0.01,
+    "PHYSICAL": 0.01
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:chainmail_boots",
+  "resistances": {
+    "WIND": 0.02
+  }
+}

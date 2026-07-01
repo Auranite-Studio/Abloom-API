@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:iron_leggings",
+  "resistances": {
+    "PHYSICAL": 0.01
+  }
+}

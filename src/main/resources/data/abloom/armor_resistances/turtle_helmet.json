@@ -1,0 +1,8 @@
+{
+  "item": "minecraft:turtle_helmet",
+  "resistances": {
+    "EARTH": 0.02,
+    "WATER": 0.05,
+    "NATURAL": -0.03
+  }
+}
