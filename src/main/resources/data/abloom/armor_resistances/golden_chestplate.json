@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:golden_chestplate",
+  "resistances": {
+    "QUANTUM": 0.03
+  }
+}

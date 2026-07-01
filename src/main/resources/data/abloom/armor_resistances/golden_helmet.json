@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:golden_helmet",
+  "resistances": {
+    "QUANTUM": 0.02
+  }
+}

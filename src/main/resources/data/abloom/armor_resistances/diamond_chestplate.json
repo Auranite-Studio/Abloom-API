@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:diamond_chestplate",
+  "resistances": {
+    "FIRE": 0.02,
+    "PHYSICAL": 0.02
+  }
+}

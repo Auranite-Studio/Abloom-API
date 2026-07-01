@@ -1,0 +1,6 @@
+{
+  "item": "minecraft:chainmail_leggings",
+  "resistances": {
+    "WIND": 0.03
+  }
+}
