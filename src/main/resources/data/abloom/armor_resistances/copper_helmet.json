@@ -1,0 +1,7 @@
+{
+  "item": "minecraft:copper_helmet",
+  "resistances": {
+    "PHYSICAL": 0.01,
+    "ELECTRIC": -0.01
+  }
+}
