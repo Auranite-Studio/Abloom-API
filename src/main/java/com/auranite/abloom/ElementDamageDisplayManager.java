@@ -161,29 +161,42 @@ public class ElementDamageDisplayManager {
         if (entity == null) return;
         int entityId = entity.getId();
 
-        ACTIVE_DAMAGE_DISPLAYS.entrySet().removeIf(entry -> {
+        // Clear damage displays
+        Iterator<Map.Entry<UUID, DisplayInfo>> damageIterator = ACTIVE_DAMAGE_DISPLAYS.entrySet().iterator();
+        while (damageIterator.hasNext()) {
+            Map.Entry<UUID, DisplayInfo> entry = damageIterator.next();
             DisplayInfo info = entry.getValue();
             if (info != null && info.targetEntityId == entityId) {
                 if (info.display != null && !info.display.isRemoved()) {
                     safeRemoveDisplaySilent(info.display);
                 }
-                ACTIVE_PHYSICS.remove(entry.getKey());
-                return true;
+                cleanupDisplayResources(entry.getKey());
+                damageIterator.remove();
             }
-            return false;
-        });
+        }
 
-        ACTIVE_STATUS_DISPLAYS.entrySet().removeIf(entry -> {
+        // Clear status displays
+        Iterator<Map.Entry<UUID, DisplayInfo>> statusIterator = ACTIVE_STATUS_DISPLAYS.entrySet().iterator();
+        while (statusIterator.hasNext()) {
+            Map.Entry<UUID, DisplayInfo> entry = statusIterator.next();
             DisplayInfo info = entry.getValue();
             if (info != null && info.targetEntityId == entityId) {
                 if (info.display != null && !info.display.isRemoved()) {
                     safeRemoveDisplaySilent(info.display);
                 }
-                ACTIVE_PHYSICS.remove(entry.getKey());
-                return true;
+                cleanupDisplayResources(entry.getKey());
+                statusIterator.remove();
             }
-            return false;
-        });
+        }
+    }
+
+    /**
+     * Clean up all resources for a display UUID
+     */
+    private void cleanupDisplayResources(UUID uuid) {
+        ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
+        ACTIVE_STATUS_DISPLAYS.remove(uuid);
+        ACTIVE_PHYSICS.remove(uuid);
     }
 
     public int cleanupDisplaysInChunk(ServerLevel level, int chunkX, int chunkZ) {
@@ -538,12 +551,6 @@ public class ElementDamageDisplayManager {
                 new ClientboundRemoveEntitiesPacket(display.getId())
         );
         display.discard();
-    }
-
-    private void cleanupDisplayResources(UUID uuid) {
-        ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
-        ACTIVE_STATUS_DISPLAYS.remove(uuid);
-        ACTIVE_PHYSICS.remove(uuid);
     }
 
     private static void markForCleanup(Entity entity, int maxLifetime) {
