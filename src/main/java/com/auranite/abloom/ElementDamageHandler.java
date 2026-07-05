@@ -31,6 +31,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handles elemental damage calculations, accumulation tracking, and threshold effects.
+ * This class manages the core mechanics of the Abloom API including:
+ * <ul>
+ *   <li>Resonance accumulation tracking</li>
+ *   <li>Threshold-based effect activation</li>
+ *   <li>Damage calculation with elemental modifiers</li>
+ *   <li>Display number and status text management</li>
+ * </ul>
+ */
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
@@ -56,10 +66,18 @@ public class ElementDamageHandler {
     private static int currentDisplayCount = 0;
     private static final Object DISPLAY_COUNT_LOCK = new Object();
 
+    /**
+     * Sets the display manager for rendering damage numbers and status texts.
+     * @param manager the display manager instance
+     */
     public static void setDisplayManager(ElementDamageDisplayManager manager) {
         displayManager = manager;
     }
 
+    /**
+     * Initializes damage colors for all element types.
+     * Must be called during mod initialization before any displays are spawned.
+     */
     public static void initDamageColors() {
         ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
         ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
@@ -76,30 +94,50 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
     }
 
+    /**
+     * Checks if a damage display can be spawned ( respects max display limit ).
+     * @return true if display can be spawned, false if limit reached
+     */
     public static boolean canSpawnDisplay() {
         synchronized (DISPLAY_COUNT_LOCK) {
             return currentDisplayCount < MAX_ACTIVE_DISPLAYS;
         }
     }
 
+    /**
+     * Increments the count of active damage displays.
+     * Should only be called when spawning a new display.
+     */
     public static void incrementDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             currentDisplayCount++;
         }
     }
 
+    /**
+     * Decrements the count of active damage displays.
+     * Should only be called when removing a display.
+     */
     public static void decrementDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             currentDisplayCount = Math.max(0, currentDisplayCount - 1);
         }
     }
 
+    /**
+     * Gets the current count of active damage displays.
+     * @return number of active displays
+     */
     public static int getCurrentDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             return currentDisplayCount;
         }
     }
 
+    /**
+     * Handles server tick events for display cleanup and accumulation reset.
+     * Processes pending removals and checks for inactive accumulation points.
+     */
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Pre event) {
         currentServer = event.getServer();
@@ -137,7 +175,7 @@ public class ElementDamageHandler {
 
         float damageMultiplier = 1.0f;
 
-        // Модификаторы от атакующего
+        // Modifiers from attacker
         if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
             float reduction = 1.0f - ((amplifier + 1) * 0.20f);
@@ -145,7 +183,7 @@ public class ElementDamageHandler {
             damageMultiplier *= reduction;
         }
 
-        // Модификаторы от цели
+        // Modifiers from target
         if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
             damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
@@ -252,7 +290,9 @@ public class ElementDamageHandler {
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (displayManager != null) displayManager.clearActiveDisplays(player);
+        if (displayManager != null) {
+            displayManager.clearActiveDisplays(player);
+        }
         int playerId = player.getId();
         DAMAGE_COOLDOWNS.remove(playerId);
         synchronized (LAST_DAMAGE_LOCK) {
@@ -573,7 +613,7 @@ public class ElementDamageHandler {
 
         float finalDamage = amount;
         
-        // Умножаем finalDamage на накопленный damageMultiplier
+        // Multiply finalDamage by accumulated damageMultiplier
         finalDamage *= damageMultiplier;
         
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);

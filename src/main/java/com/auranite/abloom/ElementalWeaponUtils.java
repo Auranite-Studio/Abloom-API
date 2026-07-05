@@ -1,7 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -19,7 +19,7 @@ public class ElementalWeaponUtils {
         if (vanillaItem == null || type == null) return;
         
         // Проверяем, не зарегистрировано ли уже через datapack
-        Identifier itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
         if (ElementalWeaponRegistry.isBuiltinRegistered(itemId)) {
             AbloomMod.LOGGER.debug("Item {} already registered via datapack, skipping code registration", itemId);
             return;
@@ -35,7 +35,7 @@ public class ElementalWeaponUtils {
     }
 
     public static boolean registerItemById(String modId, String itemName, ElementType type, float accumulationMultiplier) {
-        Identifier rl = Identifier.fromNamespaceAndPath(modId, itemName);
+        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(modId, itemName);
         Optional<Item> itemOpt = BuiltInRegistries.ITEM.getOptional(rl);
 
         if (itemOpt.isPresent()) {
