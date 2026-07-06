@@ -27,8 +27,8 @@ public class ArmorResistanceRegistry {
             AbloomMod.LOGGER.warn("Armor {} already registered, skipping duplicate registration", item.getDescriptionId());
             return;
         }
-        
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
         if (ARMOR_RESISTANCES_BY_ID.containsKey(itemId)) {
             AbloomMod.LOGGER.warn("Armor {} already registered by ID, skipping duplicate registration", itemId);
             return;
