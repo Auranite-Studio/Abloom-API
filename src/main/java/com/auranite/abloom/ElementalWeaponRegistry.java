@@ -27,7 +27,7 @@ public class ElementalWeaponRegistry {
 			return;
 		}
 		
-		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+		Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
 		if (WEAPON_DATA_BY_ID.containsKey(itemId)) {
 			AbloomMod.LOGGER.warn("Weapon {} already registered by ID, skipping duplicate registration", itemId);
 			return;
