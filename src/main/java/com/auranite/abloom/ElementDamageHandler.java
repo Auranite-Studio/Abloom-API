@@ -12,6 +12,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -38,6 +39,13 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>Damage calculation with elemental modifiers</li>
  *   <li>Display number and status text management</li>
  * </ul>
+ * 
+ * <p>This mod uses a priority-based system for damage event handling to avoid conflicts
+ * with other mods that may also modify damage. Use the {@link DamagePriority} annotation
+ * on event handlers to control processing order.</p>
+ * 
+ * <p>For integration with other mods, use {@link DamageModificationManager} to register
+ * damage modification callbacks with specific priorities.</p>
  */
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
@@ -63,6 +71,84 @@ public class ElementDamageHandler {
     private static final int MAX_ACTIVE_DISPLAYS = 500;
     private static int currentDisplayCount = 0;
     private static final Object DISPLAY_COUNT_LOCK = new Object();
+
+    /**
+     * Process damage with priority handling to avoid conflicts with other mods.
+     * This method checks if damage was already modified by another mod with higher priority
+     * and adjusts accumulation accordingly.
+     *
+     * Uses DamageModificationManager to process damage modifications in priority order.
+     *
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param modifiedDamage the current damage (may have been modified by other mods)
+     * @return the final damage after all calculations
+     */
+    public static float processDamageWithPriority(LivingEntity target, DamageSource source, float baseDamage, float modifiedDamage) {
+        if (target == null || source == null) return modifiedDamage;
+
+        // Check if current damage differs from base damage
+        // If it does, another mod has already modified it
+        if (modifiedDamage != baseDamage) {
+            // Another mod modified the damage, we need to:
+            // 1. Track accumulation based on the modified damage
+            // 2. Call doProcessLivingHurt to process elemental calculations
+            // 3. Then apply low-priority modifiers
+            ElementType type = getElementTypeFromSource(source);
+            if (type != null) {
+                // Add accumulation points based on the modified damage (not just 1 point)
+                int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, 1);
+                if (pointsToAdd > 0) {
+                    AbloomModAttachments.addPoints(target, type, pointsToAdd);
+                    updateLastDamageTime(target, type);
+                }
+            }
+            
+            // Process damage through doProcessLivingHurt with the modified damage
+            // This ensures elemental calculations and display manager are called
+            float processedDamage = processLivingHurtInternal(target, source, baseDamage, modifiedDamage);
+            
+            // Apply low-priority modifiers AFTER Abloom
+            float finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, processedDamage);
+            return finalDamage;
+        }
+
+        // Use DamageModificationManager to process damage modifications BEFORE Abloom
+        // This ensures all registered modifiers are called in priority order
+        // Mods with priority > 0 (HIGH priority) will process BEFORE this handler
+        float processedDamage = baseDamage;
+        
+        // Process high-priority modifiers (priority > 0) BEFORE Abloom
+        processedDamage = DamageModificationManager.processHighPriorityDamage(target, source, processedDamage);
+
+        // Normal processing flow - no other mod modified damage yet
+        float finalDamage = processLivingHurtInternal(target, source, baseDamage, processedDamage);
+
+        // Process low-priority modifiers (priority <= 0) AFTER Abloom
+        finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, finalDamage);
+
+        return finalDamage;
+    }
+
+    /**
+     * Internal damage processing logic that handles elemental calculations.
+     * This method should only be called once per damage event.
+     *
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param currentDamage the current damage value (may be modified by other mods)
+     * @return the final damage after all calculations
+     */
+    private static float processLivingHurtInternal(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
+        IS_PROCESSING_DAMAGE.set(true);
+        try {
+            return doProcessLivingHurt(target, source, baseDamage, currentDamage);
+        } finally {
+            IS_PROCESSING_DAMAGE.set(false);
+        }
+    }
 
     /**
      * Sets the display manager for rendering damage numbers and status texts.
@@ -123,6 +209,14 @@ public class ElementDamageHandler {
     }
 
     /**
+     * Checks if damage is currently being processed by the elemental system.
+     * @return true if damage is being processed
+     */
+    public static boolean isProcessingDamage() {
+        return IS_PROCESSING_DAMAGE.get();
+    }
+
+    /**
      * Gets the current count of active damage displays.
      * @return number of active displays
      */
@@ -148,27 +242,55 @@ public class ElementDamageHandler {
         }
     }
 
-    @SubscribeEvent
+    /**
+     * Handles LivingDamageEvent.Pre with low priority to process elemental calculations.
+     * This ensures Abloom processes damage after mods with NORMAL priority (0) and before
+     * mods with LOWEST priority (-300).
+     * 
+     * Modifiers with priority > 0 (HIGH priority) are processed through DamageModificationManager
+     * BEFORE this handler, allowing other mods to modify damage first.
+     * 
+     * Modifiers with priority <= 0 (NORMAL and below) are processed AFTER Abloom's calculations.
+     * 
+     * Other mods can register damage modifiers via DamageModificationManager to control
+     * their processing order relative to Abloom.
+     * 
+     * For mods that directly modify event.setNewDamage(), Abloom will see the modified damage
+     * and add appropriate accumulation points. Abloom will NOT overwrite damage that was modified
+     * by other mods.
+     */
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHurt(LivingDamageEvent.Pre event) {
         if (IS_PROCESSING_DAMAGE.get()) return;
-        IS_PROCESSING_DAMAGE.set(true);
-        try {
-            processLivingHurt(event);
-        } finally {
-            IS_PROCESSING_DAMAGE.set(false);
+        
+        LivingEntity target = event.getEntity();
+        DamageSource source = event.getSource();
+        float baseDamage = event.getOriginalDamage();
+        float currentDamage = event.getNewDamage();
+        
+        // Process damage with priority handling
+        float finalDamage = processDamageWithPriority(target, source, baseDamage, currentDamage);
+        
+        // Only set damage if it was modified by Abloom (not by other mods)
+        // If currentDamage != baseDamage, another mod has already modified the damage
+        // We should NOT overwrite that modification
+        if (finalDamage != currentDamage && currentDamage == baseDamage) {
+            // Damage was modified by Abloom and not by other mods
+            event.setNewDamage(finalDamage);
+        } else if (currentDamage != baseDamage) {
+            // Another mod modified the damage - we already added accumulation points
+            // but should NOT overwrite their modification
         }
     }
 
-    private static void processLivingHurt(LivingDamageEvent.Pre event) {
-        LivingEntity target = event.getEntity();
-        LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity e ? e : null;
+    private static float doProcessLivingHurt(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
+        LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
-        DamageSource source = event.getSource();
         ElementType type = getElementTypeFromSource(source);
         if (type == null) {
-            if (canShowDamage(target)) spawnDamageNumber(target, event.getNewDamage(), null);
-            return;
+            if (canShowDamage(target)) spawnDamageNumber(target, currentDamage, null);
+            return currentDamage;
         }
 
         float damageMultiplier = 1.0f;
@@ -198,7 +320,7 @@ public class ElementDamageHandler {
             damageMultiplier *= 1.0f + dispersionBonus;
         }
 
-        float damage = event.getNewDamage() * damageMultiplier;
+        float damage = currentDamage * damageMultiplier;
 
         float effectiveAccumMultiplier = 1.0f;
         if (source.getDirectEntity() != null) {
@@ -258,9 +380,9 @@ public class ElementDamageHandler {
             finalDamage = applyThresholdEffect(target, type, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
         }
-        event.setNewDamage(finalDamage);
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
         updateLastDamageTime(target, type);
+        return finalDamage;
     }
 
     @SubscribeEvent
@@ -574,6 +696,8 @@ public class ElementDamageHandler {
 
     public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
         if (IS_PROCESSING_DAMAGE.get()) return;
+        
+        // Mark as processing to prevent infinite recursion
         IS_PROCESSING_DAMAGE.set(true);
         try {
             processDealElementDamage(target, type, amount, accumMultiplier, attacker);
