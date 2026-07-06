@@ -22,6 +22,18 @@ public class ArmorResistanceRegistry {
     public static void registerArmor(Item item, Map<ElementType, Float> resistanceMap) {
         if (item == null || resistanceMap == null || resistanceMap.isEmpty()) return;
         
+        // Check for duplicates
+        if (ARMOR_RESISTANCES.containsKey(item)) {
+            AbloomMod.LOGGER.warn("Armor {} already registered, skipping duplicate registration", item.getDescriptionId());
+            return;
+        }
+
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
+        if (ARMOR_RESISTANCES_BY_ID.containsKey(itemId)) {
+            AbloomMod.LOGGER.warn("Armor {} already registered by ID, skipping duplicate registration", itemId);
+            return;
+        }
+        
         Map<ElementType, Float> clampedMap = new EnumMap<>(ElementType.class);
         for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
             if (entry.getKey() != null && entry.getValue() != null) {
@@ -31,6 +43,7 @@ public class ArmorResistanceRegistry {
         }
         
         ARMOR_RESISTANCES.put(item, clampedMap);
+        ARMOR_RESISTANCES_BY_ID.put(itemId, clampedMap);
         AbloomMod.LOGGER.debug("Registered armor resistance: {} → {}", 
             item.getDescriptionId(), clampedMap);
     }

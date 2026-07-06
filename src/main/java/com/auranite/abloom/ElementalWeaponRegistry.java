@@ -20,7 +20,21 @@ public class ElementalWeaponRegistry {
 
 	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier) {
 		if (item == null || type == null) return;
+		
+		// Check for duplicates
+		if (WEAPON_DATA.containsKey(item)) {
+			AbloomMod.LOGGER.warn("Weapon {} already registered, skipping duplicate registration", item.getDescriptionId());
+			return;
+		}
+		
+		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+		if (WEAPON_DATA_BY_ID.containsKey(itemId)) {
+			AbloomMod.LOGGER.warn("Weapon {} already registered by ID, skipping duplicate registration", itemId);
+			return;
+		}
+		
 		WEAPON_DATA.put(item, new WeaponData(type, Math.max(0f, accumulationMultiplier)));
+		WEAPON_DATA_BY_ID.put(itemId, new WeaponData(type, Math.max(0f, accumulationMultiplier)));
 		AbloomMod.LOGGER.debug("Registered elemental weapon: {} → {} (accum: x{})",
 				item.getDescriptionId(), type, accumulationMultiplier);
 	}
