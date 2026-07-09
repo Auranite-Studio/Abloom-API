@@ -145,5 +145,8 @@ public class ElementResistanceRegistry {
 
         public static final TagKey<EntityType<?>> SHADOW_RESISTANCE = createEntityTag("shadow", "resistance");
         public static final TagKey<EntityType<?>> SHADOW_WEAKNESS = createEntityTag("shadow", "weakness");
+
+        public static final TagKey<EntityType<?>> PRISMATIC_RESISTANCE = createEntityTag("prismatic", "resistance");  // Don't use prismatic resistance and weakness
+        public static final TagKey<EntityType<?>> PRISMATIC_WEAKNESS = createEntityTag("prismatic", "weakness");
     }
 }

@@ -1,5 +1,6 @@
 package com.auranite.abloom;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -14,6 +15,7 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -31,6 +33,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handles elemental damage calculations, accumulation tracking, and threshold effects.
+ * This class manages the core mechanics of the Abloom API including:
+ * <ul>
+ *   <li>Resonance accumulation tracking</li>
+ *   <li>Threshold-based effect activation</li>
+ *   <li>Damage calculation with elemental modifiers</li>
+ *   <li>Display number and status text management</li>
+ * </ul>
+ * 
+ * <p>This mod uses a priority-based system for damage event handling to avoid conflicts
+ * with other mods that may also modify damage. Use the {@link DamagePriority} annotation
+ * on event handlers to control processing order.</p>
+ * 
+ * <p>For integration with other mods, use {@link DamageModificationManager} to register
+ * damage modification callbacks with specific priorities.</p>
+ */
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
@@ -51,15 +70,102 @@ public class ElementDamageHandler {
     private static ElementDamageDisplayManager displayManager;
 
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
+    private static final ThreadLocal<Boolean> IS_PRISM_CONVERSION = ThreadLocal.withInitial(() -> false);
 
     private static final int MAX_ACTIVE_DISPLAYS = 500;
     private static int currentDisplayCount = 0;
     private static final Object DISPLAY_COUNT_LOCK = new Object();
 
+    /**
+     * Process damage with priority handling to avoid conflicts with other mods.
+     * This method checks if damage was already modified by another mod with higher priority
+     * and adjusts accumulation accordingly.
+     *
+     * Uses DamageModificationManager to process damage modifications in priority order.
+     *
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param modifiedDamage the current damage (may have been modified by other mods)
+     * @return the final damage after all calculations
+     */
+    public static float processDamageWithPriority(LivingEntity target, DamageSource source, float baseDamage, float modifiedDamage) {
+        if (target == null || source == null) return modifiedDamage;
+
+        // Check if current damage differs from base damage
+        // If it does, another mod has already modified it
+        if (modifiedDamage != baseDamage) {
+            // Another mod modified the damage, we need to:
+            // 1. Track accumulation based on the modified damage
+            // 2. Call doProcessLivingHurt to process elemental calculations
+            // 3. Then apply low-priority modifiers
+            ElementType type = getElementTypeFromSource(source);
+            if (type != null) {
+                // Add accumulation points based on the modified damage (not just 1 point)
+                int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, 1);
+                if (pointsToAdd > 0) {
+                    AbloomModAttachments.addPoints(target, type, pointsToAdd);
+                    updateLastDamageTime(target, type);
+                }
+            }
+            
+            // Process damage through doProcessLivingHurt with the modified damage
+            // This ensures elemental calculations and display manager are called
+            float processedDamage = processLivingHurtInternal(target, source, baseDamage, modifiedDamage);
+            
+            // Apply low-priority modifiers AFTER Abloom
+            float finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, processedDamage);
+            return finalDamage;
+        }
+
+        // Use DamageModificationManager to process damage modifications BEFORE Abloom
+        // This ensures all registered modifiers are called in priority order
+        // Mods with priority > 0 (HIGH priority) will process BEFORE this handler
+        float processedDamage = baseDamage;
+        
+        // Process high-priority modifiers (priority > 0) BEFORE Abloom
+        processedDamage = DamageModificationManager.processHighPriorityDamage(target, source, processedDamage);
+
+        // Normal processing flow - no other mod modified damage yet
+        float finalDamage = processLivingHurtInternal(target, source, baseDamage, processedDamage);
+
+        // Process low-priority modifiers (priority <= 0) AFTER Abloom
+        finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, finalDamage);
+
+        return finalDamage;
+    }
+
+    /**
+     * Internal damage processing logic that handles elemental calculations.
+     * This method should only be called once per damage event.
+     *
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param currentDamage the current damage value (may be modified by other mods)
+     * @return the final damage after all calculations
+     */
+    private static float processLivingHurtInternal(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
+        IS_PROCESSING_DAMAGE.set(true);
+        try {
+            return doProcessLivingHurt(target, source, baseDamage, currentDamage);
+        } finally {
+            IS_PROCESSING_DAMAGE.set(false);
+        }
+    }
+
+    /**
+     * Sets the display manager for rendering damage numbers and status texts.
+     * @param manager the display manager instance
+     */
     public static void setDisplayManager(ElementDamageDisplayManager manager) {
         displayManager = manager;
     }
 
+    /**
+     * Initializes damage colors for all element types.
+     * Must be called during mod initialization before any displays are spawned.
+     */
     public static void initDamageColors() {
         ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
         ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
@@ -74,32 +180,61 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
         ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFFFE0);
         ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
+        ElementDamageDisplayManager.registerDamageColor(ElementType.PRISMATIC, 0x000000); // Rainbow will be handled dynamically
     }
 
+    /**
+     * Checks if a damage display can be spawned ( respects max display limit ).
+     * @return true if display can be spawned, false if limit reached
+     */
     public static boolean canSpawnDisplay() {
         synchronized (DISPLAY_COUNT_LOCK) {
             return currentDisplayCount < MAX_ACTIVE_DISPLAYS;
         }
     }
 
+    /**
+     * Increments the count of active damage displays.
+     * Should only be called when spawning a new display.
+     */
     public static void incrementDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             currentDisplayCount++;
         }
     }
 
+    /**
+     * Decrements the count of active damage displays.
+     * Should only be called when removing a display.
+     */
     public static void decrementDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             currentDisplayCount = Math.max(0, currentDisplayCount - 1);
         }
     }
 
+    /**
+     * Checks if damage is currently being processed by the elemental system.
+     * @return true if damage is being processed
+     */
+    public static boolean isProcessingDamage() {
+        return IS_PROCESSING_DAMAGE.get();
+    }
+
+    /**
+     * Gets the current count of active damage displays.
+     * @return number of active displays
+     */
     public static int getCurrentDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             return currentDisplayCount;
         }
     }
 
+    /**
+     * Handles server tick events for display cleanup and accumulation reset.
+     * Processes pending removals and checks for inactive accumulation points.
+     */
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Pre event) {
         currentServer = event.getServer();
@@ -112,32 +247,65 @@ public class ElementDamageHandler {
         }
     }
 
-    @SubscribeEvent
+    /**
+     * Handles LivingDamageEvent.Pre with low priority to process elemental calculations.
+     * This ensures Abloom processes damage after mods with NORMAL priority (0) and before
+     * mods with LOWEST priority (-300).
+     * 
+     * Modifiers with priority > 0 (HIGH priority) are processed through DamageModificationManager
+     * BEFORE this handler, allowing other mods to modify damage first.
+     * 
+     * Modifiers with priority <= 0 (NORMAL and below) are processed AFTER Abloom's calculations.
+     * 
+     * Other mods can register damage modifiers via DamageModificationManager to control
+     * their processing order relative to Abloom.
+     * 
+     * For mods that directly modify event.setNewDamage(), Abloom will see the modified damage
+     * and add appropriate accumulation points. Abloom will NOT overwrite damage that was modified
+     * by other mods.
+     */
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHurt(LivingDamageEvent.Pre event) {
         if (IS_PROCESSING_DAMAGE.get()) return;
-        IS_PROCESSING_DAMAGE.set(true);
-        try {
-            processLivingHurt(event);
-        } finally {
-            IS_PROCESSING_DAMAGE.set(false);
+        
+        LivingEntity target = event.getEntity();
+        DamageSource source = event.getSource();
+        float baseDamage = event.getOriginalDamage();
+        float currentDamage = event.getNewDamage();
+        
+        // Process damage with priority handling
+        float finalDamage = processDamageWithPriority(target, source, baseDamage, currentDamage);
+        
+        // Only set damage if it was modified by Abloom (not by other mods)
+        // If currentDamage != baseDamage, another mod has already modified the damage
+        // We should NOT overwrite that modification
+        if (finalDamage != currentDamage && currentDamage == baseDamage) {
+            // Damage was modified by Abloom and not by other mods
+            event.setNewDamage(finalDamage);
+        } else if (currentDamage != baseDamage) {
+            // Another mod modified the damage - we already added accumulation points
+            // but should NOT overwrite their modification
         }
     }
 
-    private static void processLivingHurt(LivingDamageEvent.Pre event) {
-        LivingEntity target = event.getEntity();
-        LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity e ? e : null;
+    private static float doProcessLivingHurt(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
+        LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
-        DamageSource source = event.getSource();
         ElementType type = getElementTypeFromSource(source);
         if (type == null) {
-            if (canShowDamage(target)) spawnDamageNumber(target, event.getNewDamage(), null);
-            return;
+            if (canShowDamage(target)) spawnDamageNumber(target, currentDamage, null);
+            return currentDamage;
+        }
+
+        // Special handling for PRISMATIC damage
+        if (type == ElementType.PRISMATIC) {
+            return processPrismaticDamage(target, source, baseDamage, currentDamage, attacker);
         }
 
         float damageMultiplier = 1.0f;
 
-        // Модификаторы от атакующего
+        // Modifiers from attacker
         if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
             float reduction = 1.0f - ((amplifier + 1) * 0.20f);
@@ -145,7 +313,7 @@ public class ElementDamageHandler {
             damageMultiplier *= reduction;
         }
 
-        // Модификаторы от цели
+        // Modifiers from target
         if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
             damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
@@ -162,7 +330,7 @@ public class ElementDamageHandler {
             damageMultiplier *= 1.0f + dispersionBonus;
         }
 
-        float damage = event.getNewDamage() * damageMultiplier;
+        float damage = currentDamage * damageMultiplier;
 
         float effectiveAccumMultiplier = 1.0f;
         if (source.getDirectEntity() != null) {
@@ -198,33 +366,201 @@ public class ElementDamageHandler {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
         }
 
-        if (erosionActive && type != ElementType.WIND) {
-            spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
-            pointsToAdd = 100;
-            target.removeEffect(AbloomModEffects.WINDSWEPT);
-        }
+        // Don't add accumulation points or trigger threshold effects if this is a Prism conversion
+        // Prism conversion should only apply damage, not trigger resonances
+        if (!IS_PRISM_CONVERSION.get()) {
+            if (erosionActive && type != ElementType.WIND) {
+                spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
+                pointsToAdd = 100;
+                target.removeEffect(AbloomModEffects.WINDSWEPT);
+            }
 
-        AbloomModAttachments.addPoints(target, type, pointsToAdd);
-        int pointsAfter = AbloomModAttachments.getPoints(target, type);
-        boolean thresholdReached = pointsAfter >= THRESHOLD;
-        if (AbloomMod.LOGGER.isDebugEnabled()) {
-            AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
-        }
+            AbloomModAttachments.addPoints(target, type, pointsToAdd);
+            int pointsAfter = AbloomModAttachments.getPoints(target, type);
+            boolean thresholdReached = pointsAfter >= THRESHOLD;
+            if (AbloomMod.LOGGER.isDebugEnabled()) {
+                AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
+            }
 
+            float finalDamage = damage;
+            finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+            
+            finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+            if (thresholdReached) {
+                if (AbloomMod.LOGGER.isDebugEnabled()) {
+                    AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
+                }
+                finalDamage = applyThresholdEffect(target, type, finalDamage);
+                AbloomModAttachments.resetPoints(target, type);
+            }
+            if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
+            updateLastDamageTime(target, type);
+            return finalDamage;
+        }
+        
+        // For Prism conversion, just apply damage without accumulation or threshold effects
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
-        
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
-        if (thresholdReached) {
-            if (AbloomMod.LOGGER.isDebugEnabled()) {
-                AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
-            }
-            finalDamage = applyThresholdEffect(target, type, finalDamage);
-            AbloomModAttachments.resetPoints(target, type);
-        }
-        event.setNewDamage(finalDamage);
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
         updateLastDamageTime(target, type);
+        return finalDamage;
+    }
+
+    /**
+     * Processes prismatic damage with resonance conversion mechanics.
+     * Prismatic damage does NOT accumulate its own resonance.
+     * If the target has any other elemental resonance effect, prismatic damage:
+     * 1. Activates the Prism effect for 20 seconds
+     * 2. Converts all incoming prismatic damage to elemental damage of the resonance type
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param currentDamage the current damage value
+     * @param attacker the attacking entity (if any)
+     * @return the final damage after processing
+     */
+    private static float processPrismaticDamage(LivingEntity target, DamageSource source, float baseDamage, float currentDamage, LivingEntity attacker) {
+        // Check if target has the Prism effect
+        boolean prismActive = target.hasEffect(AbloomModEffects.PRISM);
+        
+        // Get the current stored resonance type
+        ElementType storedResonanceType = target.getData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get());
+        
+        // Check if target has any active elemental resonance effect (except PRISM)
+        ElementType activeResonanceType = null;
+        
+        if (target.hasEffect(AbloomModEffects.BURN)) activeResonanceType = ElementType.FIRE;
+        else if (target.hasEffect(AbloomModEffects.RUPTURE)) activeResonanceType = ElementType.PHYSICAL;
+        else if (target.hasEffect(AbloomModEffects.WINDSWEPT)) activeResonanceType = ElementType.WIND;
+        else if (target.hasEffect(AbloomModEffects.WETNESS)) activeResonanceType = ElementType.WATER;
+        else if (target.hasEffect(AbloomModEffects.STUN)) activeResonanceType = ElementType.EARTH;
+        else if (target.hasEffect(AbloomModEffects.FREEZE)) activeResonanceType = ElementType.ICE;
+        else if (target.hasEffect(AbloomModEffects.SHOCK)) activeResonanceType = ElementType.ELECTRIC;
+        else if (target.hasEffect(AbloomModEffects.OVERLOAD)) activeResonanceType = ElementType.ENERGY;
+        else if (target.hasEffect(AbloomModEffects.BLOOM)) activeResonanceType = ElementType.NATURAL;
+        else if (target.hasEffect(AbloomModEffects.BREAK)) activeResonanceType = ElementType.QUANTUM;
+        else if (target.hasEffect(AbloomModEffects.CORRUPTION)) activeResonanceType = ElementType.ETHER;
+        else if (target.hasEffect(AbloomModEffects.DISPERSION)) activeResonanceType = ElementType.LIGHT;
+        else if (target.hasEffect(AbloomModEffects.ECLIPSE)) activeResonanceType = ElementType.SHADOW;
+        
+        // Determine which resonance type to use
+        // Priority: 1) active resonance, 2) stored resonance, 3) none
+        ElementType resonanceType = null;
+        
+        if (activeResonanceType != null) {
+            // There is an active resonance effect
+            resonanceType = activeResonanceType;
+            
+            // Update Prism effect if it's already active, or activate it if not
+            if (prismActive) {
+                // Prism already active - update the stored type
+                target.setData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get(), resonanceType);
+                // Extend the Prism effect duration to 20 seconds from now
+                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
+            } else {
+                // Activate Prism effect for 20 seconds
+                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
+                target.setData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get(), resonanceType);
+            }
+        } else if (storedResonanceType != null && prismActive) {
+            // No active resonance but Prism is active and has stored type
+            // Use the stored type - resonance effect has ended but Prism still works
+            resonanceType = storedResonanceType;
+        }
+        
+        if (resonanceType != null) {
+            // Store the resonance type for damage conversion
+            target.setData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get(), resonanceType);
+            
+            // Convert prismatic damage to the resonance type by creating a new damage source
+            // The ElementDamageHandler will process this as elemental damage of the resonance type
+            if (!target.level().isClientSide()) {
+                spawnDamageNumber(target, currentDamage, resonanceType);
+                return convertPrismaticDamageToElemental(target, source, resonanceType, currentDamage);
+            }
+            
+            return currentDamage;
+        } else {
+            // No active resonance and no stored resonance type - just deal prismatic damage
+            // Spawn damage number but don't add accumulation points
+            if (canShowDamage(target)) {
+                spawnDamageNumber(target, currentDamage, ElementType.PRISMATIC);
+            }
+            
+            // Check armor resistance for prismatic damage
+            float armorResistanceBonus = getArmorResistanceBonus(target, ElementType.PRISMATIC);
+            float finalDamage = applyArmorResistance(currentDamage, armorResistanceBonus);
+            
+            updateLastDamageTime(target, ElementType.PRISMATIC);
+            return finalDamage;
+        }
+    }
+
+    /**
+     * Converts prismatic damage to elemental damage of the specified type.
+     */
+    private static float convertPrismaticDamageToElemental(LivingEntity target, DamageSource originalSource, ElementType elementType, float damageAmount) {
+        if (target.level().isClientSide()) {
+            return damageAmount;
+        }
+        
+        ServerLevel level = (ServerLevel) target.level();
+        var damageTypeRegistry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
+        Identifier rl = Identifier.fromNamespaceAndPath(AbloomMod.MODID, elementType.getDamageTypeId());
+        var damageTypeHolder = damageTypeRegistry.get(rl);
+        
+        if (damageTypeHolder.isPresent()) {
+            // Use entity() and getDirectEntity() for NeoForge DamageSource
+            DamageSource elementalSource = new DamageSource(damageTypeHolder.get(), originalSource.getEntity(), originalSource.getDirectEntity());
+            
+            // Mark this as a Prism conversion to prevent triggering resonance effects
+            IS_PRISM_CONVERSION.set(true);
+            try {
+                // Create a fake event to process the elemental damage
+                // We need to manually call the processing logic since we can't trigger another event
+                float processedDamage = damageAmount;
+                
+                // Apply resistance from target
+                processedDamage = ElementResistanceManager.calculateReducedDamage(target, elementType, processedDamage);
+                
+                // Apply armor resistance
+                float armorResistanceBonus = getArmorResistanceBonus(target, elementType);
+                processedDamage = applyArmorResistance(processedDamage, armorResistanceBonus);
+                
+                // Don't add accumulation points for Prism conversion - just apply damage
+                // The damage is converted but shouldn't trigger resonance effects
+                
+                updateLastDamageTime(target, elementType);
+                return processedDamage;
+            } finally {
+                IS_PRISM_CONVERSION.set(false);
+            }
+        }
+        
+        return damageAmount;
+    }
+
+    /**
+     * Gets the display color for a resonance effect type.
+     */
+    private static int getResonanceColor(ElementType type) {
+        return switch (type) {
+            case FIRE -> 0xFF5500;
+            case PHYSICAL -> 0xC0C0C0;
+            case WIND -> 0x00FFFF;
+            case WATER -> 0x0080FF;
+            case EARTH -> 0x8B4513;
+            case ICE -> 0x00BFFF;
+            case ELECTRIC -> 0xFF19FF;
+            case ENERGY -> 0xFFFF00;
+            case NATURAL -> 0x32CD32;
+            case QUANTUM -> 0x9400D3;
+            case ETHER -> 0x24B3A7;
+            case LIGHT -> 0xFFFFE0;
+            case SHADOW -> 0x4B0082;
+            default -> 0xFFFFFF;
+        };
     }
 
     @SubscribeEvent
@@ -252,7 +588,9 @@ public class ElementDamageHandler {
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (displayManager != null) displayManager.clearActiveDisplays(player);
+        if (displayManager != null) {
+            displayManager.clearActiveDisplays(player);
+        }
         int playerId = player.getId();
         DAMAGE_COOLDOWNS.remove(playerId);
         synchronized (LAST_DAMAGE_LOCK) {
@@ -537,6 +875,8 @@ public class ElementDamageHandler {
 
     public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
         if (IS_PROCESSING_DAMAGE.get()) return;
+        
+        // Mark as processing to prevent infinite recursion
         IS_PROCESSING_DAMAGE.set(true);
         try {
             processDealElementDamage(target, type, amount, accumMultiplier, attacker);
@@ -573,7 +913,7 @@ public class ElementDamageHandler {
 
         float finalDamage = amount;
         
-        // Умножаем finalDamage на накопленный damageMultiplier
+        // Multiply finalDamage by accumulated damageMultiplier
         finalDamage *= damageMultiplier;
         
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
