@@ -1,0 +1,15 @@
+neoforge-1.21.1:
+  gradle: |
+    repositories {
+     maven {
+         url = 'https://api.modrinth.com/maven'
+     }
+    }
+    
+     dependencies {
+        implementation 'maven.modrinth:abloom-api:y7kgHPBb'
+     }
+
+  update_files:
+    - ~
+name: "Abloom API"
