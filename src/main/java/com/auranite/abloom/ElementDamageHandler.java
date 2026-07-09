@@ -183,7 +183,7 @@ public class ElementDamageHandler {
         }
         if (target.hasEffect(AbloomModEffects.WETNESS)) {
             int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-            effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 0.5f;
+            effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 1.0f;
         }
 
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
@@ -454,7 +454,7 @@ public class ElementDamageHandler {
             case WATER -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
-                yield originalDamage;
+                yield originalDamage * 1.5f;
             }
             case EARTH -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
@@ -568,7 +568,7 @@ public class ElementDamageHandler {
         }
         if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
             int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
-            accumBonus *= 1.0f + (amplifier + 1) * 0.5f;
+            accumBonus *= 1.0f + (amplifier + 1) * 1.0f;
         }
 
         float finalDamage = amount;
