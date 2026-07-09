@@ -1,0 +1,28 @@
+- BURN:
+  texture: burn
+- WETNESS:
+  texture: wetness
+- STUN:
+  texture: stun
+- FREEZE:
+  texture: freeze
+- SHOCK:
+  texture: shock
+- BREAK:
+  texture: break
+- RUPTURE:
+  texture: rupture
+- BLOOM:
+  texture: bloom
+- OVERLOAD:
+  texture: overload
+- WINDSWEPT:
+  texture: windswept
+- CORRUPTION:
+  texture: corruption
+- TAUNT:
+  texture: taunt
+- DISPERSION:
+  texture: dispersion
+- ECLIPSE:
+  texture: eclipse
