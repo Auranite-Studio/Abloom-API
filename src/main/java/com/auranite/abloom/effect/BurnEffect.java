@@ -1,6 +1,7 @@
 package com.auranite.abloom.effect;
 
 import com.auranite.abloom.AbloomModEffects;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -18,7 +19,7 @@ public class BurnEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         Level level = entity.level();
         
         // Если под водой, под дождём или под эффектом заморозки - наносим урон вместо горения
