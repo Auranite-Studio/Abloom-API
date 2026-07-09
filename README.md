@@ -51,7 +51,6 @@ When reaching 100 accumulation resonance points:
 | **NATURAL**  | Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)                                                                                 | 8 seconds (160 ticks)   |
 | **QUANTUM**  | Quantum resonance explosion, applies Break effect (all damage to target ignores defense)                                                                                                                      | 6 seconds (120 ticks)   |
 | **ETHER**    | Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)                                                                       | 8 seconds (160 ticks)   |
-| **UNKNOWN**  | Unknown resonance explosion, applies Taunt effect (the target is attacked by hostile and neutral mobs while this effect is active.)                                                                           | ??? seconds (??? ticks) |
 | **LIGHT**    | Light resonance explosion, applies Dispersion effect (damage taken by target increased by a certain amount %)                                                                                                 | 10 seconds (200 ticks)  |
 | **SHADOW**   | Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50% reduction)                                                 | 10 seconds (200 ticks)   |
 
