@@ -1,0 +1,13 @@
+{
+  "id": "abloomapi",
+  "supportedversions": [
+    2026001
+  ],
+  "weight": 93,
+  "info": {
+    "name": "Abloom API",
+    "version": "1.0",
+    "description": "This plugin is a tool for creating mods with magical weapons and custom effects!",
+    "author": "Auranite Studio"
+  }
+}
