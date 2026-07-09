@@ -59,20 +59,20 @@ When reaching 100 accumulation resonance points:
 
 The following table shows which mobs have immunities, resistances, or weaknesses to each element type:
 
-| Element      | Resistant | Weak |
-|--------------|-----------|------|
-| **FIRE**     | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton, Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged |
-| **PHYSICAL** | Turtle, Armadillo, Iron Golem, Shulker, Warden, Ender Dragon | Slime, Magma Cube, Phantom, Vex, Allay, Glow Squid, Squid |
-| **WIND**     | Phantom, Breeze, Ender Dragon, Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf | Turtle, Sniffer, Armadillo, Camel, Ravager, Hoglin, Polar Bear |
-| **EARTH**    | Endermite, Silverfish, Shulker, Iron Golem, Warden, Giant, Ravager, Armadillo, Sniffer | Ghast, Phantom, Vex, Allay, Breeze |
-| **WATER**    | Squid, Glow Squid, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Witch | Blaze, Snow Golem, Strider, Breeze |
-| **ICE**      | Snow Golem, Stray, Polar Bear, Goat | Blaze, Magma Cube, Strider, Breeze |
-| **ELECTRIC** | Creeper, Enderman, Phantom, Allay, Breeze | Drowned, Turtle, Axolotl, Frog, Tadpole, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Squid, Glow Squid, Guardian, Elder Guardian |
-| **ENERGY**   | Enderman, Shulker, Warden, Ender Dragon, Wither, Elder Guardian, Evoker, Witch | Creeper, Ghast |
-| **NATURAL**  | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee, Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Skeleton, Axolotl |
-| **QUANTUM**  | Enderman, Endermite, Ender Dragon, Shulker, Wither, Warden | Villager, Wandering Trader, Bat, Allay |
-| **ETHER**    | Ender Dragon, Wither | Enderman, Endermite, Shulker, Warden |
-| **LIGHT**    | *None* | *None* |
-| **SHADOW**   | *None* | *None* |
+| Element      | Resistant                                                                                                                                             | Weak                                                                                                                                   |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| **FIRE**     | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton, Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged                                                                   |
+| **PHYSICAL** | Turtle, Armadillo, Iron Golem, Shulker, Warden, Ender Dragon                                                                                          | Slime, Magma Cube, Phantom, Vex, Allay, Glow Squid, Squid                                                                              |
+| **WIND**     | Phantom, Breeze, Ender Dragon, Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf                                                             | Turtle, Sniffer, Armadillo, Camel, Ravager, Hoglin, Polar Bear                                                                         |
+| **EARTH**    | Endermite, Silverfish, Shulker, Iron Golem, Warden, Giant, Ravager, Armadillo, Sniffer                                                                | Ghast, Phantom, Vex, Allay, Breeze                                                                                                     |
+| **WATER**    | Squid, Glow Squid, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Witch          | Blaze, Snow Golem, Strider, Breeze                                                                                                     |
+| **ICE**      | Snow Golem, Stray, Polar Bear, Goat                                                                                                                   | Blaze, Magma Cube, Strider, Breeze                                                                                                     |
+| **ELECTRIC** | Creeper, Enderman, Phantom, Allay, Breeze                                                                                                             | Drowned, Turtle, Axolotl, Frog, Tadpole, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Squid, Glow Squid, Guardian, Elder Guardian  |
+| **ENERGY**   | Enderman, Shulker, Warden, Ender Dragon, Wither, Elder Guardian, Evoker, Witch                                                                        | Creeper, Ghast                                                                                                                         |
+| **NATURAL**  | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee, Wolf, Ocelot, Cat, Panda, Fox, Rabbit                                                        | Villager, Wandering Trader, Iron Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Skeleton, Axolotl |
+| **QUANTUM**  | Enderman, Endermite, Ender Dragon, Shulker, Wither, Warden                                                                                            | Villager, Wandering Trader, Bat, Allay                                                                                                 |
+| **ETHER**    | Ender Dragon, Wither                                                                                                                                  | Enderman, Endermite, Shulker, Warden                                                                                                   |
+| **LIGHT**    | Warden, Wither                                                                                                                                        | Zombified Piglin, Zombie, Zombie Villager, Skeleton, Zoglin                                                                                  |
+| **SHADOW**   | Warden, Wither                                                                                                                                        | *None*                                                                                                                                 |
 
 ---
