@@ -1,62 +1,12 @@
-# Abloom API Mod Documentation
-
 ## Overview
 
-**Abloom API** is a library mod for NeoForge (1.21.1) that adds an elemental damage system, elemental energy accumulation, and threshold effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, armor with elemental resistances, and a resistance system for mobs.
-
-## Creating a Datapack
-
-To create a datapack for Abloom API:
-
-1. Create a new folder in your `.minecraft/saves/[worldname]/datapacks/` directory
-2. Create the structure: `data/abloom/elemental_weapons/`
-3. Add JSON files for each elemental weapon configuration
-
-**Example datapack structure:**
-```
-your_datapack_name.zip
-└── data
-    └── abloom
-        ├── damage_type
-        │   └── (optional custom damage types)
-        └── elemental_weapons
-            ├── iron_sword_fire.json
-            ├── diamond_axe_wind.json
-            └── bow_electric.json
-```
-
-**Example datapack JSON files:**
-
-`data/abloom/elemental_weapons/iron_sword_fire.json`
-```json
-{
-  "item": "minecraft:iron_sword",
-  "element": "FIRE",
-  "accumulation_multiplier": 3.0
-}
-```
-
-`data/abloom/elemental_weapons/diamond_axe_wind.json`
-```json
-{
-  "item": "minecraft:diamond_axe",
-  "element": "WIND",
-  "accumulation_multiplier": 5.0
-}
-```
-
-**Loading:**
-- Place datapack in `.minecraft/saves/[worldname]/datapacks/`
-- Reload with `/reload` command
-- Check logs for confirmation: `Loaded X elemental weapon configurations from datapacks`
-
-For detailed documentation, see `src/main/resources/assets/abloom/docs/DATAPACK_GUIDE.md`.
+**Abloom API** is a library mod for NeoForge that adds an elemental damage system, elemental energy accumulation, and threshold effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, and a resistance system for mobs.
 
 ---
 
 ## Key Features
 
-### 1. Element System
+### Element System
 
 The mod defines 13 element types:
 
@@ -76,53 +26,15 @@ The mod defines 13 element types:
 | LIGHT | `light_dmg` | #FFFFE0 |
 | SHADOW | `shadow_dmg` | #4B0082 |
 
-### 2. Element Registration
+### Resonance Accumulation Mechanics
 
-#### Datapack Registration (Recommended)
-
-Create datapack files in `data/abloom/elemental_weapons/` with the following structure:
-
-```json
-{
-  "item": "modid:item_name",
-  "element": "ELEMENT_NAME",
-  "accumulation_multiplier": 2.0
-}
-```
-
-**Example:** `data/abloom/elemental_weapons/iron_sword_fire.json`
-
-```json
-{
-  "item": "minecraft:iron_sword",
-  "element": "FIRE",
-  "accumulation_multiplier": 3.0
-}
-```
-
-**Parameters:**
-- `item`: The item registry name (modid:item_name)
-- `element`: One of the 13 element types (FIRE, PHYSICAL, WIND, etc.)
-- `accumulation_multiplier`: How much resonance points the weapon adds per hit (default: 1.0)
-
-**Element Types:** FIRE, PHYSICAL, WIND, EARTH, WATER, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW
-
-**Loading:**
-1. Place your datapack in `.minecraft/saves/[worldname]/datapacks/`
-2. Reload with `/reload` command
-3. Check the logs for confirmation messages
-
-For detailed documentation, see `src/main/resources/assets/abloom/docs/DATAPACK_GUIDE.md`.
-
-### 2. Resonance Accumulation Mechanics
-
-- When taking damage from an element, the target accumulates resonance points of that element via Data Attachments
+- When taking damage from an element, the target accumulates resonance points of that element
 - Base accumulation value: **1 resonance point per hit**
 - Activation threshold: **100 resonance points**
 - When the threshold is reached, a special effect triggers and resonance points are reset
 - Accumulation resets after **300 ticks** (15 seconds) without receiving damage of that type
 
-### 3. Resonance Effects
+### Resonance Effects
 
 When reaching 100 accumulation resonance points:
 
@@ -143,23 +55,24 @@ When reaching 100 accumulation resonance points:
 | **LIGHT**    | Light resonance explosion, applies Dispersion effect (damage taken by target increased by a certain amount %)                                                                                                 | 10 seconds (200 ticks)  |
 | **SHADOW**   | Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50% reduction)                                                 | 10 seconds (200 ticks)   |
 
+### Mob Resistances and Weaknesses
 
-## Mob Resistances and Weaknesses Table
+The following table shows which mobs have immunities, resistances, or weaknesses to each element type:
 
-The following table shows which mobs have resistances or weaknesses to each element type:
+| Element      | Resistant                                                                                                                                             | Weak                                                                                                                                   |
+|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| **FIRE**     | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton, Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged                                                                   |
+| **PHYSICAL** | Turtle, Armadillo, Iron Golem, Shulker, Warden, Ender Dragon                                                                                          | Slime, Magma Cube, Phantom, Vex, Allay, Glow Squid, Squid                                                                              |
+| **WIND**     | Phantom, Breeze, Ender Dragon, Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf                                                             | Turtle, Sniffer, Armadillo, Camel, Ravager, Hoglin, Polar Bear                                                                         |
+| **EARTH**    | Endermite, Silverfish, Shulker, Iron Golem, Warden, Giant, Ravager, Armadillo, Sniffer                                                                | Ghast, Phantom, Vex, Allay, Breeze                                                                                                     |
+| **WATER**    | Squid, Glow Squid, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Witch          | Blaze, Snow Golem, Strider, Breeze                                                                                                     |
+| **ICE**      | Snow Golem, Stray, Polar Bear, Goat                                                                                                                   | Blaze, Magma Cube, Strider, Breeze                                                                                                     |
+| **ELECTRIC** | Creeper, Enderman, Phantom, Allay, Breeze                                                                                                             | Drowned, Turtle, Axolotl, Frog, Tadpole, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Squid, Glow Squid, Guardian, Elder Guardian  |
+| **ENERGY**   | Enderman, Shulker, Warden, Ender Dragon, Wither, Elder Guardian, Evoker, Witch                                                                        | Creeper, Ghast                                                                                                                         |
+| **NATURAL**  | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee, Wolf, Ocelot, Cat, Panda, Fox, Rabbit                                                        | Villager, Wandering Trader, Iron Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Skeleton, Axolotl |
+| **QUANTUM**  | Enderman, Endermite, Ender Dragon, Shulker, Wither, Warden                                                                                            | Villager, Wandering Trader, Bat, Allay                                                                                                 |
+| **ETHER**    | Ender Dragon, Wither                                                                                                                                  | Enderman, Endermite, Shulker, Warden                                                                                                   |
+| **LIGHT**    | Warden, Wither                                                                                                                                        | Zombified Piglin, Zombie, Zombie Villager, Skeleton, Zoglin                                                                                  |
+| **SHADOW**   | Warden, Wither                                                                                                                                        | *None*                                                                                                                                 |
 
-| Element      | Resistant | Weak |
-|--------------|-----------|------|
-| **FIRE**     | Blaze, Magma Cube, Wither, Ender Dragon, Strider, Zombified Piglin, Wither Skeleton, Ghast, Warden, Hoglin, Piglin, Piglin Brute, Zoglin, Husk, Camel | Snow Golem, Dolphin, Zombie, Zombie Villager, Drowned, Stray, Bogged |
-| **PHYSICAL** | Turtle, Armadillo, Iron Golem, Shulker, Warden, Ender Dragon | Slime, Magma Cube, Phantom, Vex, Allay, Glow Squid, Squid |
-| **WIND**     | Phantom, Breeze, Ender Dragon, Ghast, Vex, Allay, Parrot, Chicken, Ocelot, Cat, Fox, Wolf | Turtle, Sniffer, Armadillo, Camel, Ravager, Hoglin, Polar Bear |
-| **EARTH**    | Endermite, Silverfish, Shulker, Iron Golem, Warden, Giant, Ravager, Armadillo, Sniffer | Ghast, Phantom, Vex, Allay, Breeze |
-| **WATER**    | Squid, Glow Squid, Drowned, Guardian, Elder Guardian, Axolotl, Tadpole, Frog, Turtle, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Witch | Blaze, Snow Golem, Strider, Breeze |
-| **ICE**      | Snow Golem, Stray, Polar Bear, Goat | Blaze, Magma Cube, Strider, Breeze |
-| **ELECTRIC** | Creeper, Enderman, Phantom, Allay, Breeze | Drowned, Turtle, Axolotl, Frog, Tadpole, Cod, Salmon, Pufferfish, Tropical Fish, Dolphin, Squid, Glow Squid, Guardian, Elder Guardian |
-| **ENERGY**   | Enderman, Shulker, Warden, Ender Dragon, Wither, Elder Guardian, Evoker, Witch | Creeper, Ghast |
-| **NATURAL**  | Bogged, Wither Skeleton, Wither, Slime, Magma Cube, Bee, Wolf, Ocelot, Cat, Panda, Fox, Rabbit | Villager, Wandering Trader, Iron Golem, Snow Golem, Allay, Zoglin, Stray, Zombified Piglin, Zombie, Zombie Villager, Skeleton, Axolotl |
-| **QUANTUM**  | Enderman, Endermite, Ender Dragon, Shulker, Wither, Warden | Villager, Wandering Trader, Bat, Allay |
-| **ETHER**    | Ender Dragon, Wither | Enderman, Endermite, Shulker, Warden |
-| **LIGHT**    | *None* | *None* |
-| **SHADOW**   | *None* | *None* |
+---
