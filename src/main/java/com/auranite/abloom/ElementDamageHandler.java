@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.auranite.abloom.effect.PrismEffect;
+
 /**
  * Handles elemental damage calculations, accumulation tracking, and threshold effects.
  * This class manages the core mechanics of the Abloom API including:
@@ -293,6 +295,11 @@ public class ElementDamageHandler {
             return currentDamage;
         }
 
+        // Handle Prismatic damage conversion
+        if (type == ElementType.PRISMATIC) {
+            return processPrismaticDamage(target, source, baseDamage, currentDamage, attacker);
+        }
+
         float damageMultiplier = 1.0f;
 
         // Modifiers from attacker
@@ -383,6 +390,101 @@ public class ElementDamageHandler {
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
         updateLastDamageTime(target, type);
         return finalDamage;
+    }
+
+    /**
+     * Processes prismatic damage according to the Prism mechanic.
+     * - Prismatic damage does NOT accumulate its own resonance
+     * - If target has resonance from another element, activates Prism effect (20 sec)
+     * - Prism effect converts prismatic damage to the resonant element type
+     * - Converted damage does NOT apply resonance
+     */
+    private static float processPrismaticDamage(LivingEntity target, DamageSource source, float baseDamage, float currentDamage, LivingEntity attacker) {
+        // Check if target has Prism effect with stored resonance type
+        ElementType storedResonanceType = PrismEffect.getStoredResonanceType(target);
+        
+        if (storedResonanceType != null) {
+            // Convert prismatic damage to the stored resonance type
+            // This damage does NOT accumulate resonance
+            float damageMultiplier = 1.0f;
+
+            // Apply modifiers based on the converted element type
+            if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
+                int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
+                float reduction = 1.0f - ((amplifier + 1) * 0.20f);
+                reduction = Math.max(0.1f, reduction);
+                damageMultiplier *= reduction;
+            }
+
+            if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
+                int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
+                damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+            }
+            if (target.hasEffect(AbloomModEffects.BLOOM)) {
+                int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+                damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+            }
+            if (target.hasEffect(AbloomModEffects.DISPERSION)) {
+                float dispersionBonus = getDispersionBonus(storedResonanceType);
+                damageMultiplier *= 1.0f + dispersionBonus;
+            }
+
+            float damage = currentDamage * damageMultiplier;
+            float armorResistanceBonus = getArmorResistanceBonus(target, storedResonanceType);
+            
+            float finalDamage = damage;
+            finalDamage = ElementResistanceManager.calculateReducedDamage(target, storedResonanceType, finalDamage);
+            finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+
+            // Display as the converted element type
+            if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, storedResonanceType);
+            
+            return finalDamage;
+        }
+
+        // No stored resonance - check if target has any elemental resonance active
+        // Look for any resonance type that has accumulated points
+        ElementType activeResonanceType = getActiveResonanceType(target);
+        
+        if (activeResonanceType != null) {
+            // Target has resonance from another element - activate Prism effect
+            PrismEffect.setStoredResonanceType(target, activeResonanceType);
+            target.addEffect(new net.minecraft.world.effect.MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
+            spawnStatusText(target, Component.translatable("elemental.tooltip.prism_activated"), 0xFFFFFF);
+            
+            // Process this hit as the resonant type (without accumulating)
+            return processPrismaticDamage(target, source, baseDamage, currentDamage, attacker);
+        }
+
+        // No resonance active - deal prismatic damage normally but without accumulation
+        float damage = currentDamage;
+        float armorResistanceBonus = getArmorResistanceBonus(target, ElementType.PRISMATIC);
+        
+        float finalDamage = damage;
+        finalDamage = ElementResistanceManager.calculateReducedDamage(target, ElementType.PRISMATIC, finalDamage);
+        finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+
+        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, ElementType.PRISMATIC);
+        
+        return finalDamage;
+    }
+
+    /**
+     * Gets the active resonance type for an entity (any element type with accumulated points > 0).
+     * Returns null if no resonance is active.
+     */
+    private static ElementType getActiveResonanceType(LivingEntity entity) {
+        if (entity == null) return null;
+        
+        for (ElementType type : ElementType.values()) {
+            if (type == ElementType.PRISMATIC) continue; // Skip prismatic itself
+            
+            int points = AbloomModAttachments.getPoints(entity, type);
+            if (points > 0) {
+                return type;
+            }
+        }
+        return null;
     }
 
     @SubscribeEvent

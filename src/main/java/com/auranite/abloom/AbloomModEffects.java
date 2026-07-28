@@ -39,6 +39,10 @@ public class AbloomModEffects {
         MobEffectInstance effectInstance = event.getEffectInstance();
         if (effectInstance != null) {
             expireEffects(event.getEntity(), effectInstance);
+            // Clear prism resonance type when Prism effect is removed
+            if (effectInstance.is(AbloomModEffects.PRISM)) {
+                PrismEffect.clearStoredResonanceType(event.getEntity());
+            }
         }
     }
 
@@ -47,6 +51,10 @@ public class AbloomModEffects {
         MobEffectInstance effectInstance = event.getEffectInstance();
         if (effectInstance != null) {
             expireEffects(event.getEntity(), effectInstance);
+            // Clear prism resonance type when Prism effect expires
+            if (effectInstance.is(AbloomModEffects.PRISM)) {
+                PrismEffect.clearStoredResonanceType(event.getEntity());
+            }
         }
     }
 

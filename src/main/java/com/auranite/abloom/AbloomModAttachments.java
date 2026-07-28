@@ -87,4 +87,28 @@ public class AbloomModAttachments {
             entity.setData(PROJECTILE_ELEMENT.get(), null);
         }
     }
+
+    public static void setPrismResonanceType(LivingEntity entity, ElementType type) {
+        if (entity != null && !entity.level().isClientSide) {
+            entity.setData(PRISM_RESONANCE_TYPE.get(), type);
+        }
+    }
+
+    public static ElementType getPrismResonanceType(LivingEntity entity) {
+        if (entity != null) {
+            return entity.getData(PRISM_RESONANCE_TYPE.get());
+        }
+        return null;
+    }
+
+    public static boolean hasPrismResonanceType(LivingEntity entity) {
+        ElementType type = getPrismResonanceType(entity);
+        return type != null;
+    }
+
+    public static void clearPrismResonanceType(LivingEntity entity) {
+        if (entity != null && !entity.level().isClientSide) {
+            entity.setData(PRISM_RESONANCE_TYPE.get(), null);
+        }
+    }
 }
