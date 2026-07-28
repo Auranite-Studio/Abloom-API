@@ -1,6 +1,5 @@
 package com.auranite.abloom;
 
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -70,7 +69,6 @@ public class ElementDamageHandler {
     private static ElementDamageDisplayManager displayManager;
 
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
-    private static final ThreadLocal<Boolean> IS_PRISM_CONVERSION = ThreadLocal.withInitial(() -> false);
 
     private static final int MAX_ACTIVE_DISPLAYS = 500;
     private static int currentDisplayCount = 0;
@@ -180,7 +178,6 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
         ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFFFE0);
         ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.PRISMATIC, 0x000000); // Rainbow will be handled dynamically
     }
 
     /**
@@ -298,11 +295,6 @@ public class ElementDamageHandler {
             return currentDamage;
         }
 
-        // Special handling for PRISMATIC damage
-        if (type == ElementType.PRISMATIC) {
-            return processPrismaticDamage(target, source, baseDamage, currentDamage, attacker);
-        }
-
         float damageMultiplier = 1.0f;
 
         // Modifiers from attacker
@@ -366,201 +358,33 @@ public class ElementDamageHandler {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
         }
 
-        // Don't add accumulation points or trigger threshold effects if this is a Prism conversion
-        // Prism conversion should only apply damage, not trigger resonances
-        if (!IS_PRISM_CONVERSION.get()) {
-            if (erosionActive && type != ElementType.WIND) {
-                spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
-                pointsToAdd = 100;
-                target.removeEffect(AbloomModEffects.WINDSWEPT);
-            }
-
-            AbloomModAttachments.addPoints(target, type, pointsToAdd);
-            int pointsAfter = AbloomModAttachments.getPoints(target, type);
-            boolean thresholdReached = pointsAfter >= THRESHOLD;
-            if (AbloomMod.LOGGER.isDebugEnabled()) {
-                AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
-            }
-
-            float finalDamage = damage;
-            finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
-            
-            finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
-            if (thresholdReached) {
-                if (AbloomMod.LOGGER.isDebugEnabled()) {
-                    AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
-                }
-                finalDamage = applyThresholdEffect(target, type, finalDamage);
-                AbloomModAttachments.resetPoints(target, type);
-            }
-            if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
-            updateLastDamageTime(target, type);
-            return finalDamage;
+        if (erosionActive && type != ElementType.WIND) {
+            spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
+            pointsToAdd = 100;
+            target.removeEffect(AbloomModEffects.WINDSWEPT);
         }
-        
-        // For Prism conversion, just apply damage without accumulation or threshold effects
+
+        AbloomModAttachments.addPoints(target, type, pointsToAdd);
+        int pointsAfter = AbloomModAttachments.getPoints(target, type);
+        boolean thresholdReached = pointsAfter >= THRESHOLD;
+        if (AbloomMod.LOGGER.isDebugEnabled()) {
+            AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
+        }
+
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+        
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+        if (thresholdReached) {
+            if (AbloomMod.LOGGER.isDebugEnabled()) {
+                AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
+            }
+            finalDamage = applyThresholdEffect(target, type, finalDamage);
+            AbloomModAttachments.resetPoints(target, type);
+        }
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
         updateLastDamageTime(target, type);
         return finalDamage;
-    }
-
-    /**
-     * Processes prismatic damage with resonance conversion mechanics.
-     * Prismatic damage does NOT accumulate its own resonance.
-     * If the target has any other elemental resonance effect, prismatic damage:
-     * 1. Activates the Prism effect for 20 seconds
-     * 2. Converts all incoming prismatic damage to elemental damage of the resonance type
-     * @param target the living entity taking damage
-     * @param source the damage source
-     * @param baseDamage the initial damage before any modifications
-     * @param currentDamage the current damage value
-     * @param attacker the attacking entity (if any)
-     * @return the final damage after processing
-     */
-    private static float processPrismaticDamage(LivingEntity target, DamageSource source, float baseDamage, float currentDamage, LivingEntity attacker) {
-        // Check if target has the Prism effect
-        boolean prismActive = target.hasEffect(AbloomModEffects.PRISM);
-        
-        // Get the current stored resonance type
-        ElementType storedResonanceType = target.getData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get());
-        
-        // Check if target has any active elemental resonance effect (except PRISM)
-        ElementType activeResonanceType = null;
-        
-        if (target.hasEffect(AbloomModEffects.BURN)) activeResonanceType = ElementType.FIRE;
-        else if (target.hasEffect(AbloomModEffects.RUPTURE)) activeResonanceType = ElementType.PHYSICAL;
-        else if (target.hasEffect(AbloomModEffects.WINDSWEPT)) activeResonanceType = ElementType.WIND;
-        else if (target.hasEffect(AbloomModEffects.WETNESS)) activeResonanceType = ElementType.WATER;
-        else if (target.hasEffect(AbloomModEffects.STUN)) activeResonanceType = ElementType.EARTH;
-        else if (target.hasEffect(AbloomModEffects.FREEZE)) activeResonanceType = ElementType.ICE;
-        else if (target.hasEffect(AbloomModEffects.SHOCK)) activeResonanceType = ElementType.ELECTRIC;
-        else if (target.hasEffect(AbloomModEffects.OVERLOAD)) activeResonanceType = ElementType.ENERGY;
-        else if (target.hasEffect(AbloomModEffects.BLOOM)) activeResonanceType = ElementType.NATURAL;
-        else if (target.hasEffect(AbloomModEffects.BREAK)) activeResonanceType = ElementType.QUANTUM;
-        else if (target.hasEffect(AbloomModEffects.CORRUPTION)) activeResonanceType = ElementType.ETHER;
-        else if (target.hasEffect(AbloomModEffects.DISPERSION)) activeResonanceType = ElementType.LIGHT;
-        else if (target.hasEffect(AbloomModEffects.ECLIPSE)) activeResonanceType = ElementType.SHADOW;
-        
-        // Determine which resonance type to use
-        // Priority: 1) active resonance, 2) stored resonance, 3) none
-        ElementType resonanceType = null;
-        
-        if (activeResonanceType != null) {
-            // There is an active resonance effect
-            resonanceType = activeResonanceType;
-            
-            // Update Prism effect if it's already active, or activate it if not
-            if (prismActive) {
-                // Prism already active - update the stored type
-                target.setData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get(), resonanceType);
-                // Extend the Prism effect duration to 20 seconds from now
-                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
-            } else {
-                // Activate Prism effect for 20 seconds
-                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
-                target.setData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get(), resonanceType);
-            }
-        } else if (storedResonanceType != null && prismActive) {
-            // No active resonance but Prism is active and has stored type
-            // Use the stored type - resonance effect has ended but Prism still works
-            resonanceType = storedResonanceType;
-        }
-        
-        if (resonanceType != null) {
-            // Store the resonance type for damage conversion
-            target.setData(AbloomModAttachments.PRISM_RESONANCE_TYPE.get(), resonanceType);
-            
-            // Convert prismatic damage to the resonance type by creating a new damage source
-            // The ElementDamageHandler will process this as elemental damage of the resonance type
-            if (!target.level().isClientSide()) {
-                spawnDamageNumber(target, currentDamage, resonanceType);
-                return convertPrismaticDamageToElemental(target, source, resonanceType, currentDamage);
-            }
-            
-            return currentDamage;
-        } else {
-            // No active resonance and no stored resonance type - just deal prismatic damage
-            // Spawn damage number but don't add accumulation points
-            if (canShowDamage(target)) {
-                spawnDamageNumber(target, currentDamage, ElementType.PRISMATIC);
-            }
-            
-            // Check armor resistance for prismatic damage
-            float armorResistanceBonus = getArmorResistanceBonus(target, ElementType.PRISMATIC);
-            float finalDamage = applyArmorResistance(currentDamage, armorResistanceBonus);
-            
-            updateLastDamageTime(target, ElementType.PRISMATIC);
-            return finalDamage;
-        }
-    }
-
-    /**
-     * Converts prismatic damage to elemental damage of the specified type.
-     */
-    private static float convertPrismaticDamageToElemental(LivingEntity target, DamageSource originalSource, ElementType elementType, float damageAmount) {
-        if (target.level().isClientSide()) {
-            return damageAmount;
-        }
-        
-        ServerLevel level = (ServerLevel) target.level();
-        var damageTypeRegistry = level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE);
-        Identifier rl = Identifier.fromNamespaceAndPath(AbloomMod.MODID, elementType.getDamageTypeId());
-        var damageTypeHolder = damageTypeRegistry.get(rl);
-        
-        if (damageTypeHolder.isPresent()) {
-            // Use entity() and getDirectEntity() for NeoForge DamageSource
-            DamageSource elementalSource = new DamageSource(damageTypeHolder.get(), originalSource.getEntity(), originalSource.getDirectEntity());
-            
-            // Mark this as a Prism conversion to prevent triggering resonance effects
-            IS_PRISM_CONVERSION.set(true);
-            try {
-                // Create a fake event to process the elemental damage
-                // We need to manually call the processing logic since we can't trigger another event
-                float processedDamage = damageAmount;
-                
-                // Apply resistance from target
-                processedDamage = ElementResistanceManager.calculateReducedDamage(target, elementType, processedDamage);
-                
-                // Apply armor resistance
-                float armorResistanceBonus = getArmorResistanceBonus(target, elementType);
-                processedDamage = applyArmorResistance(processedDamage, armorResistanceBonus);
-                
-                // Don't add accumulation points for Prism conversion - just apply damage
-                // The damage is converted but shouldn't trigger resonance effects
-                
-                updateLastDamageTime(target, elementType);
-                return processedDamage;
-            } finally {
-                IS_PRISM_CONVERSION.set(false);
-            }
-        }
-        
-        return damageAmount;
-    }
-
-    /**
-     * Gets the display color for a resonance effect type.
-     */
-    private static int getResonanceColor(ElementType type) {
-        return switch (type) {
-            case FIRE -> 0xFF5500;
-            case PHYSICAL -> 0xC0C0C0;
-            case WIND -> 0x00FFFF;
-            case WATER -> 0x0080FF;
-            case EARTH -> 0x8B4513;
-            case ICE -> 0x00BFFF;
-            case ELECTRIC -> 0xFF19FF;
-            case ENERGY -> 0xFFFF00;
-            case NATURAL -> 0x32CD32;
-            case QUANTUM -> 0x9400D3;
-            case ETHER -> 0x24B3A7;
-            case LIGHT -> 0xFFFFE0;
-            case SHADOW -> 0x4B0082;
-            default -> 0xFFFFFF;
-        };
     }
 
     @SubscribeEvent

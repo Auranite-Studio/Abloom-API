@@ -8,7 +8,7 @@
 
 ### Element System
 
-The mod defines 14 element types:
+The mod defines 13 element types:
 
 | Element | Damage ID | Damage Color |
 |---------|----------|------------|
@@ -25,17 +25,6 @@ The mod defines 14 element types:
 | ETHER | `ether_dmg` | #24B3A7 |
 | LIGHT | `light_dmg` | #FFFFE0 |
 | SHADOW | `shadow_dmg` | #4B0082 |
-| **PRISMATIC** | `prismatic_dmg` | *Rainbow (dynamic)* |
-
-### Prismatic Damage
-
-Prismatic damage is a special damage type that doesn't accumulate resonance points on its own. Instead, when a target with an active elemental resonance receives prismatic damage, the damage is converted to the type of the active resonance:
-
-- **Conversion Mechanic**: Prismatic damage is automatically converted to the element of the target's active resonance effect
-- **No Accumulation**: Converted prismatic damage does NOT add resonance points to the target
-- **No Threshold Effects**: The resonance effect itself is NOT triggered by the converted damage
-- **Prism Effect**: Targets with the Prism effect maintain their stored resonance type even after the resonance effect expires
-- **Effect Duration**: 20 seconds (400 ticks)
 
 ### Resonance Accumulation Mechanics
 

@@ -81,8 +81,6 @@ public class ElementDamageDisplayManager {
 
     private static int getDamageColor(ElementType type) {
         if (type == null) return 0xFFFFFF;
-        // Для призматического урона возвращаем специальное значение -1 для радужного цвета
-        if (type == ElementType.PRISMATIC) return -1;
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
     }
 
@@ -446,7 +444,6 @@ public class ElementDamageDisplayManager {
             int originalColor = (int) physics[5];
             double floatPhase = physics[6];
             boolean isBreak = physics[7] == 1.0;
-            boolean isPrismatic = originalColor == -1; // Призматический урон (радужный цвет)
 
             if (info != null && info.isStatus) {
                 floatPhase += STATUS_FLOAT_SPEED;
@@ -456,20 +453,9 @@ public class ElementDamageDisplayManager {
                 display.setPos(display.getX(), display.getY() + floatOffset, display.getZ());
 
                 double pulse = (Math.sin(floatPhase * 2) + 1) / 2;
-                int r, g, b;
-                
-                // Если призматический урон, используем радужный цвет
-                if (isPrismatic) {
-                    int rainbowHue = (int) ((ticksAlive * 10 + floatPhase * 10) % 360);
-                    int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
-                    r = rgb[0];
-                    g = rgb[1];
-                    b = rgb[2];
-                } else {
-                    r = (originalColor >> 16) & 0xFF;
-                    g = (originalColor >> 8) & 0xFF;
-                    b = originalColor & 0xFF;
-                }
+                int r = (originalColor >> 16) & 0xFF;
+                int g = (originalColor >> 8) & 0xFF;
+                int b = originalColor & 0xFF;
 
                 int shimmerR = (int) (r + (255 - r) * pulse * 0.5);
                 int shimmerG = (int) (g + (255 - g) * pulse * 0.5);
@@ -490,20 +476,9 @@ public class ElementDamageDisplayManager {
                 if (isBreak) {
                     double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0;
 
-                    int r, g, b;
-                    
-                    // Если призматический урон, используем радужный цвет
-                    if (isPrismatic) {
-                        int rainbowHue = (int) ((ticksAlive * 20) % 360);
-                        int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
-                        r = rgb[0];
-                        g = rgb[1];
-                        b = rgb[2];
-                    } else {
-                        r = (originalColor >> 16) & 0xFF;
-                        g = (originalColor >> 8) & 0xFF;
-                        b = originalColor & 0xFF;
-                    }
+                    int r = (originalColor >> 16) & 0xFF;
+                    int g = (originalColor >> 8) & 0xFF;
+                    int b = originalColor & 0xFF;
 
                     int shimmerR = (int) (r + (255 - r) * pulse * BREAK_SHIMMER_INTENSITY);
                     int shimmerG = (int) (g + (255 - g) * pulse * BREAK_SHIMMER_INTENSITY);
@@ -512,14 +487,7 @@ public class ElementDamageDisplayManager {
                     finalColor = (shimmerR << 16) | (shimmerG << 8) | shimmerB;
 
                 } else {
-                    // Если призматический урон, используем радужный цвет
-                    if (isPrismatic) {
-                        int rainbowHue = (int) ((ticksAlive * 10) % 360);
-                        int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
-                        finalColor = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-                    } else {
-                        finalColor = originalColor;
-                    }
+                    finalColor = originalColor;
                 }
 
                 int fadeStartTick = (int) (maxTicks * 0.7);
@@ -552,53 +520,6 @@ public class ElementDamageDisplayManager {
                 schedulePhysicsUpdate(level, displayUuid);
             }
         });
-    }
-
-    /**
-     * Converts HSB color to RGB
-     */
-    private static int[] hsbToRgb(int hue, float saturation, float brightness) {
-        int h = hue % 360;
-        float s = saturation;
-        float b = brightness;
-
-        float c = b * s;
-        float x = c * (1 - Math.abs((h / 60f) % 2 - 1));
-        float m = b - c;
-
-        float r, g, bVal;
-
-        if (h < 60) {
-            r = c;
-            g = x;
-            bVal = 0;
-        } else if (h < 120) {
-            r = x;
-            g = c;
-            bVal = 0;
-        } else if (h < 180) {
-            r = 0;
-            g = c;
-            bVal = x;
-        } else if (h < 240) {
-            r = 0;
-            g = x;
-            bVal = c;
-        } else if (h < 300) {
-            r = x;
-            g = 0;
-            bVal = c;
-        } else {
-            r = c;
-            g = 0;
-            bVal = x;
-        }
-
-        int red = (int) ((r + m) * 255);
-        int green = (int) ((g + m) * 255);
-        int blue = (int) ((bVal + m) * 255);
-
-        return new int[]{red, green, blue};
     }
 
     private void safeRemoveDisplay(ServerLevel level, UUID displayUuid, TextDisplay display, DisplayInfo info) {
