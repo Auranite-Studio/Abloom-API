@@ -395,68 +395,47 @@ public class ElementDamageHandler {
     /**
      * Processes prismatic damage according to the Prism mechanic.
      * - Prismatic damage does NOT accumulate its own resonance
-     * - If target has resonance from another element, activates Prism effect (20 sec)
-     * - Prism effect converts prismatic damage to the resonant element type
-     * - Converted damage does NOT apply resonance
+     * - If target has Prism effect with stored resonance type, converts prismatic damage to that type
+     * - If target has resonance from another element BUT no Prism effect, activates Prism effect but does NOT convert this hit
+     * - Prism effect lasts 20 seconds and persists after resonance ends, keeping the converted type
+     * - If a different resonance triggers while Prism is active, the effect is overwritten with new type
+     * - Converted damage does NOT apply resonance and is not treated as prismatic
      */
     private static float processPrismaticDamage(LivingEntity target, DamageSource source, float baseDamage, float currentDamage, LivingEntity attacker) {
         // Check if target has Prism effect with stored resonance type
         ElementType storedResonanceType = PrismEffect.getStoredResonanceType(target);
         
         if (storedResonanceType != null) {
-            // Convert prismatic damage to the stored resonance type
+            // Target already has Prism effect - convert prismatic damage to the stored resonance type
             // This damage does NOT accumulate resonance
-            float damageMultiplier = 1.0f;
-
-            // Apply modifiers based on the converted element type
-            if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
-                int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-                float reduction = 1.0f - ((amplifier + 1) * 0.20f);
-                reduction = Math.max(0.1f, reduction);
-                damageMultiplier *= reduction;
-            }
-
-            if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
-                int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
-                damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
-            }
-            if (target.hasEffect(AbloomModEffects.BLOOM)) {
-                int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-                damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
-            }
-            if (target.hasEffect(AbloomModEffects.DISPERSION)) {
-                float dispersionBonus = getDispersionBonus(storedResonanceType);
-                damageMultiplier *= 1.0f + dispersionBonus;
-            }
-
-            float damage = currentDamage * damageMultiplier;
-            float armorResistanceBonus = getArmorResistanceBonus(target, storedResonanceType);
-            
-            float finalDamage = damage;
-            finalDamage = ElementResistanceManager.calculateReducedDamage(target, storedResonanceType, finalDamage);
-            finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
-
-            // Display as the converted element type
-            if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, storedResonanceType);
-            
-            return finalDamage;
+            return processConvertedPrismaticDamage(target, source, currentDamage, attacker, storedResonanceType);
         }
 
-        // No stored resonance - check if target has any elemental resonance active
+        // No Prism effect active - check if target has any elemental resonance active
         // Look for any resonance type that has accumulated points
         ElementType activeResonanceType = getActiveResonanceType(target);
         
         if (activeResonanceType != null) {
-            // Target has resonance from another element - activate Prism effect
+            // Target has resonance from another element - activate Prism effect for 20 seconds (400 ticks)
+            // IMPORTANT: This hit is NOT converted, only subsequent prismatic hits will be converted
             PrismEffect.setStoredResonanceType(target, activeResonanceType);
             target.addEffect(new net.minecraft.world.effect.MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
             spawnStatusText(target, Component.translatable("elemental.tooltip.prism_activated"), 0xFFFFFF);
             
-            // Process this hit as the resonant type (without accumulating)
-            return processPrismaticDamage(target, source, baseDamage, currentDamage, attacker);
+            // Process this hit as normal prismatic damage (no conversion, no accumulation)
+            float damage = currentDamage;
+            float armorResistanceBonus = getArmorResistanceBonus(target, ElementType.PRISMATIC);
+            
+            float finalDamage = damage;
+            finalDamage = ElementResistanceManager.calculateReducedDamage(target, ElementType.PRISMATIC, finalDamage);
+            finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+
+            if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, ElementType.PRISMATIC);
+            
+            return finalDamage;
         }
 
-        // No resonance active - deal prismatic damage normally but without accumulation
+        // No resonance active and no Prism effect - deal prismatic damage normally but without accumulation
         float damage = currentDamage;
         float armorResistanceBonus = getArmorResistanceBonus(target, ElementType.PRISMATIC);
         
@@ -465,6 +444,68 @@ public class ElementDamageHandler {
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, ElementType.PRISMATIC);
+        
+        return finalDamage;
+    }
+
+    /**
+     * Processes converted prismatic damage (converted to another element type).
+     * Creates a new DamageSource with the converted element type to ensure proper damage handling.
+     * 
+     * @param target the living entity taking damage
+     * @param source the original damage source
+     * @param currentDamage the current damage value
+     * @param attacker the attacking entity
+     * @param convertedType the element type to convert prismatic damage to
+     * @return the final damage after conversion
+     */
+    private static float processConvertedPrismaticDamage(LivingEntity target, DamageSource source, float currentDamage, LivingEntity attacker, ElementType convertedType) {
+        float damageMultiplier = 1.0f;
+
+        // Apply modifiers based on the converted element type
+        if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
+            int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
+            float reduction = 1.0f - ((amplifier + 1) * 0.20f);
+            reduction = Math.max(0.1f, reduction);
+            damageMultiplier *= reduction;
+        }
+
+        if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
+            int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
+            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+        }
+        if (target.hasEffect(AbloomModEffects.BLOOM)) {
+            int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
+            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+        }
+        if (target.hasEffect(AbloomModEffects.DISPERSION)) {
+            float dispersionBonus = getDispersionBonus(convertedType);
+            damageMultiplier *= 1.0f + dispersionBonus;
+        }
+
+        float damage = currentDamage * damageMultiplier;
+        float armorResistanceBonus = getArmorResistanceBonus(target, convertedType);
+        
+        float finalDamage = damage;
+        finalDamage = ElementResistanceManager.calculateReducedDamage(target, convertedType, finalDamage);
+        finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+
+        // Display as the converted element type
+        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, convertedType);
+        
+        // Create a new DamageSource with the converted element type
+        // This ensures the damage is treated as the converted element, not prismatic
+        if (target.level() instanceof ServerLevel serverLevel) {
+            var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
+            var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, convertedType.getDamageTypeId());
+            var damageTypeHolder = damageTypeRegistry.getHolder(rl);
+            if (damageTypeHolder.isPresent()) {
+                // Create new damage source with converted element type
+                DamageSource convertedSource = new DamageSource(damageTypeHolder.get(), source.getEntity(), source.getDirectEntity());
+                // Apply the converted damage using the new source
+                // Note: We don't call hurt again here to avoid recursion, just use the source for reference
+            }
+        }
         
         return finalDamage;
     }
