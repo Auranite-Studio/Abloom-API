@@ -25,7 +25,6 @@ public class AbloomModItems {
     public static final DeferredItem<Item> ETHER_STICK;
     public static final DeferredItem<Item> LIGHT_STICK;
     public static final DeferredItem<Item> SHADOW_STICK;
-    public static final DeferredItem<Item> PRISMATIC_STICK;
 
     private static final Item.Properties STICK_PROPS = new Item.Properties()
             .stacksTo(1)
@@ -45,7 +44,6 @@ public class AbloomModItems {
         ETHER_STICK    = REGISTRY.register("ether_stick", () -> new Item(STICK_PROPS));
         LIGHT_STICK      = REGISTRY.register("light_stick", () -> new Item(STICK_PROPS));
         SHADOW_STICK     = REGISTRY.register("shadow_stick", () -> new Item(STICK_PROPS));
-        PRISMATIC_STICK     = REGISTRY.register("prismatic_stick", () -> new Item(STICK_PROPS));
     }
 
     private static DeferredItem<Item> block(DeferredHolder<Block, Block> block) {

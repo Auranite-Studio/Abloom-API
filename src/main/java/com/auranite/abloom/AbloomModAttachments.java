@@ -26,11 +26,6 @@ public class AbloomModAttachments {
                     AttachmentType.<ElementType>builder(() -> null).build()
             );
 
-    public static final Supplier<AttachmentType<ElementType>> PRISM_RESONANCE_TYPE =
-            ATTACHMENT_TYPES.register("prism_resonance_type", () ->
-                    AttachmentType.<ElementType>builder(() -> null).build()
-            );
-
     public static void register(IEventBus modEventBus) {
         ATTACHMENT_TYPES.register(modEventBus);
     }

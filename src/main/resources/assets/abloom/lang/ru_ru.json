@@ -101,13 +101,5 @@
   "elemental.tooltip.shadow_eclipse": "ЗАТМЕНИЕ!",
   "effect.abloom.eclipse": "Затмение",
   "elemental.resistance.shadow": "Сопр. теневому урону: ",
-  "item.abloom.shadow_stick": "Теневая палочка",
-  "elemental.tooltip.prismatic": "Призматический урон",
-  "elemental.resistance.prismatic": "Сопр. призматическому урону: ",
-  "item.abloom.prismatic_stick": "Призматическая палочка",
-  "effect.abloom.prism": "Призма",
-  "death.attack.prismatic_dmg": "%1$s died",
-  "death.attack.prismatic_dmg.item": "%1$s was killed by %2$s using %3$s",
-  "death.attack.prismatic_dmg.player": "%1$s died whilst trying to escape %2$s",
-  "elemental.tooltip.conversion": "КОНВЕРТАЦИЯ!"
+  "item.abloom.shadow_stick": "Теневая палочка"
 }

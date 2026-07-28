@@ -25,7 +25,6 @@ public class ElementalTooltipHandler {
     private static final String KEY_ELEMENT_ETHER = "elemental.tooltip.ether";
     private static final String KEY_ELEMENT_LIGHT = "elemental.tooltip.light";
     private static final String KEY_ELEMENT_SHADOW = "elemental.tooltip.shadow";
-    private static final String KEY_ELEMENT_PRISMATIC = "elemental.tooltip.prismatic";
     private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
     private static final String KEY_ACCUM_POINTS = "elemental.tooltip.accum_points";
 
@@ -43,7 +42,6 @@ public class ElementalTooltipHandler {
     private static final String KEY_RESISTANCE_ETHER = "elemental.resistance.ether";
     private static final String KEY_RESISTANCE_LIGHT = "elemental.resistance.light";
     private static final String KEY_RESISTANCE_SHADOW = "elemental.resistance.shadow";
-    private static final String KEY_RESISTANCE_PRISMATIC = "elemental.resistance.prismatic";
     private static final String KEY_RESISTANCE_DEFAULT = "elemental.resistance.element";
 
     private static int getElementColor(ElementType type) {
@@ -61,7 +59,6 @@ public class ElementalTooltipHandler {
             case ETHER -> 0x24B3A7;
             case LIGHT -> 0xFFFFE0;
             case SHADOW -> 0x4B0082;
-            case PRISMATIC -> 0xFFFFFF; // White color for tooltip (rainbow handled in ElementDamageDisplayManager)
             default -> 0xFFFFFF;
         };
     }
@@ -108,7 +105,6 @@ public class ElementalTooltipHandler {
             case ETHER -> Component.translatable(KEY_ELEMENT_ETHER);
             case LIGHT -> Component.translatable(KEY_ELEMENT_LIGHT);
             case SHADOW -> Component.translatable(KEY_ELEMENT_SHADOW);
-            case PRISMATIC -> Component.translatable(KEY_ELEMENT_PRISMATIC);
             default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
         };
         text.setStyle(text.getStyle().withColor(getElementColor(type)));
@@ -153,7 +149,6 @@ public class ElementalTooltipHandler {
             case ETHER -> Component.translatable(KEY_RESISTANCE_ETHER);
             case LIGHT -> Component.translatable(KEY_RESISTANCE_LIGHT);
             case SHADOW -> Component.translatable(KEY_RESISTANCE_SHADOW);
-            case PRISMATIC -> Component.translatable(KEY_RESISTANCE_PRISMATIC);
             default -> Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
         };
 
