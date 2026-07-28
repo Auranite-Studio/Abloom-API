@@ -26,7 +26,6 @@ public class AbloomModItems {
     public static final DeferredItem<Item> ETHER_STICK;
     public static final DeferredItem<Item> LIGHT_STICK;
     public static final DeferredItem<Item> SHADOW_STICK;
-    public static final DeferredItem<Item> PRISMATIC_STICK;
 
     static {
         FIRE_STICK     = register("fire_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
@@ -42,7 +41,6 @@ public class AbloomModItems {
         ETHER_STICK  = register("ether_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
         LIGHT_STICK  = register("light_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
         SHADOW_STICK  = register("shadow_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
-        PRISMATIC_STICK  = register("prismatic_stick", properties -> new Item(properties.stacksTo(1).rarity(Rarity.RARE)));
     }
 
     private static <I extends Item> DeferredItem<I> register(String name, Function<Item.Properties, ? extends I> supplier) {
