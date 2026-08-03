@@ -9,7 +9,7 @@ base.archivesName = "Abloom-API"
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
-    version = "26.2.0.9-beta"
+    version = "26.2.0.45-beta"
 
     runs {
         client {
