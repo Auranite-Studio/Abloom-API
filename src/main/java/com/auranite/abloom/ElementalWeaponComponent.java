@@ -10,20 +10,28 @@ public class ElementalWeaponComponent {
 
     public static final String ELEMENT_TYPE_KEY = "element_type";
     public static final String ACCUM_POINTS_KEY = "accum_points";
+    public static final String CRIT_CHANCE_KEY = "crit_chance";
+    public static final String CRIT_DAMAGE_KEY = "crit_damage";
 
     private static final CustomData EMPTY_DATA = CustomData.EMPTY;
 
     public static ItemStack withElement(ItemStack stack, ElementType type) {
-        return withElementAndAccum(stack, type, 1f);
+        return withElementAndAccum(stack, type, 1f, 0.0f, 0.0f);
     }
 
     public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints) {
+        return withElementAndAccum(stack, type, accumPoints, 0.0f, 0.0f);
+    }
+
+    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints, float critChance, float critDamage) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, EMPTY_DATA);
         customData.update(tag -> {
             tag.putString(ELEMENT_TYPE_KEY, type.name());
             tag.putFloat(ACCUM_POINTS_KEY, accumPoints);
+            tag.putFloat(CRIT_CHANCE_KEY, critChance);
+            tag.putFloat(CRIT_DAMAGE_KEY, critDamage);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);
 
@@ -49,6 +57,24 @@ public class ElementalWeaponComponent {
         return customData.copyTag().getFloat(ACCUM_POINTS_KEY);
     }
 
+    public static float getCritChance(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0.0f;
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) return 0.0f;
+
+        return customData.copyTag().getFloat(CRIT_CHANCE_KEY);
+    }
+
+    public static float getCritDamage(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0.0f;
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) return 0.0f;
+
+        return customData.copyTag().getFloat(CRIT_DAMAGE_KEY);
+    }
+
     public static boolean hasElement(ItemStack stack) {
         return getElement(stack).isPresent();
     }
@@ -61,6 +87,8 @@ public class ElementalWeaponComponent {
             customData.update(tag -> {
                 tag.remove(ELEMENT_TYPE_KEY);
                 tag.remove(ACCUM_POINTS_KEY);
+                tag.remove(CRIT_CHANCE_KEY);
+                tag.remove(CRIT_DAMAGE_KEY);
             });
             stack.set(DataComponents.CUSTOM_DATA, customData);
         }

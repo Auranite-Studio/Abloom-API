@@ -12,11 +12,15 @@ public class ElementalWeaponData {
     private final String item;
     private final String element;
     private final float accumulationMultiplier;
+    private final float critChance;
+    private final float critDamage;
 
-    public ElementalWeaponData(String item, String element, float accumulationMultiplier) {
+    public ElementalWeaponData(String item, String element, float accumulationMultiplier, float critChance, float critDamage) {
         this.item = item;
         this.element = element;
         this.accumulationMultiplier = accumulationMultiplier;
+        this.critChance = critChance;
+        this.critDamage = critDamage;
     }
 
     public String getItem() {
@@ -29,6 +33,14 @@ public class ElementalWeaponData {
 
     public float getAccumulationMultiplier() {
         return accumulationMultiplier;
+    }
+
+    public float getCritChance() {
+        return critChance;
+    }
+
+    public float getCritDamage() {
+        return critDamage;
     }
 
     public Optional<ResourceLocation> getItemResourceLocation() {
@@ -49,7 +61,9 @@ public class ElementalWeaponData {
         String item = GsonHelper.getAsString(json, "item");
         String element = GsonHelper.getAsString(json, "element");
         float accumulationMultiplier = GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f);
+        float critChance = GsonHelper.getAsFloat(json, "crit_chance", 0.0f);
+        float critDamage = GsonHelper.getAsFloat(json, "crit_damage", 0.0f);
 
-        return new ElementalWeaponData(item, element, accumulationMultiplier);
+        return new ElementalWeaponData(item, element, accumulationMultiplier, critChance, critDamage);
     }
 }
