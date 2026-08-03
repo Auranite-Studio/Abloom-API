@@ -80,7 +80,7 @@ public class ElementalTooltipHandler {
         float critChance = ElementalWeaponUtils.getCritChance(stack);
         float critDamage = ElementalWeaponUtils.getCritDamage(stack);
 
-        if (type != null) {
+            if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
         }
@@ -106,7 +106,7 @@ public class ElementalTooltipHandler {
             }
         }
 
-        if (accumPoints != 1.0f) {
+        if (accumPoints != 0.0f && accumPoints != 1.0f) {
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_POINTS,
                     String.format("%d", Math.round(accumPoints))
