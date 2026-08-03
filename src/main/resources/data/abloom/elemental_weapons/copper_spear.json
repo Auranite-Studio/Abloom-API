@@ -1,5 +1,7 @@
 {
   "item": "minecraft:copper_spear",
   "element": "PHYSICAL",
+  "crit_chance": 0.24,
+  "crit_damage": 0.75,
   "accumulation_multiplier": 6.0
 }
