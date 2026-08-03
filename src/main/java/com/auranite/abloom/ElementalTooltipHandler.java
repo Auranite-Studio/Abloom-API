@@ -85,15 +85,6 @@ public class ElementalTooltipHandler {
             event.getToolTip().add(1, elementText);
         }
 
-        if (accumPoints != 1.0f) {
-            MutableComponent accumText = Component.translatable(
-                    KEY_ACCUM_POINTS,
-                    String.format("%d", Math.round(accumPoints))
-            );
-            accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
-            event.getToolTip().add(Component.literal(" ").append(accumText));
-        }
-
         if (critChance > 0.0f || critDamage > 0.0f) {
             if (critChance > 0.0f) {
                 int percent = Math.round(critChance * 100);
@@ -101,8 +92,8 @@ public class ElementalTooltipHandler {
                         KEY_CRIT_CHANCE,
                         percent
                 );
-                critChanceText.setStyle(critChanceText.getStyle().withColor(0xFFD700));
-                event.getToolTip().add(critChanceText);
+                critChanceText.setStyle(critChanceText.getStyle().withColor(0x00AA00));
+                event.getToolTip().add(Component.literal(" ").append(critChanceText));
             }
             if (critDamage > 0.0f) {
                 int percent = Math.round(critDamage * 100);
@@ -110,9 +101,18 @@ public class ElementalTooltipHandler {
                         KEY_CRIT_DAMAGE,
                         percent
                 );
-                critDamageText.setStyle(critDamageText.getStyle().withColor(0xFFD700));
-                event.getToolTip().add(critDamageText);
+                critDamageText.setStyle(critDamageText.getStyle().withColor(0x00AA00));
+                event.getToolTip().add(Component.literal(" ").append(critDamageText));
             }
+        }
+
+        if (accumPoints != 1.0f) {
+            MutableComponent accumText = Component.translatable(
+                    KEY_ACCUM_POINTS,
+                    String.format("%d", Math.round(accumPoints))
+            );
+            accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
+            event.getToolTip().add(Component.literal(" ").append(accumText));
         }
     }
 
