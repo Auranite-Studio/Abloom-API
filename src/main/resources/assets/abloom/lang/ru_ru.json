@@ -100,5 +100,7 @@
   "elemental.tooltip.shadow_eclipse": "ЗАТМЕНИЕ!",
   "effect.abloom.eclipse": "Затмение",
   "elemental.resistance.shadow": "Сопр. теневому урону: ",
-  "item.abloom.shadow_stick": "Теневая палочка"
+  "item.abloom.shadow_stick": "Теневая палочка",
+  "elemental.tooltip.crit_chance": "Крит. шанс: %s%%",
+  "elemental.tooltip.crit_damage": "Крит. урон: %s%%"
 }

@@ -309,6 +309,10 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
+        spawnDamageNumber(entity, amount, type, false);
+    }
+
+    public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit) {
         if (!AbloomConfig.areDamageNumbersEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
 
@@ -324,12 +328,18 @@ public class ElementDamageDisplayManager {
         double offsetX = (serverLevel.getRandom().nextFloat() - 0.5f) * 0.5;
         double offsetZ = (serverLevel.getRandom().nextFloat() - 0.5f) * 0.5;
 
+        // Format damage text, add "!!" for critical hits
+        String text = String.format("%.1f", amount);
+        if (isCrit) {
+            text += "!!";
+        }
+
         TextDisplay display = createTextDisplay(
                 serverLevel,
                 entity.getX() + offsetX,
                 entity.getY() + entity.getBbHeight() + 0.5,
                 entity.getZ() + offsetZ,
-                String.format("%.1f", amount),
+                text,
                 color,
                 DAMAGE_NUMBER_LIFETIME + SELF_DESTRUCT_BUFFER
         );

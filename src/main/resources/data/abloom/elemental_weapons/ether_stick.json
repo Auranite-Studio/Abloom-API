@@ -1,5 +1,7 @@
 {
   "item": "abloom:ether_stick",
   "element": "ETHER",
+  "crit_chance": 0.5,
+  "crit_damage": 1.0,
   "accumulation_multiplier": 50.0
 }

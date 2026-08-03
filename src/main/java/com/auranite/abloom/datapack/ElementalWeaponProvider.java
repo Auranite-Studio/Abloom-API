@@ -133,6 +133,8 @@ public class ElementalWeaponProvider {
             String item = GsonHelper.getAsString(jsonObject, "item");
             String element = GsonHelper.getAsString(jsonObject, "element");
             float accumMultiplier = GsonHelper.getAsFloat(jsonObject, "accumulation_multiplier", 1.0f);
+            float critChance = GsonHelper.getAsFloat(jsonObject, "crit_chance", 0.0f);
+            float critDamage = GsonHelper.getAsFloat(jsonObject, "crit_damage", 0.0f);
 
             Identifier itemLocation = Identifier.parse(item);
 
@@ -148,10 +150,10 @@ public class ElementalWeaponProvider {
                 return;
             }
 
-            ElementalWeaponRegistry.registerBuiltinWeapon(itemLocation, elementType, accumMultiplier);
+            ElementalWeaponRegistry.registerBuiltinWeapon(itemLocation, elementType, accumMultiplier, critChance, critDamage);
             loadedCount.getAndIncrement();
-            AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {}) from mod {}",
-                    itemLocation, elementType, accumMultiplier, modId);
+            AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {}, crit: {:.0f}%/{:.0f}%) from mod {}",
+                    itemLocation, elementType, accumMultiplier, critChance * 100, critDamage * 100, modId);
         } catch (Exception e) {
             AbloomMod.LOGGER.error("Failed to load elemental weapon from {} (from mod {})", sourcePath, modId, e);
         }
