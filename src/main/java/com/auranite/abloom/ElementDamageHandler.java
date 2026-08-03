@@ -1,5 +1,7 @@
 package com.auranite.abloom;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -13,6 +15,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -31,6 +35,26 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+/** Record for critical hit result containing modified damage and crit flag. */
+record CritResult(float damage, boolean isCrit) {}
+
+/**
+ * Handles elemental damage calculations, accumulation tracking, and threshold effects.
+ * This class manages the core mechanics of the Abloom API including:
+ * <ul>
+ *   <li>Resonance accumulation tracking</li>
+ *   <li>Threshold-based effect activation</li>
+ *   <li>Damage calculation with elemental modifiers</li>
+ *   <li>Display number and status text management</li>
+ * </ul>
+ * 
+ * <p>This mod uses a priority-based system for damage event handling to avoid conflicts
+ * with other mods that may also modify damage. Use the {@link DamagePriority} annotation
+ * on event handlers to control processing order.</p>
+ * 
+ * <p>For integration with other mods, use {@link DamageModificationManager} to register
+ * damage modification callbacks with specific priorities.</p>
+ */
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
@@ -215,6 +239,11 @@ public class ElementDamageHandler {
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
         
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
+
+        CritResult critResult = applyCriticalHit(attacker, finalDamage);
+        finalDamage = critResult.damage();
+        boolean isCrit = critResult.isCrit();
+
         if (thresholdReached) {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
                 AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
@@ -222,8 +251,8 @@ public class ElementDamageHandler {
             finalDamage = applyThresholdEffect(target, type, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
         }
-        event.setNewDamage(finalDamage);
-        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type);
+event.setNewDamage(finalDamage);
+if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
         updateLastDamageTime(target, type);
     }
 
@@ -373,11 +402,62 @@ public class ElementDamageHandler {
         if (displayManager != null) displayManager.clearActiveDisplays(entity);
     }
 
+    /**
+     * Applies critical hit logic to the damage.
+     * Combines entity attributes and weapon crit values additively.
+     *
+     * @param attacker the attacking entity (can be null)
+     * @param baseDamage the damage before crit application
+     * @return CritResult with modified damage and crit flag
+     */
+    private static CritResult applyCriticalHit(LivingEntity attacker, float baseDamage) {
+        if (attacker == null) {
+            return new CritResult(baseDamage, false);
+        }
+
+        // Get crit chance from entity attributes
+        AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AbloomAttributes.CRIT_CHANCE));
+        double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : AbloomAttributes.CRIT_CHANCE_BASE;
+        // Subtract base value to get only modifiers
+        double entityCritChance = Math.max(0.0, entityCritChanceVal - AbloomAttributes.CRIT_CHANCE_BASE);
+
+        // Get crit chance from weapon
+        ItemStack weapon = attacker.getMainHandItem();
+        double weaponCritChance = ElementalWeaponRegistry.getCritChance(weapon)
+                + ElementalWeaponComponent.getCritChance(weapon);
+
+        // Get crit damage from entity attributes
+        AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AbloomAttributes.CRIT_DAMAGE));
+        double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : AbloomAttributes.CRIT_DAMAGE_BASE;
+        // Subtract base value to get only modifiers
+        double entityCritDamage = Math.max(0.0, entityCritDamageVal - AbloomAttributes.CRIT_DAMAGE_BASE);
+
+        // Get crit damage from weapon
+        double weaponCritDamage = ElementalWeaponRegistry.getCritDamage(weapon)
+                + ElementalWeaponComponent.getCritDamage(weapon);
+
+        // Sum additively (as per user request)
+        double totalCritChance = Math.min(1.0, entityCritChance + weaponCritChance);
+        double totalCritDamage = Math.min(10.0, entityCritDamage + weaponCritDamage);
+
+        // Random check
+        if (attacker.level().random.nextFloat() < totalCritChance) {
+            float critDamage = baseDamage * (1.0f + (float) totalCritDamage);
+            return new CritResult(critDamage, true);
+        }
+
+        return new CritResult(baseDamage, false);
+    }
+
     private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
+        spawnDamageNumber(entity, amount, type, false);
+    }
+
+    private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit) {
         if (!canSpawnDisplay()) return;
         if (displayManager != null) {
             incrementDisplayCount();
-            displayManager.spawnDamageNumber(entity, amount, type);
+            displayManager.spawnDamageNumber(entity, amount, type, isCrit);
         }
     }
 

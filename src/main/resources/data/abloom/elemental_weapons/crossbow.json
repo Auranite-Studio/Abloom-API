@@ -1,5 +1,7 @@
 {
   "item": "minecraft:crossbow",
   "element": "PHYSICAL",
+  "crit_chance": 0.33,
+  "crit_damage": 1.5,
   "accumulation_multiplier": 7.0
 }
