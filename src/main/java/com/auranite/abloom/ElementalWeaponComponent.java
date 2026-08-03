@@ -63,7 +63,7 @@ public class ElementalWeaponComponent {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return 0.0f;
 
-        return customData.copyTag().getFloat(CRIT_CHANCE_KEY);
+        return customData.copyTag().getFloatOr(CRIT_CHANCE_KEY, 0);
     }
 
     public static float getCritDamage(ItemStack stack) {
@@ -72,7 +72,7 @@ public class ElementalWeaponComponent {
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return 0.0f;
 
-        return customData.copyTag().getFloat(CRIT_DAMAGE_KEY);
+        return customData.copyTag().getFloatOr(CRIT_DAMAGE_KEY, 0);
     }
 
     public static boolean hasElement(ItemStack stack) {

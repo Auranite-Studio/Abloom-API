@@ -587,7 +587,7 @@ public class ElementDamageHandler {
         double totalCritDamage = Math.min(10.0, entityCritDamage + weaponCritDamage);
 
         // Random check
-        if (attacker.level().random.nextFloat() < totalCritChance) {
+        if (attacker.level().getRandom().nextFloat() < totalCritChance) {
             float critDamage = baseDamage * (1.0f + (float) totalCritDamage);
             return new CritResult(critDamage, true);
         }
