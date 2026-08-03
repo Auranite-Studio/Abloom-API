@@ -6,7 +6,6 @@
   "refmap": "abloom.refmap.json",
   "mixins": [
     "ArmorIgnoreMixin",
-    "CriticalMixin"
   ],
   "client": [
   ],
