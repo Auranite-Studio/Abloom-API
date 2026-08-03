@@ -60,6 +60,7 @@ public class AbloomMod {
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
+        AbloomAttributes.registerAttributes(modEventBus);
         
         ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
         ElementDamageHandler.setDisplayManager(displayManager);

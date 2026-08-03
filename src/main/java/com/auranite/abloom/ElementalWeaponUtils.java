@@ -155,6 +155,26 @@ public class ElementalWeaponUtils {
     }
 
     /**
+     * Gets the critical hit chance of an item stack (sum of component and registry values).
+     * @param stack the item stack
+     * @return the total crit chance (0.0f to 1.0f)
+     */
+    public static float getCritChance(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0.0f;
+        return ElementalWeaponRegistry.getCritChance(stack) + ElementalWeaponComponent.getCritChance(stack);
+    }
+
+    /**
+     * Gets the critical hit damage multiplier of an item stack (sum of component and registry values).
+     * @param stack the item stack
+     * @return the total crit damage multiplier (0.0f to 10.0f)
+     */
+    public static float getCritDamage(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0.0f;
+        return ElementalWeaponRegistry.getCritDamage(stack) + ElementalWeaponComponent.getCritDamage(stack);
+    }
+
+    /**
      * Adds elemental type to an item stack with default accumulation multiplier.
      * @param stack the item stack
      * @param type the elemental type
