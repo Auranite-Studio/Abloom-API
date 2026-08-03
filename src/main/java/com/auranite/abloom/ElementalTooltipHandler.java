@@ -27,6 +27,8 @@ public class ElementalTooltipHandler {
     private static final String KEY_ELEMENT_SHADOW = "elemental.tooltip.shadow";
     private static final String KEY_ELEMENT_DEFAULT = "elemental.tooltip.element";
     private static final String KEY_ACCUM_POINTS = "elemental.tooltip.accum_points";
+    private static final String KEY_CRIT_CHANCE = "elemental.tooltip.crit_chance";
+    private static final String KEY_CRIT_DAMAGE = "elemental.tooltip.crit_damage";
 
     private static final String KEY_RESISTANCE_HEADER = "elemental.resistance.header";
     private static final String KEY_RESISTANCE_FIRE = "elemental.resistance.fire";
@@ -75,18 +77,42 @@ public class ElementalTooltipHandler {
     private static void handleWeaponTooltip(ItemStack stack, ItemTooltipEvent event) {
         ElementType type = ElementalWeaponUtils.getElementType(stack);
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
+        float critChance = ElementalWeaponUtils.getCritChance(stack);
+        float critDamage = ElementalWeaponUtils.getCritDamage(stack);
 
-        if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
-
+        if (type != null) {
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
+        }
 
+        if (accumPoints != 1.0f) {
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_POINTS,
                     String.format("%d", Math.round(accumPoints))
             );
             accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
             event.getToolTip().add(Component.literal(" ").append(accumText));
+        }
+
+        if (critChance > 0.0f || critDamage > 0.0f) {
+            if (critChance > 0.0f) {
+                int percent = Math.round(critChance * 100);
+                MutableComponent critChanceText = Component.translatable(
+                        KEY_CRIT_CHANCE,
+                        percent
+                );
+                critChanceText.setStyle(critChanceText.getStyle().withColor(0xFFD700));
+                event.getToolTip().add(critChanceText);
+            }
+            if (critDamage > 0.0f) {
+                int percent = Math.round(critDamage * 100);
+                MutableComponent critDamageText = Component.translatable(
+                        KEY_CRIT_DAMAGE,
+                        percent
+                );
+                critDamageText.setStyle(critDamageText.getStyle().withColor(0xFFD700));
+                event.getToolTip().add(critDamageText);
+            }
         }
     }
 
