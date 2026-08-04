@@ -5,7 +5,7 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "abloom.refmap.json",
   "mixins": [
-    "ArmorIgnoreMixin",
+    "ArmorIgnoreMixin"
   ],
   "client": [
   ],
