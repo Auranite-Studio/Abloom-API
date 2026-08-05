@@ -452,8 +452,15 @@ public class ElementDamageHandler {
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
                 Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
 
-                // Check if cooldown has expired
-                if (ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
+                // First stage: always advance (ensures stage 0 fires exactly once)
+                if (currentStage == 0) {
+                    STAGE_TRACKER.put(stageKey, 1);
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage 1 to stage 2",
+                                weaponId);
+                    }
+                } else if (ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
                     // Cooldown expired, reset to first stage
                     STAGE_TRACKER.put(stageKey, 0);
                     ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
