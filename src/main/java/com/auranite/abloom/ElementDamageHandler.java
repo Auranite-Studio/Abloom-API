@@ -59,7 +59,7 @@ record CritResult(float damage, boolean isCrit) {}
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
-    private static float baseAccumulation = 1.0f;
+    private static float baseAccumulation = 0f;
     private static final int THRESHOLD = 100;
     private static final int RESET_DELAY_TICKS = 300;
 
@@ -356,7 +356,7 @@ public class ElementDamageHandler {
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
         int basePoints = (int) baseAccumulation;
-        int pointsToAdd = Math.round(basePoints * effectiveAccumMultiplier);
+        int pointsToAdd = Math.round(basePoints + effectiveAccumMultiplier);
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {})", pointsToAdd, basePoints, effectiveAccumMultiplier);
         }
@@ -807,7 +807,7 @@ public class ElementDamageHandler {
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
 
         int basePoints = (int) baseAccumulation;
-        int pointsToAdd = Math.round(basePoints * accumMultiplier * accumBonus);
+        int pointsToAdd = Math.round((basePoints + accumMultiplier) * accumBonus);
         pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, pointsToAdd);
 
         if (pointsToAdd > 0) {
