@@ -48,11 +48,11 @@ record CritResult(float damage, boolean isCrit) {}
  *   <li>Damage calculation with elemental modifiers</li>
  *   <li>Display number and status text management</li>
  * </ul>
- * 
+ *
  * <p>This mod uses a priority-based system for damage event handling to avoid conflicts
  * with other mods that may also modify damage. Use the {@link DamagePriority} annotation
  * on event handlers to control processing order.</p>
- * 
+ *
  * <p>For integration with other mods, use {@link DamageModificationManager} to register
  * damage modification callbacks with specific priorities.</p>
  */
@@ -113,11 +113,11 @@ public class ElementDamageHandler {
                     updateLastDamageTime(target, type);
                 }
             }
-            
+
             // Process damage through doProcessLivingHurt with the modified damage
             // This ensures elemental calculations and display manager are called
             float processedDamage = processLivingHurtInternal(target, source, baseDamage, modifiedDamage);
-            
+
             // Apply low-priority modifiers AFTER Abloom
             float finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, processedDamage);
             return finalDamage;
@@ -127,7 +127,7 @@ public class ElementDamageHandler {
         // This ensures all registered modifiers are called in priority order
         // Mods with priority > 0 (HIGH priority) will process BEFORE this handler
         float processedDamage = baseDamage;
-        
+
         // Process high-priority modifiers (priority > 0) BEFORE Abloom
         processedDamage = DamageModificationManager.processHighPriorityDamage(target, source, processedDamage);
 
@@ -255,15 +255,15 @@ public class ElementDamageHandler {
      * Handles LivingDamageEvent.Pre with low priority to process elemental calculations.
      * This ensures Abloom processes damage after mods with NORMAL priority (0) and before
      * mods with LOWEST priority (-300).
-     * 
+     *
      * Modifiers with priority > 0 (HIGH priority) are processed through DamageModificationManager
      * BEFORE this handler, allowing other mods to modify damage first.
-     * 
+     *
      * Modifiers with priority <= 0 (NORMAL and below) are processed AFTER Abloom's calculations.
-     * 
+     *
      * Other mods can register damage modifiers via DamageModificationManager to control
      * their processing order relative to Abloom.
-     * 
+     *
      * For mods that directly modify event.setNewDamage(), Abloom will see the modified damage
      * and add appropriate accumulation points. Abloom will NOT overwrite damage that was modified
      * by other mods.
@@ -271,15 +271,15 @@ public class ElementDamageHandler {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHurt(LivingDamageEvent.Pre event) {
         if (IS_PROCESSING_DAMAGE.get()) return;
-        
+
         LivingEntity target = event.getEntity();
         DamageSource source = event.getSource();
         float baseDamage = event.getOriginalDamage();
         float currentDamage = event.getNewDamage();
-        
+
         // Process damage with priority handling
         float finalDamage = processDamageWithPriority(target, source, baseDamage, currentDamage);
-        
+
         // Only set damage if it was modified by Abloom (not by other mods)
         // If currentDamage != baseDamage, another mod has already modified the damage
         // We should NOT overwrite that modification
@@ -292,11 +292,53 @@ public class ElementDamageHandler {
         }
     }
 
+    /**
+     * Tracks the current stage for each (attacker, target) pair in multi-stage weapons.
+     */
+    private static final Map<String, Integer> STAGE_TRACKER = new ConcurrentHashMap<>();
+
+    /**
+     * Generates a unique key for tracking stage progress between two entities.
+     */
+    private static String getStageKey(LivingEntity attacker, LivingEntity target) {
+        return attacker.getId() + "_" + target.getId();
+    }
+
     private static float doProcessLivingHurt(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
         LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
         ElementType type = getElementTypeFromSource(source);
+        float currentAccumMultiplier = 1.0f;
+
+        // Check for multi-stage weapon
+        if (attacker != null && type != null) {
+            ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                String stageKey = getStageKey(attacker, target);
+
+                // Get current stage
+                Integer currentStageNum = STAGE_TRACKER.getOrDefault(stageKey, 0);
+                if (currentStageNum >= stages.size()) {
+                    currentStageNum = 0; // Reset after completing all stages
+                }
+
+                ElementalWeaponRegistry.StageData currentStage = stages.get(currentStageNum);
+                if (currentStage != null) {
+                    type = currentStage.element(); // Override element with stage element
+                    currentAccumMultiplier = currentStage.accumulation(); // Use stage accumulation
+
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon: {} using stage {} ({}) with accum x{}",
+                                weaponId, currentStageNum + 1, type, currentAccumMultiplier);
+                    }
+                }
+            }
+        }
+
         if (type == null) {
             if (canShowDamage(target)) spawnDamageNumber(target, currentDamage, null);
             return currentDamage;
@@ -331,17 +373,25 @@ public class ElementDamageHandler {
 
         float damage = currentDamage * damageMultiplier;
 
-        float effectiveAccumMultiplier = 1.0f;
-        if (source.getDirectEntity() != null) {
-            Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
-            if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
-        }
-        if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
-            ItemStack weapon = attackerEntity.getMainHandItem();
-            float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
-            float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
-            if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
-            else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+        // Use stage multiplier if weapon has stages, otherwise use normal logic
+        float effectiveAccumMultiplier;
+        if (currentAccumMultiplier > 1.0f) {
+            // Multi-stage weapon: use stage's accumulation multiplier
+            effectiveAccumMultiplier = currentAccumMultiplier;
+        } else {
+            // Normal weapon: use existing logic
+            effectiveAccumMultiplier = 1.0f;
+            if (source.getDirectEntity() != null) {
+                Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
+                if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
+            }
+            if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
+                ItemStack weapon = attackerEntity.getMainHandItem();
+                float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
+                float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
+                if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
+                else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+            }
         }
 
         if (target.hasEffect(AbloomModEffects.BLOOM)) {
@@ -380,7 +430,7 @@ public class ElementDamageHandler {
 
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
-        
+
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 
         CritResult critResult = applyCriticalHit(attacker, finalDamage);
@@ -393,6 +443,45 @@ public class ElementDamageHandler {
             }
             finalDamage = applyThresholdEffect(target, type, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
+        }
+
+        // Advance multi-stage attack progression with cooldown
+        if (attacker != null && source.getEntity() == attacker) {
+            ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                String stageKey = getStageKey(attacker, target);
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
+
+                // Check if cooldown has expired
+                if (ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
+                    // Cooldown expired, reset to first stage
+                    STAGE_TRACKER.put(stageKey, 0);
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 1",
+                                weaponId);
+                    }
+                } else {
+                    // Cooldown not expired, advance to next stage
+                    if (currentStage < stages.size() - 1) {
+                        STAGE_TRACKER.put(stageKey, currentStage + 1);
+                        ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                        if (AbloomMod.LOGGER.isDebugEnabled()) {
+                            AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
+                                    weaponId, currentStage + 1, currentStage + 2);
+                        }
+                    } else {
+                        // Completed all stages, reset to first stage
+                        STAGE_TRACKER.put(stageKey, 0);
+                        ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                        if (AbloomMod.LOGGER.isDebugEnabled()) {
+                            AbloomMod.LOGGER.debug("Completed all stages for multi-stage weapon {}, resetting to stage 1", weaponId);
+                        }
+                    }
+                }
+            }
         }
 
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
@@ -408,6 +497,9 @@ public class ElementDamageHandler {
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
         }
+        // Clean up stage tracking and cooldown for dead entity
+        STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
+        ElementalWeaponRegistry.cleanupEntityCooldowns(entity);
     }
 
     @SubscribeEvent
@@ -419,6 +511,9 @@ public class ElementDamageHandler {
             synchronized (LAST_DAMAGE_LOCK) {
                 LAST_DAMAGE_TIME.remove(entity.getId());
             }
+            // Clean up stage tracking and cooldown for leaving entity
+            STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
+            ElementalWeaponRegistry.cleanupEntityCooldowns(livingEntity);
         }
     }
 
@@ -460,6 +555,21 @@ public class ElementDamageHandler {
         Entity causingEntity = source.getEntity();
         if (causingEntity instanceof LivingEntity attacker) {
             ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+
+            // Check for multi-stage weapon first
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                // Return base element if set, otherwise fall back to first stage's element
+                ElementType baseElement = ElementalWeaponRegistry.getBaseElement(weaponId);
+                if (baseElement != null) {
+                    return baseElement;
+                }
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                if (!stages.isEmpty()) {
+                    return stages.get(0).element();
+                }
+            }
+
             Optional<ElementType> componentType = ElementalWeaponComponent.getElement(weapon);
             if (componentType.isPresent()) return componentType.get();
             ElementType registryType = ElementalWeaponRegistry.getElementType(weapon);
@@ -507,7 +617,7 @@ public class ElementDamageHandler {
                 Map.Entry<Integer, Map<ElementType, Long>> entityEntry = entityIterator.next();
                 int entityId = entityEntry.getKey();
                 Map<ElementType, Long> typeTimes = entityEntry.getValue();
-                
+
                 LivingEntity livingEntity = null;
                 for (ServerLevel level : currentServer.getAllLevels()) {
                     Entity entity = level.getEntity(entityId);
@@ -516,12 +626,12 @@ public class ElementDamageHandler {
                         break;
                     }
                 }
-                
+
                 if (livingEntity == null) {
                     entityIterator.remove();
                     continue;
                 }
-                
+
                 Iterator<Map.Entry<ElementType, Long>> typeIterator = typeTimes.entrySet().iterator();
                 while (typeIterator.hasNext()) {
                     Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
@@ -530,7 +640,7 @@ public class ElementDamageHandler {
                         typeIterator.remove();
                     }
                 }
-                
+
                 if (typeTimes.isEmpty()) entityIterator.remove();
             }
         }
@@ -644,7 +754,7 @@ public class ElementDamageHandler {
                 totalResistance += resistance;
             }
         }
-        
+
         return Math.max(-0.99f, Math.min(totalResistance, 0.99f));
     }
 
@@ -763,7 +873,7 @@ public class ElementDamageHandler {
 
     public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
         if (IS_PROCESSING_DAMAGE.get()) return;
-        
+
         // Mark as processing to prevent infinite recursion
         IS_PROCESSING_DAMAGE.set(true);
         try {
@@ -778,7 +888,7 @@ public class ElementDamageHandler {
 
         float damageMultiplier = 1.0f;
         float accumBonus = 1.0f;
-        
+
         if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
             float reduction = 1.0f - ((amplifier + 1) * 0.20f);
@@ -800,10 +910,10 @@ public class ElementDamageHandler {
         }
 
         float finalDamage = amount;
-        
+
         // Multiply finalDamage by accumulated damageMultiplier
         finalDamage *= damageMultiplier;
-        
+
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
 
         int basePoints = (int) baseAccumulation;
