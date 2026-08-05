@@ -1,7 +1,7 @@
 package com.auranite.abloom;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -37,7 +37,7 @@ public class ElementalWeaponUtils {
         if (vanillaItem == null || type == null) return;
         
         // Check if already registered via datapack
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(vanillaItem);
         if (ElementalWeaponRegistry.isBuiltinRegistered(itemId)) {
             AbloomMod.LOGGER.debug("Item {} already registered via datapack, skipping code registration", itemId);
             return;
@@ -68,7 +68,7 @@ public class ElementalWeaponUtils {
      * @return true if registration succeeded, false if item not found
      */
     public static boolean registerItemById(String modId, String itemName, ElementType type, float accumulationMultiplier) {
-        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(modId, itemName);
+        Identifier rl = Identifier.fromNamespaceAndPath(modId, itemName);
         Optional<Item> itemOpt = BuiltInRegistries.ITEM.getOptional(rl);
 
         if (itemOpt.isPresent()) {
@@ -129,7 +129,7 @@ public class ElementalWeaponUtils {
      */
     public static boolean isMultiStageWeapon(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return ElementalWeaponRegistry.hasStages(itemId);
     }
 
@@ -163,7 +163,7 @@ public class ElementalWeaponUtils {
             return componentAccum;
         }
 
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
         
         // If multi-stage, return total accumulation
         if (ElementalWeaponRegistry.hasStages(itemId)) {

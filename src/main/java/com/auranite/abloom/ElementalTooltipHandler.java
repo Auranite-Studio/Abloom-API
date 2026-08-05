@@ -3,7 +3,7 @@ package com.auranite.abloom;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -80,7 +80,7 @@ public class ElementalTooltipHandler {
     }
 
     private static void handleWeaponTooltip(ItemStack stack, ItemTooltipEvent event) {
-        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
         // Show attack stages count if weapon has stages
         if (ElementalWeaponRegistry.hasStages(itemId)) {

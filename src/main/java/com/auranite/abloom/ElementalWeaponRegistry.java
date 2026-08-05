@@ -2,7 +2,7 @@ package com.auranite.abloom;
 
 import com.auranite.abloom.datapack.ElementalWeaponData;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
@@ -20,14 +20,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ElementalWeaponRegistry {
 
 	private static final Map<Item, WeaponData> WEAPON_DATA = new WeakHashMap<>();
-	private static final Map<ResourceLocation, WeaponData> WEAPON_DATA_BY_ID = new WeakHashMap<>();
-	private static final Set<ResourceLocation> BUILTIN_REGISTRATIONS = new HashSet<>();
+	private static final Map<Identifier, WeaponData> WEAPON_DATA_BY_ID = new WeakHashMap<>();
+	private static final Set<Identifier> BUILTIN_REGISTRATIONS = new HashSet<>();
 
 	// Stage tracking: maps weapon item location to list of stage data
-	private static final Map<ResourceLocation, List<StageData>> WEAPON_STAGES = new WeakHashMap<>();
+	private static final Map<Identifier, List<StageData>> WEAPON_STAGES = new WeakHashMap<>();
 
 	// Base element tracking for multi-stage weapons (used for tooltip display)
-	private static final Map<ResourceLocation, ElementType> WEAPON_BASE_ELEMENTS = new WeakHashMap<>();
+	private static final Map<Identifier, ElementType> WEAPON_BASE_ELEMENTS = new WeakHashMap<>();
 
 	// Cooldown tracking: tracks last attack time for each (attacker, target) pair
 	private static final Map<String, Long> STAGE_COOLDOWN_TRACKER = new ConcurrentHashMap<>();
@@ -49,8 +49,8 @@ public class ElementalWeaponRegistry {
 			AbloomMod.LOGGER.warn("Weapon {} already registered, skipping duplicate registration", item.getDescriptionId());
 			return;
 		}
-		
-		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+
+		Identifier itemId = BuiltInRegistries.ITEM.getKey(item);
 		if (WEAPON_DATA_BY_ID.containsKey(itemId)) {
 			AbloomMod.LOGGER.warn("Weapon {} already registered by ID, skipping duplicate registration", itemId);
 			return;
@@ -69,11 +69,11 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Register weapon from datapack (builtin)
 	 */
-	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier) {
+	public static void registerBuiltinWeapon(Identifier itemLocation, ElementType type, float accumulationMultiplier) {
 		registerBuiltinWeapon(itemLocation, type, accumulationMultiplier, 0.0f, 0.0f);
 	}
 
-	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier, float critChance, float critDamage) {
+	public static void registerBuiltinWeapon(Identifier itemLocation, ElementType type, float accumulationMultiplier, float critChance, float critDamage) {
 		if (itemLocation == null || type == null) return;
 		
 		// Check for conflicts
@@ -107,7 +107,7 @@ public class ElementalWeaponRegistry {
 	 * @param critChance Critical hit chance (shared across all stages)
 	 * @param critDamage Critical hit damage multiplier (shared across all stages)
 	 */
-	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber, 
+	public static void registerBuiltinWeaponWithStage(Identifier itemLocation, int stageNumber,
 			                                                 ElementType stageElement, float stageAccumulation,
 			                                                 float critChance, float critDamage) {
 		if (itemLocation == null || stageElement == null) return;
@@ -171,14 +171,14 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Check if a weapon has stage-based attacks.
 	 */
-	public static boolean hasStages(ResourceLocation itemLocation) {
+	public static boolean hasStages(Identifier itemLocation) {
 		return WEAPON_STAGES.containsKey(itemLocation) && !WEAPON_STAGES.get(itemLocation).isEmpty();
 	}
 
 	/**
 	 * Set the base element for a multi-stage weapon.
 	 */
-	public static void setBaseElement(ResourceLocation itemLocation, ElementType baseElement) {
+	public static void setBaseElement(Identifier itemLocation, ElementType baseElement) {
 		if (itemLocation != null && baseElement != null) {
 			WEAPON_BASE_ELEMENTS.put(itemLocation, baseElement);
 		}
@@ -187,14 +187,14 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get the base element for a multi-stage weapon.
 	 */
-	public static ElementType getBaseElement(ResourceLocation itemLocation) {
+	public static ElementType getBaseElement(Identifier itemLocation) {
 		return WEAPON_BASE_ELEMENTS.get(itemLocation);
 	}
 
 	/**
 	 * Get the list of stages for a weapon.
 	 */
-	public static List<StageData> getStages(ResourceLocation itemLocation) {
+	public static List<StageData> getStages(Identifier itemLocation) {
 		List<StageData> stages = WEAPON_STAGES.get(itemLocation);
 		return stages != null ? Collections.unmodifiableList(stages) : Collections.emptyList();
 	}
@@ -202,7 +202,7 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get the current stage data for a weapon.
 	 */
-	public static StageData getCurrentStage(ResourceLocation itemLocation) {
+	public static StageData getCurrentStage(Identifier itemLocation) {
 		List<StageData> stages = getStages(itemLocation);
 		return stages.isEmpty() ? null : stages.get(0); // Return first stage by default
 	}
@@ -210,7 +210,7 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get stage data by stage number.
 	 */
-	public static StageData getStageByNumber(ResourceLocation itemLocation, int stageNumber) {
+	public static StageData getStageByNumber(Identifier itemLocation, int stageNumber) {
 		List<StageData> stages = getStages(itemLocation);
 		return stages.stream()
 				.filter(s -> s.stageNumber() == stageNumber)
@@ -221,7 +221,7 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get total accumulation multiplier for all stages (for tooltip display).
 	 */
-	public static float getTotalAccumulationMultiplier(ResourceLocation itemLocation) {
+	public static float getTotalAccumulationMultiplier(Identifier itemLocation) {
 		List<StageData> stages = getStages(itemLocation);
 		float total = 0f;
 		for (StageData stage : stages) {
@@ -235,7 +235,7 @@ public class ElementalWeaponRegistry {
 		return WEAPON_DATA.get(stack.getItem());
 	}
 
-	public static WeaponData getWeaponDataById(ResourceLocation itemLocation) {
+	public static WeaponData getWeaponDataById(Identifier itemLocation) {
 		if (itemLocation == null) return null;
 		return WEAPON_DATA_BY_ID.get(itemLocation);
 	}
@@ -245,7 +245,7 @@ public class ElementalWeaponRegistry {
 			return ElementType.PHYSICAL;
 		}
 
-		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+		Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
 		// If weapon has stages, return base element if set, otherwise null
 		if (hasStages(itemId)) {
@@ -269,14 +269,14 @@ public class ElementalWeaponRegistry {
 		return data != null ? data.critDamage() : 0.0f;
 	}
 
-	public static boolean isBuiltinRegistered(ResourceLocation itemLocation) {
+	public static boolean isBuiltinRegistered(Identifier itemLocation) {
 		return BUILTIN_REGISTRATIONS.contains(itemLocation);
 	}
 
 	public static float getAccumulationMultiplier(ItemStack stack) {
 		if (stack == null || stack.isEmpty()) return 1.0f;
-		
-		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+
+		Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 		
 		// If weapon has stages, return total accumulation
 		if (hasStages(itemId)) {

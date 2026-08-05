@@ -314,7 +314,7 @@ public class ElementDamageHandler {
         // Check for multi-stage weapon
         if (attacker != null && type != null) {
             ItemStack weapon = attacker.getMainHandItem();
-            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
 
             if (ElementalWeaponRegistry.hasStages(weaponId)) {
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
@@ -448,7 +448,7 @@ public class ElementDamageHandler {
         // Advance multi-stage attack progression with cooldown
         if (attacker != null && source.getEntity() == attacker) {
             ItemStack weapon = attacker.getMainHandItem();
-            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
             if (ElementalWeaponRegistry.hasStages(weaponId)) {
                 String stageKey = getStageKey(attacker, target);
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
@@ -555,7 +555,7 @@ public class ElementDamageHandler {
         Entity causingEntity = source.getEntity();
         if (causingEntity instanceof LivingEntity attacker) {
             ItemStack weapon = attacker.getMainHandItem();
-            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
 
             // Check for multi-stage weapon first
             if (ElementalWeaponRegistry.hasStages(weaponId)) {
