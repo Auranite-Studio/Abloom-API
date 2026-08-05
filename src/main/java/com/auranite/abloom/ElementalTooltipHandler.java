@@ -1,12 +1,15 @@
 package com.auranite.abloom;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
+import java.util.List;
 import java.util.Map;
 
 @EventBusSubscriber(modid = AbloomMod.MODID)
@@ -30,6 +33,8 @@ public class ElementalTooltipHandler {
     private static final String KEY_CRIT_CHANCE = "elemental.tooltip.crit_chance";
     private static final String KEY_CRIT_DAMAGE = "elemental.tooltip.crit_damage";
 
+    private static final String KEY_ATTACK_STAGES = "elemental.tooltip.attack_stages";
+    private static final String KEY_ATTACK_STAGES_COUNT = "elemental.tooltip.attack_stages_count";
     private static final String KEY_RESISTANCE_HEADER = "elemental.resistance.header";
     private static final String KEY_RESISTANCE_FIRE = "elemental.resistance.fire";
     private static final String KEY_RESISTANCE_PHYSICAL = "elemental.resistance.physical";
@@ -75,14 +80,28 @@ public class ElementalTooltipHandler {
     }
 
     private static void handleWeaponTooltip(ItemStack stack, ItemTooltipEvent event) {
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+
+        // Show attack stages count if weapon has stages
+        if (ElementalWeaponRegistry.hasStages(itemId)) {
+            List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(itemId);
+            MutableComponent stagesText = Component.translatable(
+                    KEY_ATTACK_STAGES_COUNT,
+                    stages.size()
+            );
+            stagesText.setStyle(stagesText.getStyle().withColor(0x00AA00));
+            event.getToolTip().add(Component.literal(" ").append(stagesText));
+
+        }
+
         ElementType type = ElementalWeaponUtils.getElementType(stack);
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
         float critChance = ElementalWeaponUtils.getCritChance(stack);
         float critDamage = ElementalWeaponUtils.getCritDamage(stack);
 
-            if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
+        if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
             MutableComponent elementText = getElementText(type);
-            event.getToolTip().add(1, elementText);
+            event.getToolTip().add(elementText);
         }
 
         if (critChance > 0.0f || critDamage > 0.0f) {

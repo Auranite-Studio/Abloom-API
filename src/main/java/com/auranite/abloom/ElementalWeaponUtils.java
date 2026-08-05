@@ -11,6 +11,7 @@ import java.util.Optional;
  * Utility class for elemental weapon registration and manipulation.
  * Provides convenient methods for registering items as elemental weapons,
  * checking elemental properties, and modifying item stacks.
+ * Supports both single-element and multi-stage elemental weapons.
  */
 public class ElementalWeaponUtils {
 
@@ -114,17 +115,28 @@ public class ElementalWeaponUtils {
     /**
      * Checks if an item stack is elemental.
      * @param stack the item stack
-     * @return true if the item has an elemental type
+     * @return true if the item has an elemental type (including multi-stage)
      */
     public static boolean isElemental(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
-        return getElementType(stack) != null;
+        return getElementType(stack) != null || isMultiStageWeapon(stack);
+    }
+
+    /**
+     * Checks if an item stack is a multi-stage elemental weapon.
+     * @param stack the item stack
+     * @return true if the item has stage-based attacks
+     */
+    public static boolean isMultiStageWeapon(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return false;
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        return ElementalWeaponRegistry.hasStages(itemId);
     }
 
     /**
      * Gets the elemental type of an item stack.
      * @param stack the item stack
-     * @return the elemental type, or null if not elemental
+     * @return the elemental type, or null if not elemental (or multi-stage)
      */
     public static ElementType getElementType(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
@@ -139,6 +151,7 @@ public class ElementalWeaponUtils {
 
     /**
      * Gets the accumulation multiplier of an item stack.
+     * For multi-stage weapons, returns the total accumulation across all stages.
      * @param stack the item stack
      * @return the accumulation multiplier (1.0f if none)
      */
@@ -150,6 +163,13 @@ public class ElementalWeaponUtils {
             return componentAccum;
         }
 
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        
+        // If multi-stage, return total accumulation
+        if (ElementalWeaponRegistry.hasStages(itemId)) {
+            return ElementalWeaponRegistry.getTotalAccumulationMultiplier(itemId);
+        }
+        
         float registryAccum = ElementalWeaponRegistry.getAccumulationMultiplier(stack);
         return registryAccum != 1.0f ? registryAccum : 1.0f;
     }
