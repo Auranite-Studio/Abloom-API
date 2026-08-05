@@ -18,6 +18,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
@@ -47,11 +48,11 @@ record CritResult(float damage, boolean isCrit) {}
  *   <li>Damage calculation with elemental modifiers</li>
  *   <li>Display number and status text management</li>
  * </ul>
- * 
+ *
  * <p>This mod uses a priority-based system for damage event handling to avoid conflicts
  * with other mods that may also modify damage. Use the {@link DamagePriority} annotation
  * on event handlers to control processing order.</p>
- * 
+ *
  * <p>For integration with other mods, use {@link DamageModificationManager} to register
  * damage modification callbacks with specific priorities.</p>
  */
@@ -80,10 +81,96 @@ public class ElementDamageHandler {
     private static int currentDisplayCount = 0;
     private static final Object DISPLAY_COUNT_LOCK = new Object();
 
+    /**
+     * Process damage with priority handling to avoid conflicts with other mods.
+     * This method checks if damage was already modified by another mod with higher priority
+     * and adjusts accumulation accordingly.
+     *
+     * Uses DamageModificationManager to process damage modifications in priority order.
+     *
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param modifiedDamage the current damage (may have been modified by other mods)
+     * @return the final damage after all calculations
+     */
+    public static float processDamageWithPriority(LivingEntity target, DamageSource source, float baseDamage, float modifiedDamage) {
+        if (target == null || source == null) return modifiedDamage;
+
+        // Check if current damage differs from base damage
+        // If it does, another mod has already modified it
+        if (modifiedDamage != baseDamage) {
+            // Another mod modified the damage, we need to:
+            // 1. Track accumulation based on the modified damage
+            // 2. Call doProcessLivingHurt to process elemental calculations
+            // 3. Then apply low-priority modifiers
+            ElementType type = getElementTypeFromSource(source);
+            if (type != null) {
+                // Add accumulation points based on the modified damage (not just 1 point)
+                int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, 1);
+                if (pointsToAdd > 0) {
+                    AbloomModAttachments.addPoints(target, type, pointsToAdd);
+                    updateLastDamageTime(target, type);
+                }
+            }
+
+            // Process damage through doProcessLivingHurt with the modified damage
+            // This ensures elemental calculations and display manager are called
+            float processedDamage = processLivingHurtInternal(target, source, baseDamage, modifiedDamage);
+
+            // Apply low-priority modifiers AFTER Abloom
+            float finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, processedDamage);
+            return finalDamage;
+        }
+
+        // Use DamageModificationManager to process damage modifications BEFORE Abloom
+        // This ensures all registered modifiers are called in priority order
+        // Mods with priority > 0 (HIGH priority) will process BEFORE this handler
+        float processedDamage = baseDamage;
+
+        // Process high-priority modifiers (priority > 0) BEFORE Abloom
+        processedDamage = DamageModificationManager.processHighPriorityDamage(target, source, processedDamage);
+
+        // Normal processing flow - no other mod modified damage yet
+        float finalDamage = processLivingHurtInternal(target, source, baseDamage, processedDamage);
+
+        // Process low-priority modifiers (priority <= 0) AFTER Abloom
+        finalDamage = DamageModificationManager.processLowPriorityDamage(target, source, finalDamage);
+
+        return finalDamage;
+    }
+
+    /**
+     * Internal damage processing logic that handles elemental calculations.
+     * This method should only be called once per damage event.
+     *
+     * @param target the living entity taking damage
+     * @param source the damage source
+     * @param baseDamage the initial damage before any modifications
+     * @param currentDamage the current damage value (may be modified by other mods)
+     * @return the final damage after all calculations
+     */
+    private static float processLivingHurtInternal(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
+        IS_PROCESSING_DAMAGE.set(true);
+        try {
+            return doProcessLivingHurt(target, source, baseDamage, currentDamage);
+        } finally {
+            IS_PROCESSING_DAMAGE.set(false);
+        }
+    }
+
+    /**
+     * Sets the display manager for rendering damage numbers and status texts.
+     * @param manager the display manager instance
+     */
     public static void setDisplayManager(ElementDamageDisplayManager manager) {
         displayManager = manager;
     }
 
+    /**
+     * Initializes damage colors for all element types.
+     * Must be called during mod initialization before any displays are spawned.
+     */
     public static void initDamageColors() {
         ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
         ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
@@ -100,30 +187,58 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
     }
 
+    /**
+     * Checks if a damage display can be spawned ( respects max display limit ).
+     * @return true if display can be spawned, false if limit reached
+     */
     public static boolean canSpawnDisplay() {
         synchronized (DISPLAY_COUNT_LOCK) {
             return currentDisplayCount < MAX_ACTIVE_DISPLAYS;
         }
     }
 
+    /**
+     * Increments the count of active damage displays.
+     * Should only be called when spawning a new display.
+     */
     public static void incrementDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             currentDisplayCount++;
         }
     }
 
+    /**
+     * Decrements the count of active damage displays.
+     * Should only be called when removing a display.
+     */
     public static void decrementDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             currentDisplayCount = Math.max(0, currentDisplayCount - 1);
         }
     }
 
+    /**
+     * Checks if damage is currently being processed by the elemental system.
+     * @return true if damage is being processed
+     */
+    public static boolean isProcessingDamage() {
+        return IS_PROCESSING_DAMAGE.get();
+    }
+
+    /**
+     * Gets the current count of active damage displays.
+     * @return number of active displays
+     */
     public static int getCurrentDisplayCount() {
         synchronized (DISPLAY_COUNT_LOCK) {
             return currentDisplayCount;
         }
     }
 
+    /**
+     * Handles server tick events for display cleanup and accumulation reset.
+     * Processes pending removals and checks for inactive accumulation points.
+     */
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Pre event) {
         currentServer = event.getServer();
@@ -136,32 +251,102 @@ public class ElementDamageHandler {
         }
     }
 
-    @SubscribeEvent
+    /**
+     * Handles LivingDamageEvent.Pre with low priority to process elemental calculations.
+     * This ensures Abloom processes damage after mods with NORMAL priority (0) and before
+     * mods with LOWEST priority (-300).
+     *
+     * Modifiers with priority > 0 (HIGH priority) are processed through DamageModificationManager
+     * BEFORE this handler, allowing other mods to modify damage first.
+     *
+     * Modifiers with priority <= 0 (NORMAL and below) are processed AFTER Abloom's calculations.
+     *
+     * Other mods can register damage modifiers via DamageModificationManager to control
+     * their processing order relative to Abloom.
+     *
+     * For mods that directly modify event.setNewDamage(), Abloom will see the modified damage
+     * and add appropriate accumulation points. Abloom will NOT overwrite damage that was modified
+     * by other mods.
+     */
+    @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHurt(LivingDamageEvent.Pre event) {
         if (IS_PROCESSING_DAMAGE.get()) return;
-        IS_PROCESSING_DAMAGE.set(true);
-        try {
-            processLivingHurt(event);
-        } finally {
-            IS_PROCESSING_DAMAGE.set(false);
+
+        LivingEntity target = event.getEntity();
+        DamageSource source = event.getSource();
+        float baseDamage = event.getOriginalDamage();
+        float currentDamage = event.getNewDamage();
+
+        // Process damage with priority handling
+        float finalDamage = processDamageWithPriority(target, source, baseDamage, currentDamage);
+
+        // Only set damage if it was modified by Abloom (not by other mods)
+        // If currentDamage != baseDamage, another mod has already modified the damage
+        // We should NOT overwrite that modification
+        if (finalDamage != currentDamage && currentDamage == baseDamage) {
+            // Damage was modified by Abloom and not by other mods
+            event.setNewDamage(finalDamage);
+        } else if (currentDamage != baseDamage) {
+            // Another mod modified the damage - we already added accumulation points
+            // but should NOT overwrite their modification
         }
     }
 
-    private static void processLivingHurt(LivingDamageEvent.Pre event) {
-        LivingEntity target = event.getEntity();
-        LivingEntity attacker = event.getSource().getEntity() instanceof LivingEntity e ? e : null;
+    /**
+     * Tracks the current stage for each (attacker, target) pair in multi-stage weapons.
+     */
+    private static final Map<String, Integer> STAGE_TRACKER = new ConcurrentHashMap<>();
+
+    /**
+     * Generates a unique key for tracking stage progress between two entities.
+     */
+    private static String getStageKey(LivingEntity attacker, LivingEntity target) {
+        return attacker.getId() + "_" + target.getId();
+    }
+
+    private static float doProcessLivingHurt(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
+        LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
-        DamageSource source = event.getSource();
         ElementType type = getElementTypeFromSource(source);
+        float currentAccumMultiplier = 1.0f;
+
+        // Check for multi-stage weapon
+        if (attacker != null && type != null) {
+            ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                String stageKey = getStageKey(attacker, target);
+
+                // Get current stage
+                Integer currentStageNum = STAGE_TRACKER.getOrDefault(stageKey, 0);
+                if (currentStageNum >= stages.size()) {
+                    currentStageNum = 0; // Reset after completing all stages
+                }
+
+                ElementalWeaponRegistry.StageData currentStage = stages.get(currentStageNum);
+                if (currentStage != null) {
+                    type = currentStage.element(); // Override element with stage element
+                    currentAccumMultiplier = currentStage.accumulation(); // Use stage accumulation
+
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon: {} using stage {} ({}) with accum x{}",
+                                weaponId, currentStageNum + 1, type, currentAccumMultiplier);
+                    }
+                }
+            }
+        }
+
         if (type == null) {
-            if (canShowDamage(target)) spawnDamageNumber(target, event.getNewDamage(), null);
-            return;
+            if (canShowDamage(target)) spawnDamageNumber(target, currentDamage, null);
+            return currentDamage;
         }
 
         float damageMultiplier = 1.0f;
 
-        // Модификаторы от атакующего
+        // Modifiers from attacker
         if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
             float reduction = 1.0f - ((amplifier + 1) * 0.20f);
@@ -169,7 +354,7 @@ public class ElementDamageHandler {
             damageMultiplier *= reduction;
         }
 
-        // Модификаторы от цели
+        // Modifiers from target
         if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
             damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
@@ -186,19 +371,27 @@ public class ElementDamageHandler {
             damageMultiplier *= 1.0f + dispersionBonus;
         }
 
-        float damage = event.getNewDamage() * damageMultiplier;
+        float damage = currentDamage * damageMultiplier;
 
-        float effectiveAccumMultiplier = 1.0f;
-        if (source.getDirectEntity() != null) {
-            Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
-            if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
-        }
-        if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
-            ItemStack weapon = attackerEntity.getMainHandItem();
-            float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
-            float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
-            if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
-            else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+        // Use stage multiplier if weapon has stages, otherwise use normal logic
+        float effectiveAccumMultiplier;
+        if (currentAccumMultiplier > 1.0f) {
+            // Multi-stage weapon: use stage's accumulation multiplier
+            effectiveAccumMultiplier = currentAccumMultiplier;
+        } else {
+            // Normal weapon: use existing logic
+            effectiveAccumMultiplier = 1.0f;
+            if (source.getDirectEntity() != null) {
+                Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
+                if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
+            }
+            if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
+                ItemStack weapon = attackerEntity.getMainHandItem();
+                float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
+                float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
+                if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
+                else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+            }
         }
 
         if (target.hasEffect(AbloomModEffects.BLOOM)) {
@@ -237,7 +430,7 @@ public class ElementDamageHandler {
 
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
-        
+
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 
         CritResult critResult = applyCriticalHit(attacker, finalDamage);
@@ -251,9 +444,49 @@ public class ElementDamageHandler {
             finalDamage = applyThresholdEffect(target, type, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
         }
-event.setNewDamage(finalDamage);
-if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
+
+        // Advance multi-stage attack progression with cooldown
+        if (attacker != null && source.getEntity() == attacker) {
+            ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                String stageKey = getStageKey(attacker, target);
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
+
+                // Check if cooldown has expired
+                if (ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
+                    // Cooldown expired, reset to first stage
+                    STAGE_TRACKER.put(stageKey, 0);
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 1",
+                                weaponId);
+                    }
+                } else {
+                    // Cooldown not expired, advance to next stage
+                    if (currentStage < stages.size() - 1) {
+                        STAGE_TRACKER.put(stageKey, currentStage + 1);
+                        ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                        if (AbloomMod.LOGGER.isDebugEnabled()) {
+                            AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
+                                    weaponId, currentStage + 1, currentStage + 2);
+                        }
+                    } else {
+                        // Completed all stages, reset to first stage
+                        STAGE_TRACKER.put(stageKey, 0);
+                        ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                        if (AbloomMod.LOGGER.isDebugEnabled()) {
+                            AbloomMod.LOGGER.debug("Completed all stages for multi-stage weapon {}, resetting to stage 1", weaponId);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
         updateLastDamageTime(target, type);
+        return finalDamage;
     }
 
     @SubscribeEvent
@@ -264,6 +497,9 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
         }
+        // Clean up stage tracking and cooldown for dead entity
+        STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
+        ElementalWeaponRegistry.cleanupEntityCooldowns(entity);
     }
 
     @SubscribeEvent
@@ -275,13 +511,18 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
             synchronized (LAST_DAMAGE_LOCK) {
                 LAST_DAMAGE_TIME.remove(entity.getId());
             }
+            // Clean up stage tracking and cooldown for leaving entity
+            STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
+            ElementalWeaponRegistry.cleanupEntityCooldowns(livingEntity);
         }
     }
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (displayManager != null) displayManager.clearActiveDisplays(player);
+        if (displayManager != null) {
+            displayManager.clearActiveDisplays(player);
+        }
         int playerId = player.getId();
         DAMAGE_COOLDOWNS.remove(playerId);
         synchronized (LAST_DAMAGE_LOCK) {
@@ -314,6 +555,21 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
         Entity causingEntity = source.getEntity();
         if (causingEntity instanceof LivingEntity attacker) {
             ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+
+            // Check for multi-stage weapon first
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                // Return base element if set, otherwise fall back to first stage's element
+                ElementType baseElement = ElementalWeaponRegistry.getBaseElement(weaponId);
+                if (baseElement != null) {
+                    return baseElement;
+                }
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                if (!stages.isEmpty()) {
+                    return stages.get(0).element();
+                }
+            }
+
             Optional<ElementType> componentType = ElementalWeaponComponent.getElement(weapon);
             if (componentType.isPresent()) return componentType.get();
             ElementType registryType = ElementalWeaponRegistry.getElementType(weapon);
@@ -361,7 +617,7 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
                 Map.Entry<Integer, Map<ElementType, Long>> entityEntry = entityIterator.next();
                 int entityId = entityEntry.getKey();
                 Map<ElementType, Long> typeTimes = entityEntry.getValue();
-                
+
                 LivingEntity livingEntity = null;
                 for (ServerLevel level : currentServer.getAllLevels()) {
                     Entity entity = level.getEntity(entityId);
@@ -370,12 +626,12 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
                         break;
                     }
                 }
-                
+
                 if (livingEntity == null) {
                     entityIterator.remove();
                     continue;
                 }
-                
+
                 Iterator<Map.Entry<ElementType, Long>> typeIterator = typeTimes.entrySet().iterator();
                 while (typeIterator.hasNext()) {
                     Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
@@ -384,7 +640,7 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
                         typeIterator.remove();
                     }
                 }
-                
+
                 if (typeTimes.isEmpty()) entityIterator.remove();
             }
         }
@@ -498,7 +754,7 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
                 totalResistance += resistance;
             }
         }
-        
+
         return Math.max(-0.99f, Math.min(totalResistance, 0.99f));
     }
 
@@ -617,6 +873,8 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
 
     public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
         if (IS_PROCESSING_DAMAGE.get()) return;
+
+        // Mark as processing to prevent infinite recursion
         IS_PROCESSING_DAMAGE.set(true);
         try {
             processDealElementDamage(target, type, amount, accumMultiplier, attacker);
@@ -630,7 +888,7 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
 
         float damageMultiplier = 1.0f;
         float accumBonus = 1.0f;
-        
+
         if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
             float reduction = 1.0f - ((amplifier + 1) * 0.20f);
@@ -652,10 +910,10 @@ if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
         }
 
         float finalDamage = amount;
-        
-        // Умножаем finalDamage на накопленный damageMultiplier
+
+        // Multiply finalDamage by accumulated damageMultiplier
         finalDamage *= damageMultiplier;
-        
+
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
 
         int basePoints = (int) baseAccumulation;

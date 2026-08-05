@@ -102,5 +102,6 @@
   "elemental.resistance.shadow": "Shadow DMG Res: ",
   "item.abloom.shadow_stick": "Shadow Stick",
   "elemental.tooltip.crit_chance": "Crit Chance: %s%%",
-  "elemental.tooltip.crit_damage": "Crit DMG: %s%%"
+  "elemental.tooltip.crit_damage": "Crit DMG: %s%%",
+  "elemental.tooltip.attack_stages_count": "Attack stages: %d"
 }
