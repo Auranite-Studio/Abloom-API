@@ -26,6 +26,9 @@ public class ElementalWeaponRegistry {
 	// Stage tracking: maps weapon item location to list of stage data
 	private static final Map<ResourceLocation, List<StageData>> WEAPON_STAGES = new WeakHashMap<>();
 
+	// Base element tracking for multi-stage weapons (used for tooltip display)
+	private static final Map<ResourceLocation, ElementType> WEAPON_BASE_ELEMENTS = new WeakHashMap<>();
+
 	// Cooldown tracking: tracks last attack time for each (attacker, target) pair
 	private static final Map<String, Long> STAGE_COOLDOWN_TRACKER = new ConcurrentHashMap<>();
 
@@ -146,7 +149,7 @@ public class ElementalWeaponRegistry {
 		// Mark as builtin registered and register weapon with first stage only once
 		if (!BUILTIN_REGISTRATIONS.contains(itemLocation)) {
 			BUILTIN_REGISTRATIONS.add(itemLocation);
-			
+
 			var optionalItem = BuiltInRegistries.ITEM.getOptional(itemLocation);
 			if (optionalItem.isPresent()) {
 				Item item = optionalItem.get();
@@ -157,6 +160,12 @@ public class ElementalWeaponRegistry {
 				AbloomMod.LOGGER.info("Registered multi-stage weapon: {} with {} stages", itemLocation, stages.size());
 			}
 		}
+
+		// Set base element from first stage as fallback (only if not already set by provider)
+		if (!stages.isEmpty() && !WEAPON_BASE_ELEMENTS.containsKey(itemLocation)) {
+			StageData firstStage = stages.get(0);
+			setBaseElement(itemLocation, firstStage.element());
+		}
 	}
 
 	/**
@@ -164,6 +173,22 @@ public class ElementalWeaponRegistry {
 	 */
 	public static boolean hasStages(ResourceLocation itemLocation) {
 		return WEAPON_STAGES.containsKey(itemLocation) && !WEAPON_STAGES.get(itemLocation).isEmpty();
+	}
+
+	/**
+	 * Set the base element for a multi-stage weapon.
+	 */
+	public static void setBaseElement(ResourceLocation itemLocation, ElementType baseElement) {
+		if (itemLocation != null && baseElement != null) {
+			WEAPON_BASE_ELEMENTS.put(itemLocation, baseElement);
+		}
+	}
+
+	/**
+	 * Get the base element for a multi-stage weapon.
+	 */
+	public static ElementType getBaseElement(ResourceLocation itemLocation) {
+		return WEAPON_BASE_ELEMENTS.get(itemLocation);
 	}
 
 	/**
@@ -219,14 +244,15 @@ public class ElementalWeaponRegistry {
 		if (stack == null || stack.isEmpty()) {
 			return ElementType.PHYSICAL;
 		}
-		
+
 		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-		
-		// If weapon has stages, return null to indicate multi-stage
+
+		// If weapon has stages, return base element if set, otherwise null
 		if (hasStages(itemId)) {
-			return null;
+			ElementType baseElement = getBaseElement(itemId);
+			return baseElement;
 		}
-		
+
 		WeaponData data = getWeaponData(stack);
 		return data != null ? data.type() : ElementType.PHYSICAL;
 	}
@@ -275,6 +301,7 @@ public class ElementalWeaponRegistry {
 		WEAPON_DATA_BY_ID.clear();
 		BUILTIN_REGISTRATIONS.clear();
 		WEAPON_STAGES.clear();
+		WEAPON_BASE_ELEMENTS.clear();
 	}
 
 	public static int getRegisteredCount() {

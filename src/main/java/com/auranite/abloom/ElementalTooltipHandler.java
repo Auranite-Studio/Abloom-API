@@ -101,7 +101,7 @@ public class ElementalTooltipHandler {
 
         if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
             MutableComponent elementText = getElementText(type);
-            event.getToolTip().add(elementText);
+            event.getToolTip().add(1, elementText);
         }
 
         if (critChance > 0.0f || critDamage > 0.0f) {

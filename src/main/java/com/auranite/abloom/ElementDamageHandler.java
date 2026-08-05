@@ -557,7 +557,11 @@ public class ElementDamageHandler {
 
             // Check for multi-stage weapon first
             if (ElementalWeaponRegistry.hasStages(weaponId)) {
-                // Return first stage's element as default
+                // Return base element if set, otherwise fall back to first stage's element
+                ElementType baseElement = ElementalWeaponRegistry.getBaseElement(weaponId);
+                if (baseElement != null) {
+                    return baseElement;
+                }
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
                 if (!stages.isEmpty()) {
                     return stages.get(0).element();

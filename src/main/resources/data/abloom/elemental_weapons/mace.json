@@ -1,27 +1,7 @@
 {
   "item": "minecraft:mace",
-  "stages": {
-    "1": {
-      "element": "PHYSICAL",
-      "accumulation_multiplier": 10.0
-    },
-    "2": {
-      "element": "PHYSICAL",
-      "accumulation_multiplier": 10.0
-    },
-    "3": {
-      "element": "FIRE",
-      "accumulation_multiplier": 15.0
-    },
-    "4": {
-      "element": "FIRE",
-      "accumulation_multiplier": 35.0
-    }
-  },
   "element": "PHYSICAL",
   "crit_chance": 0.05,
   "crit_damage": 0.5,
   "accumulation_multiplier": 25.0
 }
-
-

@@ -96,9 +96,33 @@ public class ElementalWeaponProvider {
                 return;
             }
 
+            // Determine the base element for tooltip display
+            ElementType baseElement = null;
+
+            if (weaponData.hasStages()) {
+                // Multi-stage weapon: use base_element field, or fall back to first stage
+                var baseElementOpt = weaponData.getBaseElementType();
+                if (baseElementOpt.isPresent()) {
+                    baseElement = baseElementOpt.get();
+                    ElementalWeaponRegistry.setBaseElement(location, baseElement);
+                    AbloomMod.LOGGER.debug("Base element for multi-stage weapon {}: {}", location, baseElement);
+                }
+            } else {
+                // Single-element weapon: use element field
+                var elementTypeOpt = weaponData.getElementType();
+                if (!elementTypeOpt.isPresent()) {
+                    AbloomMod.LOGGER.warn("Invalid element type in {} (from mod {}): {}", sourcePath, modId, weaponData.getElement());
+                    return;
+                }
+                baseElement = elementTypeOpt.get();
+                ElementalWeaponRegistry.setBaseElement(location, baseElement);
+                AbloomMod.LOGGER.debug("Base element for weapon {}: {}", location, baseElement);
+            }
+
             // Handle multi-stage weapons
             if (weaponData.hasStages()) {
                 List<WeaponStage> stages = weaponData.getStages();
+
                 AbloomMod.LOGGER.info("Loading multi-stage weapon: {} ({} stages) from mod {}",
                         location, stages.size(), modId);
 
@@ -126,13 +150,7 @@ public class ElementalWeaponProvider {
                         location, stages.size(), modId);
             } else {
                 // Legacy single-element format
-                var elementTypeOpt = weaponData.getElementType();
-                if (!elementTypeOpt.isPresent()) {
-                    AbloomMod.LOGGER.warn("Invalid element type in {} (from mod {}): {}", sourcePath, modId, weaponData.getElement());
-                    return;
-                }
-
-                ElementType elementType = elementTypeOpt.get();
+                ElementType elementType = baseElement;
 
                 ElementalWeaponRegistry.registerBuiltinWeapon(
                         location,
