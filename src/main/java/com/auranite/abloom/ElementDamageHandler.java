@@ -6,7 +6,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -682,7 +681,7 @@ public class ElementDamageHandler {
 
         // Get crit chance from entity attributes
         ResourceKey<Attribute> critChanceKey = AbloomAttributes.CRIT_CHANCE.getKey();
-        AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceKey));
+        AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critChanceKey));
         double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : 0.0;
         double entityCritChance = Math.max(0.0, entityCritChanceVal);
 
@@ -693,7 +692,7 @@ public class ElementDamageHandler {
 
         // Get crit damage from entity attributes
         ResourceKey<Attribute> critDamageKey = AbloomAttributes.CRIT_DMG.getKey();
-        AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageKey));
+        AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critDamageKey));
         double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : 0.0;
         double entityCritDamage = Math.max(0.0, entityCritDamageVal);
 

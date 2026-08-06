@@ -2,7 +2,8 @@ package com.auranite.abloom.effect;
 
 import com.auranite.abloom.AbloomAttributes;
 import com.auranite.abloom.AbloomMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,9 +13,9 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public class CriticalGainEffect extends MobEffect {
     public CriticalGainEffect(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
-        this.addAttributeModifier(AbloomAttributes.CRIT_DMG, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_0"), 0.3, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomAttributes.CRIT_CHANCE, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_1"), 0.15, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(Attributes.ATTACK_SPEED, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_2"), 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        this.addAttributeModifier(AbloomAttributes.CRIT_DMG, Identifier.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_0"), 0.3, AttributeModifier.Operation.ADD_VALUE);
+        this.addAttributeModifier(AbloomAttributes.CRIT_CHANCE, Identifier.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_1"), 0.15, AttributeModifier.Operation.ADD_VALUE);
+        this.addAttributeModifier(Attributes.ATTACK_SPEED, Identifier.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_2"), 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 
     }
 
@@ -24,7 +25,7 @@ public class CriticalGainEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel serverLevel, LivingEntity entity, int amplifier) {
         return true;
     }
 }

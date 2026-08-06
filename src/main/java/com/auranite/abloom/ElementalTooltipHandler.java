@@ -4,7 +4,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -113,8 +112,8 @@ public class ElementalTooltipHandler {
         if (player != null && player instanceof LivingEntity livingEntity) {
             var critChanceHolder = AbloomAttributes.CRIT_CHANCE.getKey();
             var critDamageHolder = AbloomAttributes.CRIT_DMG.getKey();
-            var critChanceAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceHolder));
-            var critDamageAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageHolder));
+            var critChanceAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critChanceHolder));
+            var critDamageAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critDamageHolder));
             if (critChanceAttr != null) {
                 double base = critChanceAttr.getBaseValue();
                 double current = critChanceAttr.getValue();
