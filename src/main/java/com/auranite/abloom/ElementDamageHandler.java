@@ -5,6 +5,8 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -679,10 +681,10 @@ public class ElementDamageHandler {
         }
 
         // Get crit chance from entity attributes
-        AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AbloomAttributes.CRIT_CHANCE));
-        double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : AbloomAttributes.CRIT_CHANCE_BASE;
-        // Subtract base value to get only modifiers
-        double entityCritChance = Math.max(0.0, entityCritChanceVal - AbloomAttributes.CRIT_CHANCE_BASE);
+        ResourceKey<Attribute> critChanceKey = AbloomAttributes.CRIT_CHANCE.getKey();
+        AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceKey));
+        double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : 0.0;
+        double entityCritChance = Math.max(0.0, entityCritChanceVal);
 
         // Get crit chance from weapon
         ItemStack weapon = attacker.getMainHandItem();
@@ -690,10 +692,10 @@ public class ElementDamageHandler {
                 + ElementalWeaponComponent.getCritChance(weapon);
 
         // Get crit damage from entity attributes
-        AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.wrapAsHolder(AbloomAttributes.CRIT_DAMAGE));
-        double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : AbloomAttributes.CRIT_DAMAGE_BASE;
-        // Subtract base value to get only modifiers
-        double entityCritDamage = Math.max(0.0, entityCritDamageVal - AbloomAttributes.CRIT_DAMAGE_BASE);
+        ResourceKey<Attribute> critDamageKey = AbloomAttributes.CRIT_DMG.getKey();
+        AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageKey));
+        double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : 0.0;
+        double entityCritDamage = Math.max(0.0, entityCritDamageVal);
 
         // Get crit damage from weapon
         double weaponCritDamage = ElementalWeaponRegistry.getCritDamage(weapon)
