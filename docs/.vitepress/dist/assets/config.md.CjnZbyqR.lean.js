@@ -1,1 +1,0 @@
-import{_ as a,o as i,c as n,a2 as t}from"./chunks/framework.B-sLtYm_.js";const c=JSON.parse('{"title":"Configuration","description":"","frontmatter":{},"headers":[],"relativePath":"config.md","filePath":"config.md"}'),e={name:"config.md"};function l(h,s,p,d,o,r){return i(),n("div",null,[...s[0]||(s[0]=[t("",38)])])}const g=a(e,[["render",l]]);export{c as __pageData,g as default};
