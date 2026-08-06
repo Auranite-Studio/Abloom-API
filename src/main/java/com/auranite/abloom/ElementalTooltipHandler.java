@@ -4,6 +4,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -96,29 +97,54 @@ public class ElementalTooltipHandler {
 
         ElementType type = ElementalWeaponUtils.getElementType(stack);
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
-        float critChance = ElementalWeaponUtils.getCritChance(stack);
-        float critDamage = ElementalWeaponUtils.getCritDamage(stack);
+        float weaponCritChance = ElementalWeaponUtils.getCritChance(stack);
+        float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);
 
         if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
         }
 
-        if (critChance > 0.0f || critDamage > 0.0f) {
-            if (critChance > 0.0f) {
-                int percent = Math.round(critChance * 100);
+        // Get base and modified attribute values from the player/entity
+        double entityBonusCritChance = 0.0;
+        double entityBonusCritDamage = 0.0;
+        var player = event.getEntity();
+        if (player != null && player instanceof LivingEntity livingEntity) {
+            var critChanceHolder = AbloomAttributes.CRIT_CHANCE.getKey();
+            var critDamageHolder = AbloomAttributes.CRIT_DMG.getKey();
+            var critChanceAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceHolder));
+            var critDamageAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageHolder));
+            if (critChanceAttr != null) {
+                double base = critChanceAttr.getBaseValue();
+                double current = critChanceAttr.getValue();
+                entityBonusCritChance = current - base;
+            }
+            if (critDamageAttr != null) {
+                double base = critDamageAttr.getBaseValue();
+                double current = critDamageAttr.getValue();
+                entityBonusCritDamage = current - base;
+            }
+        }
+
+        if (weaponCritChance > 0.0f || weaponCritDamage > 0.0f) {
+            if (weaponCritChance > 0.0f) {
+                int weaponPercent = Math.round(weaponCritChance * 100);
+                int entityPercent = (int) Math.round(entityBonusCritChance * 100);
+                String entityStr = entityPercent != 0 ? " (" + (entityPercent > 0 ? "+" : "") + entityPercent + "%)" : "";
                 MutableComponent critChanceText = Component.translatable(
                         KEY_CRIT_CHANCE,
-                        percent
+                        weaponPercent + "%" + entityStr
                 );
                 critChanceText.setStyle(critChanceText.getStyle().withColor(0x00AA00));
                 event.getToolTip().add(Component.literal(" ").append(critChanceText));
             }
-            if (critDamage > 0.0f) {
-                int percent = Math.round(critDamage * 100);
+            if (weaponCritDamage > 0.0f) {
+                int weaponPercent = Math.round(weaponCritDamage * 100);
+                int entityPercent = (int) Math.round(entityBonusCritDamage * 100);
+                String entityStr = entityPercent != 0 ? " (" + (entityPercent > 0 ? "+" : "") + entityPercent + "%)" : "";
                 MutableComponent critDamageText = Component.translatable(
                         KEY_CRIT_DAMAGE,
-                        percent
+                        weaponPercent + "%" + entityStr
                 );
                 critDamageText.setStyle(critDamageText.getStyle().withColor(0x00AA00));
                 event.getToolTip().add(Component.literal(" ").append(critDamageText));
