@@ -5,6 +5,10 @@ on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["1.21.1"]
+    paths: ['docs/**']
+
+  # Runs on workflow manual trigger
+  workflow_dispatch:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -26,7 +30,7 @@ jobs:
   deploy:
     environment:
       name: github-pages
-      url: https://raw.githubusercontent.com/Auranite-Studio/Abloom-API/refs/heads/1.21.1/docs/index.html
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,8 +40,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          # Upload docs folder for GitHub Pages
+          path: 'docs'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
