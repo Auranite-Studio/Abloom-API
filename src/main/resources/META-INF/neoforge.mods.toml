@@ -4,10 +4,10 @@ license="GNU General Public License version 3 (GPLv3)"
 
 [[mods]]
 modId="abloom"
-version="1.0.0-beta.19+26.2.0-neoforge"
+version="1.0.0-beta.20+26.2.0-neoforge"
 displayName="Abloom API"
 displayURL=""
-logoFile=""
+bannerFile=""
 credits="Created by Auranite Studio"
 authors=""
 description="Abloom API is a library mod for NeoForge that adds an elemental damage system, elemental energy accumulation, and threshold effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, and a resistance system for mobs."
@@ -15,7 +15,7 @@ description="Abloom API is a library mod for NeoForge that adds an elemental dam
 [[dependencies.abloom]]
 modId="neoforge"
 type="required"
-versionRange="[26.2.0.45-beta,)"
+versionRange="[26.2.0.53-beta,)"
 ordering="AFTER"
 side="BOTH"
 
