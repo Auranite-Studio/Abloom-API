@@ -11,12 +11,59 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-color: #333;
+            --nav-bg: rgba(255,255,255,0.95);
+            --nav-text: #667eea;
+            --section-bg: white;
+            --heading-color: #667eea;
+            --heading-border: #667eea;
+            --h3-color: #764ba2;
+            --h4-color: #555;
+            --table-border: #ddd;
+            --table-alt-bg: #f8f9fa;
+            --table-hover-bg: #e9ecef;
+            --code-bg: #f4f4f4;
+            --code-inline-color: #e83e8c;
+            --pre-bg: #2d2d2d;
+            --pre-color: #f8f8f2;
+            --nav-link-bg: transparent;
+            --nav-link-hover-bg: #667eea;
+            --nav-link-hover-color: white;
+            --footer-color: white;
+        }
+
+        body.dark-theme {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --text-color: #e0e0e0;
+            --nav-bg: rgba(30,30,46,0.95);
+            --nav-text: #7eb8ff;
+            --section-bg: #1e1e32;
+            --heading-color: #7eb8ff;
+            --heading-border: #7eb8ff;
+            --h3-color: #a78bfa;
+            --h4-color: #c0c0c0;
+            --table-border: #3a3a5c;
+            --table-alt-bg: #252540;
+            --table-hover-bg: #2d2d50;
+            --code-bg: #2a2a3e;
+            --code-inline-color: #f472b6;
+            --pre-bg: #0d0d1a;
+            --pre-color: #e0e0e0;
+            --nav-link-bg: transparent;
+            --nav-link-hover-bg: #7eb8ff;
+            --nav-link-hover-color: #1a1a2e;
+            --footer-color: #c0c0c0;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-color);
+            background: var(--bg-gradient);
             min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
         }
 
         .container {
@@ -43,7 +90,7 @@
         }
 
         nav {
-            background: rgba(255,255,255,0.95);
+            background: var(--nav-bg);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 30px;
@@ -51,6 +98,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
         nav ul {
@@ -62,7 +110,7 @@
         }
 
         nav a {
-            color: #667eea;
+            color: var(--nav-text);
             text-decoration: none;
             font-weight: 600;
             padding: 10px 20px;
@@ -71,32 +119,33 @@
         }
 
         nav a:hover {
-            background: #667eea;
-            color: white;
+            background: var(--nav-link-hover-bg);
+            color: var(--nav-link-hover-color);
         }
 
         section {
-            background: white;
+            background: var(--section-bg);
             padding: 30px;
             border-radius: 10px;
             margin-bottom: 30px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s;
         }
 
         h2 {
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
+            color: var(--heading-color);
+            border-bottom: 3px solid var(--heading-border);
             padding-bottom: 10px;
             margin-bottom: 20px;
         }
 
         h3 {
-            color: #764ba2;
+            color: var(--h3-color);
             margin: 25px 0 15px 0;
         }
 
         h4 {
-            color: #555;
+            color: var(--h4-color);
             margin: 20px 0 10px 0;
             font-weight: 600;
         }
@@ -108,27 +157,27 @@
         }
 
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid var(--table-border);
             padding: 12px;
             text-align: left;
         }
 
         th {
-            background: #667eea;
+            background: var(--heading-color);
             color: white;
         }
 
         tr:nth-child(even) {
-            background: #f8f9fa;
+            background: var(--table-alt-bg);
         }
 
         tr:hover {
-            background: #e9ecef;
+            background: var(--table-hover-bg);
         }
 
         pre {
-            background: #2d2d2d;
-            color: #f8f8f2;
+            background: var(--pre-bg);
+            color: var(--pre-color);
             padding: 20px;
             border-radius: 5px;
             overflow-x: auto;
@@ -137,10 +186,10 @@
 
         code {
             font-family: 'Courier New', monospace;
-            background: #f4f4f4;
+            background: var(--code-bg);
             padding: 2px 6px;
             border-radius: 3px;
-            color: #e83e8c;
+            color: var(--code-inline-color);
         }
 
         pre code {
@@ -164,34 +213,74 @@
         .element-shadow { color: #4B0082; font-weight: bold; }
 
         .note {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
+            background: var(--note-bg, #fff3cd);
+            border-left: 4px solid var(--note-border, #ffc107);
             padding: 15px;
             margin: 15px 0;
             border-radius: 5px;
+        }
+
+        body.dark-theme .note {
+            --note-bg: #3d3520;
+            --note-border: #ffc107;
         }
 
         .tip {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
+            background: var(--tip-bg, #d4edda);
+            border-left: 4px solid var(--tip-border, #28a745);
             padding: 15px;
             margin: 15px 0;
             border-radius: 5px;
         }
 
+        body.dark-theme .tip {
+            --tip-bg: #1a3328;
+            --tip-border: #28a745;
+        }
+
         .warning {
-            background: #f8d7da;
-            border-left: 4px solid #dc3545;
+            background: var(--warning-bg, #f8d7da);
+            border-left: 4px solid var(--warning-border, #dc3545);
             padding: 15px;
             margin: 15px 0;
             border-radius: 5px;
+        }
+
+        body.dark-theme .warning {
+            --warning-bg: #3d2025;
+            --warning-border: #dc3545;
         }
 
         footer {
             text-align: center;
             padding: 30px;
-            color: white;
+            color: var(--footer-color);
             opacity: 0.8;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: var(--section-bg);
+            color: var(--text-color);
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
 
         @media (max-width: 768px) {
@@ -219,6 +308,8 @@
     </style>
 </head>
 <body>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+
     <div class="container">
         <header>
             <h1>🌸 Abloom Mod</h1>
@@ -989,5 +1080,24 @@ public class MyModElements {
             <p>For more information, visit the <a href="https://github.com/your-repo/abloom" style="color: white;">GitHub Repository</a></p>
         </footer>
     </div>
+
+    <script>
+        (function() {
+            const toggle = document.getElementById('themeToggle');
+            const savedTheme = localStorage.getItem('theme');
+
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                toggle.textContent = '☀️';
+            }
+
+            toggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-theme');
+                const isDark = document.body.classList.contains('dark-theme');
+                toggle.textContent = isDark ? '☀️' : '🌙';
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+        })();
+    </script>
 </body>
 </html>
