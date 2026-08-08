@@ -7,9 +7,6 @@ on:
     branches: ["1.21.1"]
     paths: ['docs/**']
 
-  # Runs on workflow manual trigger
-  workflow_dispatch:
-
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
