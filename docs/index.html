@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abloom Mod - Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+        }
+
+        h4 {
+            color: #555;
+            margin: 20px 0 10px 0;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr:hover {
+            background: #e9ecef;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e83e8c;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .element-fire { color: #FF5500; font-weight: bold; }
+        .element-physical { color: #C0C0C0; font-weight: bold; }
+        .element-wind { color: #00FFFF; font-weight: bold; }
+        .element-water { color: #0080FF; font-weight: bold; }
+        .element-earth { color: #8B4513; font-weight: bold; }
+        .element-ice { color: #00BFFF; font-weight: bold; }
+        .element-electric { color: #FF19FF; font-weight: bold; }
+        .element-energy { color: #FFFF00; font-weight: bold; }
+        .element-natural { color: #32CD32; font-weight: bold; }
+        .element-quantum { color: #9400D3; font-weight: bold; }
+        .element-ether { color: #24B3A7; font-weight: bold; }
+        .element-light { color: #FFFFE0; font-weight: bold; }
+        .element-shadow { color: #4B0082; font-weight: bold; }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2em;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            section {
+                padding: 20px;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌸 Abloom Mod</h1>
+            <p>Elemental Combat System for Minecraft</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#mechanics">Mechanics</a></li>
+                <li><a href="#effects">Status Effects</a></li>
+                <li><a href="#weapons">Weapon System</a></li>
+                <li><a href="#combat">Combat API</a></li>
+                <li><a href="#integration">Mod Integration</a></li>
+                <li><a href="#configuration">Datapacks</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview">
+            <h2>Overview</h2>
+            <p>Abloom is a comprehensive combat modification that introduces an elemental resonance system with 13 unique elements. Each element has its own accumulation mechanics, special status effects, and strategic applications.</p>
+
+            <h3>Key Features:</h3>
+            <ul>
+                <li><strong>13 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW</li>
+                <li><strong>Resonance System:</strong> Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
+                <li><strong>15 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain</li>
+                <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 4 attack stages with different elements and accumulation multipliers</li>
+                <li><strong>Critical Hit System:</strong> Custom CRIT_CHANCE and CRIT_DMG attributes with weapon-specific bonuses</li>
+                <li><strong>Armor Resistances:</strong> Armor pieces can provide resistance or weakness to specific elements (-0.99 to 0.99)</li>
+                <li><strong>Elemental Projectiles:</strong> Arrows and projectiles can inherit element from shooter's weapon or be forced to specific element</li>
+                <li><strong>Damage Priority System:</strong> Resolve conflicts with other mods using priority-based damage modification (HIGHEST=300, HIGH=200, NORMAL=0, LOW=-100, LOWEST=-300)</li>
+                <li><strong>Damage Number Display:</strong> Visual feedback with configurable damage numbers and status texts</li>
+                <li><strong>Datapack Support:</strong> Configure weapons, armor, and mob properties without code</li>
+                <li><strong>Developer API:</strong> Comprehensive Java API for mod integration</li>
+            </ul>
+
+            <div class="tip">
+                <strong>Tip:</strong> The resonance threshold is 100 points by default. Base accumulation is 1 point per hit, modified by weapon multipliers and status effects like Wetness (+100%).
+            </div>
+        </section>
+
+        <section id="mechanics">
+            <h2>Mechanics</h2>
+
+            <h3>Element Types & Resonance Effects</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th>Resonance Effect</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="element-physical">PHYSICAL</span></td>
+                        <td>Physical resonance explosion, applies Rupture effect (target takes 200% initial damage, defense reduced by 30%)</td>
+                        <td>6 seconds (120 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-fire">FIRE</span></td>
+                        <td>Fire resonance explosion, applies Burning effect</td>
+                        <td>10 seconds (200 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-wind">WIND</span></td>
+                        <td>Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and removes Windswept effect</td>
+                        <td>8 seconds (160 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-water">WATER</span></td>
+                        <td>Water resonance explosion, applies Wetness effect (target takes 150% initial damage, increases resonance accumulation by 100%)</td>
+                        <td>12 seconds (240 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-earth">EARTH</span></td>
+                        <td>Earth resonance explosion, applies Stun effect (target cannot deal damage or move)</td>
+                        <td>5 seconds (100 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-ice">ICE</span></td>
+                        <td>Ice resonance explosion, applies Freeze effect</td>
+                        <td>12 seconds (240 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-electric">ELECTRIC</span></td>
+                        <td>Electric resonance explosion, applies Shock effect (target deals 20% less damage)</td>
+                        <td>10 seconds (200 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-energy">ENERGY</span></td>
+                        <td>Energy resonance explosion, applies Overload effect (damage taken by target increased by 20%)</td>
+                        <td>10 seconds (200 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-natural">NATURAL</span></td>
+                        <td>Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)</td>
+                        <td>8 seconds (160 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-quantum">QUANTUM</span></td>
+                        <td>Quantum resonance explosion, applies Break effect (all damage to target ignores defense)</td>
+                        <td>6 seconds (120 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-ether">ETHER</span></td>
+                        <td>Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)</td>
+                        <td>8 seconds (160 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-light">LIGHT</span></td>
+                        <td>Light resonance explosion, applies Dispersion effect (damage taken by target increased by a certain amount %)</td>
+                        <td>10 seconds (200 ticks)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-shadow">SHADOW</span></td>
+                        <td>Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50% reduction)</td>
+                        <td>10 seconds (200 ticks)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Damage Priority System</h3>
+            <p>The damage priority system resolves conflicts when multiple mods modify damage simultaneously. Modifiers are sorted by priority (highest to lowest) and called in registration order (FIFO) for equal priorities.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Priority</th>
+                        <th>Value</th>
+                        <th>Description</th>
+                        <th>When to Use</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>HIGHEST</td>
+                        <td>300</td>
+                        <td>Highest priority</td>
+                        <td>For critically important modifications</td>
+                    </tr>
+                    <tr>
+                        <td>HIGH</td>
+                        <td>200</td>
+                        <td>High priority</td>
+                        <td>When processing BEFORE Abloom</td>
+                    </tr>
+                    <tr>
+                        <td>NORMAL</td>
+                        <td>0</td>
+                        <td>Default priority</td>
+                        <td>For simple modifiers</td>
+                    </tr>
+                    <tr>
+                        <td>LOW</td>
+                        <td>-100</td>
+                        <td>Low priority (Abloom uses this)</td>
+                        <td>When processing AFTER most mods</td>
+                    </tr>
+                    <tr>
+                        <td>LOWEST</td>
+                        <td>-300</td>
+                        <td>Very low priority</td>
+                        <td>When processing last</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="note">
+                <strong>Note:</strong> Abloom API uses priority LOW (-100) for damage processing. Mods with priority > 0 are called BEFORE Abloom, while mods with priority <= 0 are called AFTER Abloom.
+            </div>
+        </section>
+
+        <section id="effects">
+            <h2>Status Effects</h2>
+            <p>Abloom adds 15 custom status effects that can be applied through elemental resonance or other means:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Effect</th>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>Color</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Burn</td>
+                        <td><code>abloom:burn</code></td>
+                        <td>Deals periodic fire damage over time</td>
+                        <td style="color: #FF5500;">#FF5500</td>
+                    </tr>
+                    <tr>
+                        <td>Wetness</td>
+                        <td><code>abloom:wetness</code></td>
+                        <td>Target takes 150% initial damage, increases resonance accumulation by 100%</td>
+                        <td style="color: #0080FF;">#0080FF</td>
+                    </tr>
+                    <tr>
+                        <td>Stun</td>
+                        <td><code>abloom:stun</code></td>
+                        <td>Target cannot deal damage or move</td>
+                        <td style="color: #8B4513;">#8B4513</td>
+                    </tr>
+                    <tr>
+                        <td>Freeze</td>
+                        <td><code>abloom:freeze</code></td>
+                        <td>Immobilizes and deals periodic ice damage</td>
+                        <td style="color: #00BFFF;">#00BFFF</td>
+                    </tr>
+                    <tr>
+                        <td>Shock</td>
+                        <td><code>abloom:shock</code></td>
+                        <td>Target deals 20% less damage</td>
+                        <td style="color: #FF19FF;">#FF19FF</td>
+                    </tr>
+                    <tr>
+                        <td>Break</td>
+                        <td><code>abloom:break</code></td>
+                        <td>All damage to target ignores defense</td>
+                        <td style="color: #9400D3;">#9400D3</td>
+                    </tr>
+                    <tr>
+                        <td>Rupture</td>
+                        <td><code>abloom:rupture</code></td>
+                        <td>Target takes 200% initial damage, defense reduced by 30%</td>
+                        <td style="color: #C0C0C0;">#C0C0C0</td>
+                    </tr>
+                    <tr>
+                        <td>Bloom</td>
+                        <td><code>abloom:bloom</code></td>
+                        <td>Target takes 1 damage per second and receives 20% universal vulnerability</td>
+                        <td style="color: #32CD32;">#32CD32</td>
+                    </tr>
+                    <tr>
+                        <td>Overload</td>
+                        <td><code>abloom:overload</code></td>
+                        <td>Damage taken by target increased by 20%</td>
+                        <td style="color: #FF00FF;">#FF00FF</td>
+                    </tr>
+                    <tr>
+                        <td>Windswept</td>
+                        <td><code>abloom:windswept</code></td>
+                        <td>Applying other elemental damage triggers resonance explosion</td>
+                        <td style="color: #00FFFF;">#00FFFF</td>
+                    </tr>
+                    <tr>
+                        <td>Corruption</td>
+                        <td><code>abloom:corruption</code></td>
+                        <td>Target's resistance to all damage types reduced by 20% and takes periodic damage</td>
+                        <td style="color: #24B3A7;">#24B3A7</td>
+                    </tr>
+                    <tr>
+                        <td>Taunt</td>
+                        <td><code>abloom:taunt</code></td>
+                        <td>Target is attacked by hostile and neutral mobs</td>
+                        <td style="color: #9B2D30;">#9B2D30</td>
+                    </tr>
+                    <tr>
+                        <td>Dispersion</td>
+                        <td><code>abloom:dispersion</code></td>
+                        <td>Damage taken by target increased by a certain amount %</td>
+                        <td style="color: #FFFFE0;">#FFFFE0</td>
+                    </tr>
+                    <tr>
+                        <td>Eclipse</td>
+                        <td><code>abloom:eclipse</code></td>
+                        <td>Target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50%</td>
+                        <td style="color: #4B0082;">#4B0082</td>
+                    </tr>
+                    <tr>
+                        <td>Critical Gain</td>
+                        <td><code>abloom:critical_gain</code></td>
+                        <td>+30% crit damage, +15% crit chance, +5% attack speed</td>
+                        <td style="color: #FFD700;">#FFD700</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="weapons">
+            <h2>Weapon System</h2>
+
+            <h3>Weapons Registration</h3>
+            <p>Weapons can be registered with elemental properties. Multi-stage weapons can have up to 4 attack stages, each with its own element type and accumulation multiplier. Stages reset after cooldown based on attack speed.</p>
+
+            <h4>Multi-Stage Registration Example:</h4>
+            <pre><code>// Register a 2-stage weapon
+ResourceLocation swordId = ResourceLocation.fromNamespaceAndPath("mymod", "dragon_sword");
+
+// Stage 1: Fire element with 2x accumulation
+ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
+    swordId,
+    1,                              // stage number (1-4)
+    ElementType.FIRE,
+    2.0f,                           // accumulation multiplier
+    0.15f,                          // crit chance (shared)
+    0.5f                            // crit damage (shared)
+);
+
+// Stage 2: Physical element with 3x accumulation
+ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
+    swordId,
+    2,
+    ElementType.PHYSICAL,
+    3.0f,
+    0.15f,
+    0.5f
+);</code></pre>
+
+            <h4>Single-Stage Registration Example:</h4>
+            <p>For weapons that don't require multiple stages, use the simplified registration method:</p>
+            <pre><code>// Register a simple fire staff with single-stage behavior
+ResourceLocation staffId = ResourceLocation.fromNamespaceAndPath("mymod", "fire_staff");
+
+ElementalWeaponRegistry.registerBuiltinWeapon(
+    staffId,                        // weapon ID
+    ElementType.FIRE,               // element type
+    1.5f,                           // accumulation multiplier
+    0.2f,                           // crit chance
+    0.75f                           // crit damage
+);</code></pre>
+
+            <h3>Critical Hit System</h3>
+            <p>Abloom adds two custom attributes:</p>
+            <ul>
+                <li><strong>CRIT_CHANCE</strong> (<code>abloom:crit_chance</code>): 0 to 1 (0% to 100%)</li>
+                <li><strong>CRIT_DMG</strong> (<code>abloom:crit_dmg</code>): 0 to 10 (0% to 1000%)</li>
+            </ul>
+
+            <h4>Weapon Crit Values:</h4>
+            <pre><code>// Get crit chance from weapon stack
+float critChance = ElementalWeaponUtils.getCritChance(stack);
+
+// Get crit damage from weapon stack
+float critDamage = ElementalWeaponUtils.getCritDamage(stack);
+
+// Register weapon with crit values
+ElementalWeaponRegistry.registerWeapon(
+    myItem,
+    ElementType.FIRE,
+    2.0f,       // accumulation
+    0.25f,      // 25% crit chance
+    0.75f       // 75% crit damage
+);</code></pre>
+        </section>
+
+        <section id="combat">
+            <h2>Combat API</h2>
+
+            <h3>Dealing Elemental Damage</h3>
+            <pre><code>// Deal elemental damage
+ElementDamageHandler.dealElementDamage(target, ElementType.FIRE, 10.0f);
+
+// Deal with custom accumulation multiplier
+ElementDamageHandler.dealElementDamage(target, ElementType.FIRE, 10.0f, 2.0f, attacker);
+
+// Deal with specific accumulation points
+ElementDamageHandler.dealElementDamage(target, ElementType.FIRE, 10.0f, 50);
+
+// Instant damage (bypasses some modifiers)
+ElementDamageHandler.applyElementalDamageInstant(target, source, ElementType.FIRE, 10.0f, 1.0f);</code></pre>
+
+            <h3>Managing Accumulation Points</h3>
+            <pre><code>// Add accumulation points
+ElementDamageHandler.addElementPoints(entity, ElementType.FIRE, 25);
+
+// Get current points
+int points = ElementDamageHandler.getElementPoints(entity, ElementType.FIRE);
+
+// Reset specific element
+ElementDamageHandler.resetElementPoints(entity, ElementType.FIRE);
+
+// Reset all elements
+ElementDamageHandler.resetAllElementPoints(entity);
+
+// Get progress (0-100%)
+int progress = ElementDamageHandler.getAccumulationProgress(entity, ElementType.FIRE);</code></pre>
+
+            <h3>Elemental Projectiles</h3>
+            <pre><code>// Register projectile by entity type
+ElementalProjectileRegistry.registerProjectile(EntityType.ARROW, ElementType.FIRE, 1.5f);
+
+// Register by class
+ElementalProjectileRegistry.registerProjectileByClass(
+    MyCustomProjectile.class,
+    ElementType.ICE,
+    2.0f
+);
+
+// Check if elemental
+boolean isElemental = ElementalProjectileRegistry.isElementalProjectile(projectile);
+
+// Get element from projectile
+Optional&lt;ElementType&gt; element = ElementalProjectileRegistry.getElementForEntity(projectile);
+
+// Create and launch elemental projectile
+Arrow projectile = ElementalProjectileRegistry.createAndLaunchElementalProjectile(
+    level,
+    shooter,
+    EntityType.ARROW,
+    1.5f,   // velocity
+    0.1f    // inaccuracy
+);
+
+// Force specific element (overrides shooter's weapon)
+Arrow projectile = ElementalProjectileRegistry.createElementalProjectileWithOverride(
+    level,
+    shooter,
+    EntityType.ARROW,
+    ElementType.FIRE,  // forced element
+    1.5f,
+    0.1f
+);
+
+// Enable/disable inheriting element from shooter (default: true)
+ElementalProjectileRegistry.setInheritElementFromShooter(true);</code></pre>
+
+            <h3>Armor Resistances</h3>
+            <pre><code>// Register armor with single resistance
+ArmorResistanceRegistry.registerArmor(myArmor, ElementType.FIRE, 0.3f);
+
+// Register with multiple resistances
+Map&lt;ElementType, Float&gt; resistances = Map.of(
+    ElementType.FIRE, 0.3f,
+    ElementType.WATER, 0.2f,
+    ElementType.ICE, 0.4f
+);
+ArmorResistanceRegistry.registerArmor(myArmor, resistances);
+
+// Low-level component API
+ItemStack resistantStack = ElementalResistanceComponent.withResistance(
+    stack,
+    ElementType.FIRE,
+    0.3f
+);
+
+// Get resistance value
+float fireRes = ElementalResistanceComponent.getResistance(stack, ElementType.FIRE);
+
+// Get all resistances
+Map&lt;ElementType, Float&gt; allResistances = ElementalResistanceComponent.getAllResistances(stack);</code></pre>
+
+            <h3>Checking Resistances</h3>
+            <pre><code>// Get entity resistance
+ElementResistanceManager.Resistance resistance =
+    ElementResistanceManager.getResistance(entity, ElementType.FIRE);
+
+// Check if has resistance
+boolean hasResistance = ElementResistanceManager.hasResistanceFor(entity, ElementType.FIRE);
+
+// Check if weak to element
+boolean isWeak = ElementResistanceManager.isWeakness(entity, ElementType.FIRE);
+
+// Check if immune
+boolean isImmune = ElementResistanceManager.isImmune(entity, ElementType.FIRE);
+
+// Calculate reduced damage
+float reducedDamage = ElementResistanceManager.calculateReducedDamage(
+    entity,
+    ElementType.FIRE,
+    10.0f
+);
+
+// Calculate accumulation points (takes resistance into account)
+int points = ElementResistanceManager.calculateAccumulationPoints(
+    entity,
+    ElementType.FIRE,
+    10
+);</code></pre>
+
+            <h3>Damage Display</h3>
+            <pre><code>// Check if damage numbers enabled
+boolean enabled = AbloomConfig.areDamageNumbersEnabled();
+
+// Check if status texts enabled
+boolean statusEnabled = AbloomConfig.areStatusTextsEnabled();
+
+// Spawn damage number
+ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
+displayManager.spawnDamageNumber(entity, 10.5f, ElementType.FIRE);
+
+// Spawn status text
+displayManager.spawnStatusText(
+    entity,
+    Component.translatable("elemental.tooltip.overheating"),
+    0xFF5500
+);</code></pre>
+        </section>
+
+        <section id="integration">
+            <h2>Mod Integration</h2>
+
+            <h3>Damage Modification System</h3>
+            <p>Register damage modifiers with priorities to integrate with Abloom's damage pipeline:</p>
+
+            <pre><code>// Register modifier with explicit priority
+DamageModificationManager.registerModifier(myModifier, 200);  // HIGH - before Abloom
+DamageModificationManager.registerModifier(myModifier, -100); // LOW - after Abloom
+
+// Register with default priority (0 = NORMAL)
+DamageModificationManager.registerModifier(myModifier);
+
+// Process damage manually
+float highPriorityDamage = DamageModificationManager.processHighPriorityDamage(
+    target,
+    source,
+    baseDamage
+);
+
+float lowPriorityDamage = DamageModificationManager.processLowPriorityDamage(
+    target,
+    source,
+    currentDamage
+);
+
+// Debug: get registered modifier count
+int count = DamageModificationManager.getRegisteredModifierCount();</code></pre>
+
+            <h3>Entity Resistance Tags</h3>
+            <p>Use predefined tags to register mob resistances in datapacks:</p>
+            <pre><code>// Available tag keys
+Tags.FIRE_RESISTANCE      Tags.FIRE_WEAKNESS
+Tags.WATER_RESISTANCE     Tags.WATER_WEAKNESS
+Tags.EARTH_RESISTANCE     Tags.EARTH_WEAKNESS
+Tags.WIND_RESISTANCE      Tags.WIND_WEAKNESS
+Tags.ICE_RESISTANCE       Tags.ICE_WEAKNESS
+Tags.ELECTRIC_RESISTANCE  Tags.ELECTRIC_WEAKNESS
+Tags.PHYSICAL_RESISTANCE  Tags.PHYSICAL_WEAKNESS
+Tags.NATURAL_RESISTANCE   Tags.NATURAL_WEAKNESS
+Tags.QUANTUM_RESISTANCE   Tags.QUANTUM_WEAKNESS
+Tags.ETHER_RESISTANCE     Tags.ETHER_WEAKNESS
+Tags.LIGHT_RESISTANCE     Tags.LIGHT_WEAKNESS
+Tags.SHADOW_RESISTANCE    Tags.SHADOW_WEAKNESS</code></pre>
+
+            <h3>Complete Integration Example</h3>
+            <pre><code>package com.example.mymod;
+
+import com.auranite.abloom.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
+
+public class MyModElements {
+
+    public static final Item DRAGON_SWORD = new Item(new Item.Properties().rarity(Rarity.RARE));
+    public static final Item ICE_BOW = new Item(new Item.Properties().rarity(Rarity.RARE));
+    public static final Item IRON_CHESTPLATE = new Item(new Item.Properties().rarity(Rarity.COMMON));
+
+    public static void init() {
+        // Register elemental weapons
+        registerElementalWeapons();
+
+        // Register armor resistances
+        registerArmorResistances();
+
+        // Register projectiles
+        registerProjectiles();
+    }
+
+    private static void registerElementalWeapons() {
+        // Dragon sword: fire damage with 3x accumulation, 20% crit chance, 60% crit damage
+        ElementalWeaponRegistry.registerBuiltinWeapon(
+            DRAGON_SWORD,
+            ElementType.FIRE,
+            3.0f,
+            0.2f,
+            0.6f
+        );
+
+        // Ice bow: ice damage with 2x accumulation
+        ElementalWeaponRegistry.registerBuiltinWeapon(
+            ICE_BOW,
+            ElementType.ICE,
+            2.0f,
+            0.05f,
+            0.5f
+        );
+    }
+
+    private static void registerArmorResistances() {
+        // Iron chestplate: 30% fire resistance
+        ArmorResistanceRegistry.registerArmor(
+            IRON_CHESTPLATE,
+            ElementType.FIRE,
+            0.3f
+        );
+    }
+
+    private static void registerProjectiles() {
+        // Fireball projectiles: fire-elemental
+        ElementalProjectileRegistry.registerProjectile(
+            EntityType.FIREBALL,
+            ElementType.FIRE,
+            1.5f
+        );
+
+        // Arrows inherit element from shooter's weapon
+        ElementalProjectileRegistry.setInheritElementFromShooter(true);
+    }
+}</code></pre>
+
+            <div class="tip">
+                <strong>Best Practices:</strong>
+                <ol>
+                    <li>Always check for null when getting elements from items</li>
+                    <li>Use config values instead of hardcoding display settings</li>
+                    <li>Register in common setup (not client or server only)</li>
+                    <li>Test with <code>/reload</code> when using datapacks during development</li>
+                    <li>Clamp resistance values between <code>-0.99</code> and <code>0.99</code></li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="configuration">
+            <h2>Datapack Configuration</h2>
+
+            <h3>Directory Structure</h3>
+            <pre>your_datapack.zip
+└── data
+    └── abloom
+        ├── damage_type/           # Custom damage types (optional)
+        ├── elemental_weapons/     # Elemental weapon configurations
+        ├── armor_resistances/     # Armor resistance configurations
+        └── tags
+            └── entity_type
+                └── element_resistance/  # Mob elemental properties
+                    ├── fire/
+                    │   ├── resistance.json
+                    │   └── weakness.json
+                    └── [other elements]/</pre>
+
+            <h3>Elemental Weapons Configuration</h3>
+            <p>Weapons can be configured with or without attack stages. Multi-stage weapons deal different element types and accumulation values per hit, while single-element weapons maintain consistent behavior.</p>
+
+            <h4>Multi-Stage Weapon Example</h4>
+            <p>Weapons can have multiple attack stages with different elements and accumulation multipliers:</p>
+            <pre><code>{
+  "item": "abloom:fire_stick",
+  "stages": {
+    "1": {
+      "element": "PHYSICAL",
+      "accumulation_multiplier": 10.0
+    },
+    "2": {
+      "element": "PHYSICAL",
+      "accumulation_multiplier": 10.0
+    },
+    "3": {
+      "element": "FIRE",
+      "accumulation_multiplier": 15.0
+    },
+    "4": {
+      "element": "FIRE",
+      "accumulation_multiplier": 35.0
+    }
+  },
+  "base_element": "FIRE",
+  "crit_chance": 0.5,
+  "crit_damage": 1.0
+}</code></pre>
+
+            <p><strong>Fields:</strong></p>
+            <ul>
+                <li><code>item</code>: Item ID (namespace:item_id)</li>
+                <li><code>stages</code>: Attack stages with element type and accumulation multiplier
+                    <ul>
+                        <li>Stage numbers must be sequential (1, 2, 3, 4...)</li>
+                        <li><code>element</code>: Element type for this stage (FIRE, WATER, ICE, etc.)</li>
+                        <li><code>accumulation_multiplier</code>: How much resonance points this stage adds</li>
+                    </ul>
+                </li>
+                <li><code>base_element</code>: Default element type of the weapon</li>
+                <li><code>crit_chance</code>: Critical hit chance (0.0 to 1.0)</li>
+                <li><code>crit_damage</code>: Critical hit damage multiplier (1.0 = 100% extra damage)</li>
+            </ul>
+
+            <p><strong>Example Breakdown:</strong> The <code>fire_stick</code> example shows a 4-stage weapon:</p>
+            <ul>
+                <li>Stages 1-2: PHYSICAL damage with low accumulation (10.0 each)</li>
+                <li>Stage 3: FIRE damage with medium accumulation (15.0)</li>
+                <li>Stage 4: FIRE damage with high accumulation (35.0)</li>
+                <li>50% crit chance with 100% extra crit damage</li>
+                <li>Base element is FIRE for resistance calculations</li>
+            </ul>
+
+            <h4>Single-Element Weapon Example (No Stages)</h4>
+            <p>For simpler weapons that always deal the same element type without stage progression:</p>
+            <pre><code>{
+  "item": "abloom:water_blade",
+  "element": "WATER",
+  "accumulation_multiplier": 12.0,
+  "crit_chance": 0.3,
+  "crit_damage": 0.8
+}</code></pre>
+
+            <p><strong>Fields for Single-Element Weapons:</strong></p>
+            <ul>
+                <li><code>item</code>: Item ID (namespace:item_id)</li>
+                <li><code>element</code>: Element type for all attacks (required)</li>
+                <li><code>accumulation_multiplier</code>: Resonance points added per hit (required when no stages)</li>
+                <li><code>crit_chance</code>: Critical hit chance (optional, defaults to 0.0)</li>
+                <li><code>crit_damage</code>: Critical hit damage multiplier (optional, defaults to 0.0)</li>
+            </ul>
+
+            <div class="info">
+                <strong>Note:</strong> If <code>stages</code> is present, the <code>accumulation_multiplier</code> field at the root level is ignored. Use stages for complex weapons with evolving damage patterns, or omit stages for consistent single-element weapons.
+            </div>
+
+            <h3>Armor Resistances Configuration</h3>
+            <pre><code>{
+  "item": "minecraft:leather_helmet",
+  "resistances": {
+    "ELECTRIC": 0.02,
+    "ICE": 0.01
+  }
+}</code></pre>
+
+            <h3>Mob Elemental Properties</h3>
+            <pre><code>// data/abloom/tags/entity_type/element_resistance/fire/resistance.json
+{
+  "replace": false,
+  "values": [
+    "minecraft:blaze",
+    "minecraft:magma_cube",
+    "minecraft:wither",
+    "minecraft:ender_dragon"
+  ]
+}
+
+// data/abloom/tags/entity_type/element_resistance/fire/weakness.json
+{
+  "replace": false,
+  "values": [
+    "minecraft:snow_golem",
+    "minecraft:dolphin",
+    "minecraft:zombie",
+    "minecraft:zombie_villager"
+  ]
+}</code></pre>
+
+            <h3>Loading Datapacks</h3>
+            <ol>
+                <li>Place your datapack in <code>.minecraft/saves/[worldname]/datapacks/</code></li>
+                <li>Reload with <code>/reload</code> command</li>
+                <li>Check logs for confirmation messages:
+                    <ul>
+                        <li><code>Loaded X elemental weapon configurations from datapacks</code></li>
+                        <li><code>Loaded X armor resistance configurations from datapacks</code></li>
+                    </ul>
+                </li>
+            </ol>
+
+            <div class="warning">
+                <strong>Common Issues:</strong>
+                <ul>
+                    <li>Verify item registry names are correct (use F3+H for advanced tooltips)</li>
+                    <li>Ensure element values match exactly (FIRE, not fire)</li>
+                    <li>Check that resistance values are within -0.99 to 0.99 range</li>
+                    <li>Entity type IDs must be valid (e.g., <code>minecraft:zombie</code>)</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>Abloom Mod Documentation | Generated for GitHub Pages</p>
+            <p>For more information, visit the <a href="https://github.com/your-repo/abloom" style="color: white;">GitHub Repository</a></p>
+        </footer>
+    </div>
+</body>
+</html>
