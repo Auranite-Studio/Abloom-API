@@ -5,7 +5,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 
 public class RuptureEffect extends MobEffect {
     public RuptureEffect(int color) {
-        super(ResonanceEffectCategory.RESONANCE, color);
+        super(MobEffectCategory.HARMFUL, color);
     }
     @Override
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
