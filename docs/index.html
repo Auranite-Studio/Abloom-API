@@ -283,26 +283,164 @@
             box-shadow: 0 6px 16px rgba(0,0,0,0.4);
         }
 
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--nav-link-hover-bg);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 1.5em;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
         @media (max-width: 768px) {
+            header {
+                padding: 20px 0;
+            }
+
             header h1 {
-                font-size: 2em;
+                font-size: 1.8em;
+            }
+
+            header p {
+                font-size: 1em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            nav {
+                padding: 15px;
+                position: relative;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
             }
 
             nav ul {
                 flex-direction: column;
                 align-items: center;
+                gap: 10px;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+            }
+
+            nav ul.menu-open {
+                max-height: 500px;
+            }
+
+            nav a {
+                display: block;
+                padding: 12px 20px;
+                width: 100%;
             }
 
             section {
-                padding: 20px;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            h3 {
+                font-size: 1.2em;
             }
 
             table {
-                font-size: 0.9em;
+                font-size: 0.85em;
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
             }
 
             th, td {
-                padding: 8px;
+                padding: 8px 6px;
+                font-size: 0.9em;
+            }
+
+            pre {
+                padding: 12px;
+                font-size: 0.85em;
+            }
+
+            code {
+                font-size: 0.85em;
+            }
+
+            .theme-toggle {
+                bottom: 15px;
+                right: 15px;
+                width: 48px;
+                height: 48px;
+                font-size: 1.2em;
+            }
+
+            footer {
+                padding: 20px 10px;
+                font-size: 0.9em;
+            }
+
+            .note,
+            .tip,
+            .warning {
+                padding: 12px;
+                margin: 10px 0;
+            }
+
+            ul {
+                padding-left: 20px;
+            }
+
+            li {
+                margin-bottom: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            header p {
+                font-size: 0.9em;
+            }
+
+            table {
+                font-size: 0.8em;
+            }
+
+            th, td {
+                padding: 6px 4px;
+            }
+
+            pre {
+                padding: 10px;
+                font-size: 0.8em;
+            }
+
+            .element-fire,
+            .element-physical,
+            .element-wind,
+            .element-water,
+            .element-earth,
+            .element-ice,
+            .element-electric,
+            .element-energy,
+            .element-natural,
+            .element-quantum,
+            .element-ether,
+            .element-light,
+            .element-shadow {
+                font-size: 0.9em;
             }
         }
     </style>
@@ -317,7 +455,8 @@
         </header>
 
         <nav>
-            <ul>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation menu">☰</button>
+            <ul id="navMenu">
                 <li><a href="#overview">Overview</a></li>
                 <li><a href="#mechanics">Mechanics</a></li>
                 <li><a href="#effects">Status Effects</a></li>
@@ -1083,20 +1222,37 @@ public class MyModElements {
 
     <script>
         (function() {
-            const toggle = document.getElementById('themeToggle');
+            const themeToggle = document.getElementById('themeToggle');
             const savedTheme = localStorage.getItem('theme');
 
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-theme');
-                toggle.textContent = '☀️';
+                themeToggle.textContent = '☀️';
             }
 
-            toggle.addEventListener('click', function() {
+            themeToggle.addEventListener('click', function() {
                 document.body.classList.toggle('dark-theme');
                 const isDark = document.body.classList.contains('dark-theme');
-                toggle.textContent = isDark ? '☀️' : '🌙';
+                themeToggle.textContent = isDark ? '☀️' : '🌙';
                 localStorage.setItem('theme', isDark ? 'dark' : 'light');
             });
+
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const navMenu = document.getElementById('navMenu');
+
+            if (mobileMenuToggle && navMenu) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    navMenu.classList.toggle('menu-open');
+                    this.textContent = navMenu.classList.contains('menu-open') ? '✕' : '☰';
+                });
+
+                navMenu.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'A') {
+                        navMenu.classList.remove('menu-open');
+                        mobileMenuToggle.textContent = '☰';
+                    }
+                });
+            }
         })();
     </script>
 </body>
