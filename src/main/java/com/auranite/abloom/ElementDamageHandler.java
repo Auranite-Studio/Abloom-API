@@ -184,6 +184,7 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
         ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFFFE0);
         ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
+        ElementDamageDisplayManager.registerDamageColor(ElementType.PRISM, 0xFFFFFF);
     }
 
     /**
@@ -343,6 +344,40 @@ public class ElementDamageHandler {
             return currentDamage;
         }
 
+        // Handle Prism damage conversion
+        ElementType originalType = type;
+        if (type == ElementType.PRISM) {
+            // Check if target has Prism effect - if so, convert to stored element type
+            if (target.hasEffect(AbloomModEffects.PRISM)) {
+                MobEffectInstance prismEffect = target.getEffect(AbloomModEffects.PRISM);
+                // Store the converted type in a temporary attachment or use NBT
+                // For now, we'll check which resonance effect is active on the target
+                type = getConvertedPrismType(target);
+                if (type == null || type == ElementType.PRISM) {
+                    type = getActiveResonanceType(target);
+                }
+                if (type == null) {
+                    type = ElementType.PRISM; // Fallback
+                }
+            } else {
+                // No Prism effect active - check for any resonance effect to activate Prism
+                ElementType resonanceType = getActiveResonanceType(target);
+                if (resonanceType != null && resonanceType != ElementType.PRISM) {
+                    // Apply Prism effect for 20 seconds (400 ticks)
+                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
+                    // Store which type the prism damage should convert to
+                    setPrismConversionType(target, resonanceType);
+                    spawnStatusText(target, Component.translatable("elemental.tooltip.prism_convert"), 0xFFFFFF);
+                    type = resonanceType;
+                }
+                // Prism damage does NOT accumulate resonance points
+                // Skip accumulation for pure prism damage without conversion
+            }
+        }
+
+        // Check if this is converted prism damage - if so, don't accumulate resonance
+        boolean isConvertedPrism = (originalType == ElementType.PRISM && type != ElementType.PRISM);
+
         float damageMultiplier = 1.0f;
 
         // Modifiers from attacker
@@ -420,8 +455,17 @@ public class ElementDamageHandler {
             target.removeEffect(AbloomModEffects.WINDSWEPT);
         }
 
-        AbloomModAttachments.addPoints(target, type, pointsToAdd);
-        int pointsAfter = AbloomModAttachments.getPoints(target, type);
+        // Prism damage that is converted does NOT accumulate resonance points
+        // Also, pure prism damage without conversion doesn't accumulate
+        if (!isConvertedPrism && originalType != ElementType.PRISM) {
+            AbloomModAttachments.addPoints(target, type, pointsToAdd);
+        } else if (AbloomMod.LOGGER.isDebugEnabled()) {
+            AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
+        }
+        
+        int pointsAfter = isConvertedPrism || originalType == ElementType.PRISM 
+            ? AbloomModAttachments.getPoints(target, type) 
+            : AbloomModAttachments.getPoints(target, type);
         boolean thresholdReached = pointsAfter >= THRESHOLD;
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
@@ -860,6 +904,7 @@ public class ElementDamageHandler {
             case ETHER -> 0.10f;
             case LIGHT -> 0.30f;
             case SHADOW -> 0.20f;
+            case PRISM -> 0.25f;
             default -> 0.00f;
         };
     }

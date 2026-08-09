@@ -33,6 +33,7 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> DISPERSION = REGISTRY.register("dispersion", () -> new DispersionEffect(0xFFFFE0));
     public static final DeferredHolder<MobEffect, MobEffect> ECLIPSE = REGISTRY.register("eclipse", () -> new EclipseEffect(0x4B0082));
     public static final DeferredHolder<MobEffect, MobEffect> CRITICAL_GAIN = REGISTRY.register("critical_gain", () -> new CriticalGainEffect(0xFFD700));
+    public static final DeferredHolder<MobEffect, MobEffect> PRISM = REGISTRY.register("prism", () -> new PrismEffect(0xFFFFFF));
 
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
