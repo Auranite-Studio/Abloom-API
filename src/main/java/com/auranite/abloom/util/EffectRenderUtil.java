@@ -89,17 +89,15 @@ public class EffectRenderUtil {
             for (int i = startIndex; i < endIndex; ++i) {
                 MobEffectInstance effectInstance = effects.get(i);
                 Holder<MobEffect> effectHolder = effectInstance.getEffect();
+
+                if (!isDisplayEffect(effectHolder)) {
+                    continue;
+                }
+
                 TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
                 float halfWidth = iconWidth / 2.0F;
                 float halfHeight = iconHeight / 2.0F;
                 float iconAlpha = 1.0F;
-                if ((Boolean) EffectDisplayConfig.BLINK_ON_LOW_DURATION.get()) {
-                    int realDuration = ClientEntityEffectsStorage.getRemainingTicks(entity.getId(), effectHolder, effectInstance.getDuration());
-                    if (realDuration > 0 && realDuration <= 200) {
-                        float minAlpha = 0.2F;
-                        iconAlpha = minAlpha + (1.0F - minAlpha) * (0.5F + 0.5F * (float) Math.sin((double) System.currentTimeMillis() / (double) 150.0F));
-                    }
-                }
 
                 PoseStack iconPoseStack = new PoseStack();
                 iconPoseStack.mulPose(poseStack.last().pose());
@@ -126,16 +124,17 @@ public class EffectRenderUtil {
                     font.drawInBatch(text, -textHalfSize, 0.0F, 16711680, false, iconPoseStack.last().pose(), buffers, DisplayMode.SEE_THROUGH, 0, 15728880);
                 }
 
-                int var10000 = effectInstance.getAmplifier();
-                String levelText = "" + (var10000 + 1);
+                int realDuration = ClientEntityEffectsStorage.getRemainingTicks(entity.getId(), effectHolder, effectInstance.getDuration());
+                int seconds = realDuration > 0 ? (realDuration + 9) / 20 : 0;
+                String durationText = seconds > 0 ? seconds + "s" : "--";
                 iconPoseStack.scale(0.5F, 0.5F, 1.0F);
-                float scaledLevelWidth = (float) font.width(levelText) * 0.5F;
+                float scaledTextWidth = (float) font.width(durationText) * 0.5F;
                 Objects.requireNonNull(font);
-                float scaledLevelHeight = 9.0F * 0.5F;
-                float textX = halfWidth - scaledLevelWidth;
-                float textY = halfHeight - scaledLevelHeight;
-                int textColor = -1;
-                font.drawInBatch(levelText, textX, textY, textColor, false, iconPoseStack.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
+                float scaledTextHeight = 9.0F * 0.5F;
+                float textX = halfWidth - scaledTextWidth;
+                float textY = halfHeight - scaledTextHeight;
+                int textColor = seconds > 5 ? -1 : 0xFF0000;
+                font.drawInBatch(durationText, textX, textY, textColor, false, iconPoseStack.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
             }
         }
 
@@ -160,5 +159,12 @@ public class EffectRenderUtil {
         } catch (Exception var1) {
             return false;
         }
+    }
+
+    private static boolean isDisplayEffect(Holder<MobEffect> effectHolder) {
+        var either = effectHolder.unwrap();
+        var key = either.left().orElse(null);
+        if (key == null) return false;
+        return EffectDisplayConfig.DISPLAY_EFFECTS.contains(key.location().getPath());
     }
 }

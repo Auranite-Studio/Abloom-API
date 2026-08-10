@@ -1,5 +1,7 @@
 package com.auranite.abloom.config;
 
+import java.util.HashSet;
+import java.util.Set;
 import net.minecraft.world.effect.MobEffect;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -16,6 +18,7 @@ public class EffectDisplayConfig {
     public static MobEffect CORROSIVE_EFFECT;
     private static final ModConfigSpec.Builder CLIENT_BUILDER = new ModConfigSpec.Builder();
     public static final ModConfigSpec CLIENT_SPEC;
+    public static final Set<String> DISPLAY_EFFECTS;
 
     public static void initEffectReferences(MobEffect blastEffect, MobEffect corrosiveEffect) {
         BLAST_EFFECT = blastEffect;
@@ -50,5 +53,19 @@ public class EffectDisplayConfig {
         MAX_DISTANCE_WITHOUT_LINE_OF_SIGHT = CLIENT_BUILDER.defineInRange("max_distance_without_line_of_sight", (double) 0.0F, (double) 0.0F, (double) 64.0F);
         CLIENT_BUILDER.pop();
         CLIENT_SPEC = CLIENT_BUILDER.build();
+        DISPLAY_EFFECTS = new HashSet<>();
+        DISPLAY_EFFECTS.add("burn");
+        DISPLAY_EFFECTS.add("wetness");
+        DISPLAY_EFFECTS.add("stun");
+        DISPLAY_EFFECTS.add("freeze");
+        DISPLAY_EFFECTS.add("shock");
+        DISPLAY_EFFECTS.add("break");
+        DISPLAY_EFFECTS.add("rupture");
+        DISPLAY_EFFECTS.add("bloom");
+        DISPLAY_EFFECTS.add("windswept");
+        DISPLAY_EFFECTS.add("corruption");
+        DISPLAY_EFFECTS.add("overload");
+        DISPLAY_EFFECTS.add("dispersion");
+        DISPLAY_EFFECTS.add("eclipse");
     }
 }
