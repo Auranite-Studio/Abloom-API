@@ -1,5 +1,7 @@
 package com.auranite.abloom;
 
+import com.auranite.abloom.datapack.ElementalWeaponData;
+import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -103,7 +105,7 @@ public class ElementalTooltipHandler {
         float weaponCritChance = ElementalWeaponUtils.getCritChance(stack);
         float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);
 
-        if (type != null && accumPoints != 0.0f && accumPoints != 1.0f) {
+        if (type == ElementType.PRISMATIC || accumPoints > 1.0f) {
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
         }
@@ -154,7 +156,7 @@ public class ElementalTooltipHandler {
             }
         }
 
-        if (accumPoints != 0.0f && accumPoints != 1.0f) {
+        if (accumPoints > 1.0f && type != ElementType.PRISMATIC ) {
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_POINTS,
                     String.format("%d", Math.round(accumPoints))

@@ -35,7 +35,7 @@ Prismatic damage is a special damage type that doesn't accumulate resonance poin
 - **No Accumulation**: Converted prismatic damage does NOT add resonance points to the target
 - **No Threshold Effects**: The resonance effect itself is NOT triggered by the converted damage
 - **Prism Effect**: Targets with the Prism effect maintain their stored resonance type even after the resonance effect expires
-- **Effect Duration**: 20 seconds (400 ticks)
+- **Effect Duration**: 30 seconds (600 ticks)
 
 ### Resonance Accumulation Mechanics
 
