@@ -1,4 +1,4 @@
-package com.auranite.abloom.effectdisplay.mixin;
+package com.auranite.abloom.mixins.effectdisplay;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.auranite.abloom.effectdisplay.EffectDisplayConfig;
