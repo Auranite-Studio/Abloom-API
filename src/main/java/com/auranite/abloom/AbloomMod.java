@@ -3,7 +3,6 @@ package com.auranite.abloom;
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
-import com.auranite.abloom.config.EffectDisplayConfig;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 import com.auranite.abloom.network.EffectDisplayNetworking;
 import com.auranite.abloom.util.TauntTargetGoal;
@@ -55,7 +54,6 @@ public class AbloomMod {
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, AbloomConfig.CLIENT_SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, AbloomConfig.SERVER_SPEC);
-        modContainer.registerConfig(ModConfig.Type.CLIENT, EffectDisplayConfig.CLIENT_SPEC);
 
         modEventBus.addListener(AbloomConfig::onConfigLoad);
         modEventBus.addListener(AbloomConfig::onConfigReload);

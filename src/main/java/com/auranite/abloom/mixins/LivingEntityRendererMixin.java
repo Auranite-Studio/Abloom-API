@@ -1,7 +1,7 @@
 package com.auranite.abloom.mixins;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.auranite.abloom.config.EffectDisplayConfig;
+import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 import com.auranite.abloom.util.EffectRenderUtil;
 import java.util.List;
@@ -52,14 +52,14 @@ public class LivingEntityRendererMixin {
             if (level.isClientSide && ClientEntityEffectsStorage.hasEntityEffects(entity.getId())) {
                 boolean isPlayerSelf = entity instanceof Player && Minecraft.getInstance().player != null && entity.getId() == Minecraft.getInstance().player.getId();
                 boolean isOtherPlayer = entity instanceof Player && !isPlayerSelf;
-                boolean shouldRender = !(entity instanceof Player) || isPlayerSelf && (Boolean) EffectDisplayConfig.SHOW_SELF_POTION.get() || isOtherPlayer && (Boolean) EffectDisplayConfig.SHOW_OTHER_POTION.get();
+                boolean shouldRender = !(entity instanceof Player) || isPlayerSelf && (Boolean) AbloomConfig.CLIENT_CONFIG.SHOW_SELF_POTION.get() || isOtherPlayer && (Boolean) AbloomConfig.CLIENT_CONFIG.SHOW_OTHER_POTION.get();
                 if (shouldRender) {
                     double dx = d0 - camX;
                     double dy = d1 - camY;
                     double dz = d2 - camZ;
                     float distance = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
-                    float maxDist = ((Double) EffectDisplayConfig.MAX_DISTANCE.get()).floatValue();
-                    float maxDistNoLoS = ((Double) EffectDisplayConfig.MAX_DISTANCE_WITHOUT_LINE_OF_SIGHT.get()).floatValue();
+                    float maxDist = ((Double) AbloomConfig.CLIENT_CONFIG.MAX_DISTANCE.get()).floatValue();
+                    float maxDistNoLoS = ((Double) AbloomConfig.CLIENT_CONFIG.MAX_DISTANCE_WITHOUT_LINE_OF_SIGHT.get()).floatValue();
                     if (distance > maxDist) {
                         return;
                     }

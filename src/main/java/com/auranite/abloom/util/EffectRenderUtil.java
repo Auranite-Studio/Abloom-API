@@ -1,6 +1,6 @@
 package com.auranite.abloom.util;
 
-import com.auranite.abloom.config.EffectDisplayConfig;
+import com.auranite.abloom.config.AbloomConfig;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -52,20 +52,20 @@ public class EffectRenderUtil {
         double d0 = z + renderOffset.z();
         poseStack.pushPose();
         poseStack.translate(d2, d3, d0);
-        poseStack.translate((double) 0.0F, (double) getVerticalOffset(entity), (double) 0.0F);
+        poseStack.translate((double) 0.0F, (double) getVerticalOffset(entity, poseStack), (double) 0.0F);
         if (isGuiEnvironment) {
             poseStack.mulPose(new Quaternionf());
         } else {
             poseStack.mulPose(camera.rotation());
         }
 
-        poseStack.translate(EffectDisplayConfig.getHorizontalOffset(), (double) 0.0F, (double) 0.0F);
+        poseStack.translate(AbloomConfig.CLIENT_CONFIG.getHorizontalOffset(), (double) 0.0F, (double) 0.0F);
         poseStack.mulPose(new Quaternionf(new AxisAngle4f((float) Math.toRadians((double) 180.0F), 0.0F, 1.0F, 0.0F)));
         poseStack.scale(-0.0267F, -0.0267F, 0.0267F);
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
-        float iconWidth = 10.0F * (float) EffectDisplayConfig.getRenderScale();
-        float iconHeight = 10.0F * (float) EffectDisplayConfig.getRenderScale();
+        float iconWidth = 10.0F * (float) AbloomConfig.CLIENT_CONFIG.getRenderScale();
+        float iconHeight = 10.0F * (float) AbloomConfig.CLIENT_CONFIG.getRenderScale();
         float iconSpacing = 2.0F;
         float entityWidthInBlocks = entity.getBbWidth();
         float entityWidthInRenderUnits = entityWidthInBlocks / 0.0267F;
@@ -141,8 +141,8 @@ public class EffectRenderUtil {
         poseStack.popPose();
     }
 
-    public static float getVerticalOffset(Entity entity) {
-        return isNeatModLoaded() ? entity.getBbHeight() + 0.92F + (float) EffectDisplayConfig.getVerticalOffset() : entity.getBbHeight() + 0.6F + (float) EffectDisplayConfig.getVerticalOffset();
+    public static float getVerticalOffset(Entity entity, PoseStack poseStack) {
+        return isNeatModLoaded() ? entity.getBbHeight() + 0.92F + (float) AbloomConfig.CLIENT_CONFIG.getVerticalOffset() : entity.getBbHeight() + 0.6F + (float) AbloomConfig.CLIENT_CONFIG.getVerticalOffset();
     }
 
     public static boolean isNeatModLoaded() {
@@ -165,6 +165,6 @@ public class EffectRenderUtil {
         var either = effectHolder.unwrap();
         var key = either.left().orElse(null);
         if (key == null) return false;
-        return EffectDisplayConfig.DISPLAY_EFFECTS.contains(key.location().getPath());
+        return AbloomConfig.DISPLAY_EFFECTS.contains(key.location().getPath());
     }
 }
