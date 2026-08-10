@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 
 @EventBusSubscriber(modid = "abloom")
 public record SyncEntityEffectsMessage(int entityId, List<MobEffectInstance> effects) implements CustomPacketPayload {
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("abloom", "sync_entity_effects");
+    public static final ResourceLocation ID = ResourceLocation.parse("abloom:sync_entity_effects");
     public static final StreamCodec<FriendlyByteBuf, SyncEntityEffectsMessage> STREAM_CODEC = StreamCodec.ofMember(SyncEntityEffectsMessage::encode, SyncEntityEffectsMessage::new);
     public static final CustomPacketPayload.Type<SyncEntityEffectsMessage> TYPE;
 
@@ -58,7 +58,7 @@ public record SyncEntityEffectsMessage(int entityId, List<MobEffectInstance> eff
 
     private static MobEffectInstance readEffectInstance(FriendlyByteBuf buf) {
         CompoundTag tag = buf.readNbt();
-        return tag != null ? MobEffectInstance.load(tag) : null;
+        return tag != null ? MobEffectInstance.load(tag, null) : null;
     }
 
     private static void writeEffectInstance(FriendlyByteBuf buf, MobEffectInstance effect) {
@@ -112,7 +112,8 @@ public record SyncEntityEffectsMessage(int entityId, List<MobEffectInstance> eff
     @SubscribeEvent
     public static void updateAllEntityEffects(MobEffectEvent.Added event) {
         LivingEntity entity = event.getEntity();
-        if (!entity.level().isClientSide && entity.level() instanceof ServerLevel) {
+        Level level = entity.level();
+        if (!level.isClientSide && level instanceof ServerLevel) {
             List<MobEffectInstance> currentEffects = new ArrayList<>(entity.getActiveEffects());
             boolean effectExists = currentEffects.stream().anyMatch((effect) -> effect.getEffect().equals(((MobEffectInstance) java.util.Objects.requireNonNull(event.getEffectInstance())).getEffect()));
             if (!effectExists) {
