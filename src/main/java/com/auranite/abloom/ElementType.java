@@ -19,7 +19,7 @@ public enum ElementType {
     ETHER("ether_dmg"),
     LIGHT("light_dmg"),
     SHADOW("shadow_dmg"),
-    PRISMATIC("prism_dmg");
+    PRISMATIC("prismatic_dmg");
 
     private final String damageTypeId;
 
