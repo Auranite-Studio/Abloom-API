@@ -1,6 +1,7 @@
 package com.auranite.abloom;
 
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.client.ClientEventHandler;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
@@ -24,6 +25,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.bus.api.IEventBus;
 
@@ -49,6 +51,10 @@ public class AbloomMod {
     public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
         NeoForge.EVENT_BUS.register(this);
+
+        if (FMLLoader.getDist().isClient()) {
+            NeoForge.EVENT_BUS.register(new ClientEventHandler());
+        }
         modEventBus.addListener(this::registerNetworking);
         modEventBus.addListener(EffectDisplayNetworking::register);
 
