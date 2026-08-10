@@ -3,6 +3,9 @@ package com.auranite.abloom;
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
+import com.auranite.abloom.config.EffectDisplayConfig;
+import com.auranite.abloom.network.ClientEntityEffectsStorage;
+import com.auranite.abloom.network.EffectDisplayNetworking;
 import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -14,7 +17,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -51,9 +53,11 @@ public class AbloomMod {
 
         NeoForge.EVENT_BUS.register(this);
         modEventBus.addListener(this::registerNetworking);
+        modEventBus.addListener(EffectDisplayNetworking::register);
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, AbloomConfig.CLIENT_SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, AbloomConfig.SERVER_SPEC);
+        modContainer.registerConfig(ModConfig.Type.CLIENT, EffectDisplayConfig.CLIENT_SPEC);
 
         modEventBus.addListener(AbloomConfig::onConfigLoad);
         modEventBus.addListener(AbloomConfig::onConfigReload);
@@ -69,7 +73,6 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
-        // Register datapack for elemental weapons
         modEventBus.addListener(this::setup);
     }
     
@@ -139,6 +142,11 @@ public class AbloomMod {
     public static void queueServerWork(int tick, Runnable action) {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
+    }
+
+    @SubscribeEvent
+    public void onPlayerLoggedOut(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+        ClientEntityEffectsStorage.clearAll();
     }
 
     @SubscribeEvent
