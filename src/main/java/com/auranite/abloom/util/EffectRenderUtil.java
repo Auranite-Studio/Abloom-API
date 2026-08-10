@@ -16,7 +16,6 @@ import net.minecraft.client.gui.Font.DisplayMode;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderType.CompositeState;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
@@ -38,8 +37,13 @@ public class EffectRenderUtil {
         if (HEALTH_BAR_TEXTURE == null) {
             return null;
         } else {
-            RenderType.CompositeState renderTypeState = CompositeState.builder().setShaderState(RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER).setTextureState(new RenderStateShard.TextureStateShard(HEALTH_BAR_TEXTURE, false, false)).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setCullState(RenderStateShard.NO_CULL).setLightmapState(RenderStateShard.LIGHTMAP).createCompositeState(false);
-            return RenderType.create("warframe_health_bar", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, Mode.QUADS, 256, true, false, renderTypeState);
+            return RenderType.create("warframe_health_bar", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, Mode.QUADS, 256, true, false, RenderType.CompositeState.builder()
+                .setShaderState(RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER)
+                .setTextureState(new RenderStateShard.TextureStateShard(HEALTH_BAR_TEXTURE, false, false))
+                .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setCullState(RenderStateShard.NO_CULL)
+                .setLightmapState(RenderStateShard.LIGHTMAP)
+                .createCompositeState(false));
         }
     }
 
@@ -95,6 +99,7 @@ public class EffectRenderUtil {
                 }
 
                 TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
+                if (sprite == null) continue;
                 float halfWidth = iconWidth / 2.0F;
                 float halfHeight = iconHeight / 2.0F;
                 float iconAlpha = 1.0F;
@@ -108,8 +113,16 @@ public class EffectRenderUtil {
                 font.drawInBatch("", -halfWidth, -halfHeight, (int) (backgroundOpacity * 255.0F) << 24, false, iconPoseStack.last().pose(), buffers, DisplayMode.SEE_THROUGH, 0, 15728880);
 
                 try {
-                    RenderType.CompositeState state = CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER).setTextureState(new RenderStateShard.TextureStateShard(sprite.atlasLocation(), false, false)).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setOutputState(RenderStateShard.ITEM_ENTITY_TARGET).setLightmapState(RenderStateShard.LIGHTMAP).setOverlayState(RenderStateShard.OVERLAY).setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE).setDepthTestState(RenderStateShard.NO_DEPTH_TEST).createCompositeState(false);
-                    RenderType renderType = RenderType.create("buffered_effect_icon", DefaultVertexFormat.NEW_ENTITY, Mode.QUADS, 1536, state);
+                    RenderType renderType = RenderType.create("buffered_effect_icon", DefaultVertexFormat.NEW_ENTITY, Mode.QUADS, 1536, RenderType.CompositeState.builder()
+                        .setShaderState(RenderStateShard.RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
+                        .setTextureState(new RenderStateShard.TextureStateShard(sprite.atlasLocation(), false, false))
+                        .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                        .setOutputState(RenderStateShard.ITEM_ENTITY_TARGET)
+                        .setLightmapState(RenderStateShard.LIGHTMAP)
+                        .setOverlayState(RenderStateShard.OVERLAY)
+                        .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
+                        .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
+                        .createCompositeState(false));
                     VertexConsumer buffer = buffers.getBuffer(renderType);
                     Matrix4f iconMatrix = iconPoseStack.last().pose();
                     buffer.addVertex(iconMatrix, -halfWidth, -halfHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, iconAlpha).setUv(sprite.getU0(), sprite.getV0()).setUv1(0, 10).setUv2(240, 240).setNormal(0.0F, 0.0F, 1.0F);
@@ -165,6 +178,6 @@ public class EffectRenderUtil {
         var either = effectHolder.unwrap();
         var key = either.left().orElse(null);
         if (key == null) return false;
-        return EffectDisplayConfig.DISPLAY_EFFECTS.contains(key.location().getPath());
+        return EffectDisplayConfig.DISPLAY_EFFECTS.contains(key.location().toString());
     }
 }

@@ -62,7 +62,9 @@ public record SyncEntityEffectsMessage(int entityId, List<MobEffectInstance> eff
     }
 
     private static void writeEffectInstance(FriendlyByteBuf buf, MobEffectInstance effect) {
-        buf.writeNbt(effect.save());
+        CompoundTag tag = new CompoundTag();
+        effect.save(tag);
+        buf.writeNbt(tag);
     }
 
     public static SyncEntityEffectsMessage decode(FriendlyByteBuf buf) {
