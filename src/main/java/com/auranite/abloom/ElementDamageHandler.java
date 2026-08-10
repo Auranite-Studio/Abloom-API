@@ -1044,5 +1044,33 @@ public class ElementDamageHandler {
         }
     }
 
+    /**
+     * Gets the stored prism conversion type from the target's attachment.
+     * This is the element type that prism damage should be converted to.
+     */
+    private static ElementType getConvertedPrismType(LivingEntity target) {
+        return AbloomModAttachments.getPrismConversionType(target);
+    }
+
+    /**
+     * Gets the active resonance effect type on the target.
+     * Resonance effects are: BURN, FREEZE, SHOCK, BLOOM, OVERLOAD, WETNESS, STUN, RUPTURE, BREAK, WINDSWEPT, CORRUPTION, DISPERSION, ECLIPSE
+     */
+    private static ElementType getActiveResonanceType(LivingEntity target) {
+        if (target.hasEffect(AbloomModEffects.BURN)) return ElementType.FIRE;
+        if (target.hasEffect(AbloomModEffects.FREEZE)) return ElementType.ICE;
+        if (target.hasEffect(AbloomModEffects.SHOCK)) return ElementType.ELECTRIC;
+        if (target.hasEffect(AbloomModEffects.BLOOM)) return ElementType.NATURAL;
+        if (target.hasEffect(AbloomModEffects.OVERLOAD)) return ElementType.ENERGY;
+        if (target.hasEffect(AbloomModEffects.WETNESS)) return ElementType.WATER;
+        if (target.hasEffect(AbloomModEffects.STUN)) return ElementType.EARTH;
+        if (target.hasEffect(AbloomModEffects.RUPTURE)) return ElementType.PHYSICAL;
+        if (target.hasEffect(AbloomModEffects.BREAK)) return ElementType.QUANTUM;
+        if (target.hasEffect(AbloomModEffects.WINDSWEPT)) return ElementType.WIND;
+        if (target.hasEffect(AbloomModEffects.CORRUPTION)) return ElementType.ETHER;
+        if (target.hasEffect(AbloomModEffects.DISPERSION)) return ElementType.LIGHT;
+        if (target.hasEffect(AbloomModEffects.ECLIPSE)) return ElementType.SHADOW;
+        return null;
+    }
 
 }
