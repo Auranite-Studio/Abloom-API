@@ -20,7 +20,7 @@ public class EffectDisplayNetworking {
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new SyncEntityEffectsMessage(entity.getId(), new ArrayList<>()));
         }
 

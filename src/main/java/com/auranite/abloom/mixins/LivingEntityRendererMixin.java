@@ -49,7 +49,7 @@ public class LivingEntityRendererMixin {
         double d2 = Mth.lerp((double) partialTick, entity.zOld, entity.getZ());
         if (entity instanceof LivingEntity livingEntity) {
             Level level = entity.level();
-            if (level.isClientSide && ClientEntityEffectsStorage.hasEntityEffects(entity.getId())) {
+            if (level.isClientSide() && ClientEntityEffectsStorage.hasEntityEffects(entity.getId())) {
                 boolean isPlayerSelf = entity instanceof Player && Minecraft.getInstance().player != null && entity.getId() == Minecraft.getInstance().player.getId();
                 boolean isOtherPlayer = entity instanceof Player && !isPlayerSelf;
                 boolean shouldRender = !(entity instanceof Player) || isPlayerSelf && (Boolean) EffectDisplayConfig.SHOW_SELF_POTION.get() || isOtherPlayer && (Boolean) EffectDisplayConfig.SHOW_OTHER_POTION.get();
