@@ -67,7 +67,7 @@ public class ElementalTooltipHandler {
             case NATURAL -> 0x32CD32;
             case QUANTUM -> 0x9400D3;
             case ETHER -> 0x24B3A7;
-            case LIGHT -> 0xFFFFE0;
+            case LIGHT -> 0xFFF1A5;
             case SHADOW -> 0x4B0082;
             case PRISMATIC -> ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC);
             default -> 0xFFFFFF;

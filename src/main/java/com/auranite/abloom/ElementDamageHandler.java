@@ -184,7 +184,7 @@ public class ElementDamageHandler {
         ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
         ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
         ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFFFE0);
+        ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFF1A5);
         ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
         ElementDamageDisplayManager.registerDamageColor(ElementType.PRISMATIC, 0xFFFFFF);
     }
@@ -366,7 +366,7 @@ public class ElementDamageHandler {
                 ElementType resonanceType = getActiveResonanceType(target);
                 if (resonanceType != null && resonanceType != ElementType.PRISMATIC) {
                     // Apply Prism effect for 20 seconds (400 ticks)
-                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 400, 0, false, true));
+                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
                     // Store which type the prism damage should convert to
                     setPrismConversionType(target, resonanceType);
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
