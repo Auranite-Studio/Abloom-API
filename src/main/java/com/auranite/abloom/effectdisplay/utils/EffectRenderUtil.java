@@ -114,7 +114,7 @@ public class EffectRenderUtil {
 
                 try {
                     RenderType.CompositeState state = CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER).setTextureState(new RenderStateShard.TextureStateShard(sprite.atlasLocation(), false, false)).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setOutputState(RenderStateShard.ITEM_ENTITY_TARGET).setLightmapState(RenderStateShard.LIGHTMAP).setOverlayState(RenderStateShard.OVERLAY).setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE).setDepthTestState(RenderStateShard.NO_DEPTH_TEST).createCompositeState(false);
-                    RenderType.CompositeRenderType renderType = RenderType.create("buffered_effect_icon", DefaultVertexFormat.NEW_ENTITY, Mode.QUADS, 1536, state);
+                    RenderType renderType = RenderType.create("buffered_effect_icon", DefaultVertexFormat.NEW_ENTITY, Mode.QUADS, 1536, state);
                     VertexConsumer buffer = buffers.getBuffer(renderType);
                     Matrix4f iconMatrix = iconPoseStack.last().pose();
                     buffer.addVertex(iconMatrix, -halfWidth, -halfHeight, 0.0F).setColor(1.0F, 1.0F, 1.0F, iconAlpha).setUv(sprite.getU0(), sprite.getV0()).setUv1(0, 10).setUv2(240, 240).setNormal(0.0F, 0.0F, 1.0F);
