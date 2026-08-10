@@ -8,6 +8,7 @@
     "ArmorIgnoreMixin"
   ],
   "client": [
+    "effectdisplay.mixin.LivingEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
