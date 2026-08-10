@@ -2,13 +2,15 @@ package com.auranite.abloom.network;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -57,12 +59,30 @@ public record SyncEntityEffectsMessage(int entityId, List<MobEffectInstance> eff
     }
 
     private static MobEffectInstance readEffectInstance(FriendlyByteBuf buf) {
-        CompoundTag tag = buf.readNbt();
-        return tag != null ? MobEffectInstance.load(tag) : null;
+        ResourceLocation effectId = buf.readResourceLocation();
+        int duration = buf.readInt();
+        int amplifier = buf.readInt();
+        boolean visible = buf.readBoolean();
+        boolean showIcon = buf.readBoolean();
+
+        MobEffect effect = BuiltInRegistries.MOB_EFFECT.get(effectId);
+        if (effect == null) {
+            return null;
+        }
+        Holder<MobEffect> holder = BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
+        return new MobEffectInstance(holder, duration, amplifier, false, visible, showIcon);
     }
 
     private static void writeEffectInstance(FriendlyByteBuf buf, MobEffectInstance effect) {
-        buf.writeNbt(effect.save());
+        Holder<MobEffect> holder = effect.getEffect();
+        ResourceLocation effectId = holder.unwrapKey()
+                .map(key -> key.location())
+                .orElseThrow(() -> new IllegalArgumentException("Unknown MobEffect"));
+        buf.writeResourceLocation(effectId);
+        buf.writeInt(effect.getDuration());
+        buf.writeInt(effect.getAmplifier());
+        buf.writeBoolean(effect.isVisible());
+        buf.writeBoolean(effect.showIcon());
     }
 
     public static SyncEntityEffectsMessage decode(FriendlyByteBuf buf) {
