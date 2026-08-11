@@ -28,11 +28,13 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
 public class EffectRenderUtil {
-        } else {
-            RenderType.CompositeState renderTypeState = CompositeState.builder().setShaderState(RenderStateShard.POSITION_COLOR_TEX_LIGHTMAP_SHADER).setTextureState(new RenderStateShard.TextureStateShard(HEALTH_BAR_TEXTURE, false, false)).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setCullState(RenderStateShard.NO_CULL).setLightmapState(RenderStateShard.LIGHTMAP).createCompositeState(false);
-            return RenderType.create("warframe_health_bar", DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP, Mode.QUADS, 256, true, false, renderTypeState);
-        }
-    }
+
+    private static final float ICON_BASE_SIZE = 10.0F;
+    private static final float ICON_SPACING = 2.0F;
+    private static final float SCALE_FACTOR = 0.0267F;
+    private static final float BACKGROUND_OPACITY = 0.25F;
+    private static final float DURATION_TEXT_SCALE = 0.5F;
+    private static final int WARNING_THRESHOLD_SECONDS = 5;
 
     public static void renderAllMobEffects(Entity entity, PoseStack poseStack, MultiBufferSource buffers, Camera camera, EntityRenderer<? super Entity> entityRenderer, float partialTicks, double x, double y, double z, List<MobEffectInstance> effects, boolean isGuiEnvironment) {
         int entityId = entity.getId();
