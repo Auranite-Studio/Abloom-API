@@ -89,7 +89,7 @@ public class AbloomModAttachments {
     }
 
     public static void setPrismConversionType(LivingEntity entity, ElementType type) {
-        if (entity != null && !entity.level().isClientSide) {
+        if (entity != null && !entity.level().isClientSide()) {
             entity.setData(PRISM_CONVERSION_TYPE.get(), type);
         }
     }
@@ -102,7 +102,7 @@ public class AbloomModAttachments {
     }
 
     public static void clearPrismConversionType(LivingEntity entity) {
-        if (entity != null && !entity.level().isClientSide) {
+        if (entity != null && !entity.level().isClientSide()) {
             entity.setData(PRISM_CONVERSION_TYPE.get(), null);
         }
     }
