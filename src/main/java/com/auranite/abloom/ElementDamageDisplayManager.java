@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.Display.BillboardConstraints;
 import net.minecraft.world.entity.Display.TextDisplay;
-import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.phys.AABB;
 
 import java.util.EnumMap;
@@ -158,6 +157,7 @@ public class ElementDamageDisplayManager {
         }
         ACTIVE_STATUS_DISPLAYS.clear();
         ACTIVE_PHYSICS.clear();
+        PENDING_PHYSICS_TASKS.clear();
 
         AbloomMod.LOGGER.info("All element damage displays cleared successfully.");
     }
@@ -166,29 +166,43 @@ public class ElementDamageDisplayManager {
         if (entity == null) return;
         int entityId = entity.getId();
 
-        ACTIVE_DAMAGE_DISPLAYS.entrySet().removeIf(entry -> {
+        // Clear damage displays
+        Iterator<Map.Entry<UUID, DisplayInfo>> damageIterator = ACTIVE_DAMAGE_DISPLAYS.entrySet().iterator();
+        while (damageIterator.hasNext()) {
+            Map.Entry<UUID, DisplayInfo> entry = damageIterator.next();
             DisplayInfo info = entry.getValue();
             if (info != null && info.targetEntityId == entityId) {
                 if (info.display != null && !info.display.isRemoved()) {
                     safeRemoveDisplaySilent(info.display);
                 }
-                ACTIVE_PHYSICS.remove(entry.getKey());
-                return true;
+                cleanupDisplayResources(entry.getKey());
+                damageIterator.remove();
             }
-            return false;
-        });
+        }
 
-        ACTIVE_STATUS_DISPLAYS.entrySet().removeIf(entry -> {
+        // Clear status displays
+        Iterator<Map.Entry<UUID, DisplayInfo>> statusIterator = ACTIVE_STATUS_DISPLAYS.entrySet().iterator();
+        while (statusIterator.hasNext()) {
+            Map.Entry<UUID, DisplayInfo> entry = statusIterator.next();
             DisplayInfo info = entry.getValue();
             if (info != null && info.targetEntityId == entityId) {
                 if (info.display != null && !info.display.isRemoved()) {
                     safeRemoveDisplaySilent(info.display);
                 }
-                ACTIVE_PHYSICS.remove(entry.getKey());
-                return true;
+                cleanupDisplayResources(entry.getKey());
+                statusIterator.remove();
             }
-            return false;
-        });
+        }
+    }
+
+    /**
+     * Clean up all resources for a display UUID
+     */
+    private void cleanupDisplayResources(UUID uuid) {
+        ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
+        ACTIVE_STATUS_DISPLAYS.remove(uuid);
+        ACTIVE_PHYSICS.remove(uuid);
+        PENDING_PHYSICS_TASKS.remove(uuid);
     }
 
     public int cleanupDisplaysInChunk(ServerLevel level, int chunkX, int chunkZ) {
@@ -262,7 +276,7 @@ public class ElementDamageDisplayManager {
 
         Predicate<Entity> hasCleanupTag = e -> e.entityTags().contains(CLEANUP_TAG) && !e.isRemoved();
 
-        for (TextDisplay display : level.getEntities(EntityTypes.TEXT_DISPLAY, hasCleanupTag)) {
+        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasCleanupTag)) {
             if (display != null && !display.isRemoved()) {
                 display.discard();
                 removedCount++;
@@ -283,7 +297,7 @@ public class ElementDamageDisplayManager {
             return tag.getBooleanOr(SELF_DESTRUCT_TAG,false) && !e.isRemoved();
         };
 
-        for (TextDisplay display : level.getEntities(EntityTypes.TEXT_DISPLAY, hasSelfDestruct)) {
+        for (TextDisplay display : level.getEntities(EntityType.TEXT_DISPLAY, hasSelfDestruct)) {
             if (display == null || display.isRemoved()) continue;
 
             CompoundTag tag = display.getPersistentData();
@@ -426,8 +440,28 @@ public class ElementDamageDisplayManager {
         spawnStatusText(entity, Component.literal(text), color);
     }
 
+    private static final Map<UUID, ScheduledPhysicsTask> PENDING_PHYSICS_TASKS = new ConcurrentHashMap<>();
+
+    private static class ScheduledPhysicsTask {
+        final UUID displayUuid;
+        final ServerLevel level;
+
+        ScheduledPhysicsTask(UUID displayUuid, ServerLevel level) {
+            this.displayUuid = displayUuid;
+            this.level = level;
+        }
+    }
+
     private void schedulePhysicsUpdate(ServerLevel level, UUID displayUuid) {
-        AbloomMod.queueServerWork(1, () -> {
+        // Проверяем, есть ли уже запланированная задача для этого дисплея
+        if (PENDING_PHYSICS_TASKS.containsKey(displayUuid)) {
+            return; // Задача уже запланирована, не создаем дубликат
+        }
+
+        Runnable physicsTask = () -> {
+            // Удаляем из pending перед выполнением
+            PENDING_PHYSICS_TASKS.remove(displayUuid);
+
             TextDisplay display = (TextDisplay) level.getEntity(displayUuid);
             double[] physics = ACTIVE_PHYSICS.get(displayUuid);
             DisplayInfo info = ACTIVE_DAMAGE_DISPLAYS.get(displayUuid);
@@ -455,7 +489,7 @@ public class ElementDamageDisplayManager {
 
                 double pulse = (Math.sin(floatPhase * 2) + 1) / 2;
                 int r, g, b;
-                
+
                 // Если призматический урон, используем радужный цвет
                 if (isPrismatic) {
                     int rainbowHue = (int) ((ticksAlive * 10 + floatPhase * 10) % 360);
@@ -489,7 +523,7 @@ public class ElementDamageDisplayManager {
                     double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0;
 
                     int r, g, b;
-                    
+
                     // Если призматический урон, используем радужный цвет
                     if (isPrismatic) {
                         int rainbowHue = (int) ((ticksAlive * 20) % 360);
@@ -546,10 +580,15 @@ public class ElementDamageDisplayManager {
                 return;
             }
 
+            // Планируем следующий апдейт только если дисплей еще существует
             if (!display.isRemoved()) {
                 schedulePhysicsUpdate(level, displayUuid);
             }
-        });
+        };
+
+        // Добавляем в pending и планируем выполнение
+        PENDING_PHYSICS_TASKS.put(displayUuid, new ScheduledPhysicsTask(displayUuid, level));
+        AbloomMod.queueServerWork(1, physicsTask);
     }
 
     /**
@@ -628,12 +667,6 @@ public class ElementDamageDisplayManager {
         display.discard();
     }
 
-    private void cleanupDisplayResources(UUID uuid) {
-        ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
-        ACTIVE_STATUS_DISPLAYS.remove(uuid);
-        ACTIVE_PHYSICS.remove(uuid);
-    }
-
     private static void markForCleanup(Entity entity, int maxLifetime) {
         if (entity == null) return;
 
@@ -650,7 +683,7 @@ public class ElementDamageDisplayManager {
     }
 
     private static TextDisplay createTextDisplay(ServerLevel level, double x, double y, double z, Component textComponent, int color, int maxLifetime) {
-        TextDisplay display = EntityTypes.TEXT_DISPLAY.create(level, EntitySpawnReason.EVENT);
+        TextDisplay display = EntityType.TEXT_DISPLAY.create(level, EntitySpawnReason.EVENT);
         if (display == null) {
             AbloomMod.LOGGER.error("Failed to create TextDisplay entity at ({}, {}, {})", x, y, z);
             return null;
