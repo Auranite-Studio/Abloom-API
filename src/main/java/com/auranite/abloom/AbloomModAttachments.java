@@ -26,6 +26,11 @@ public class AbloomModAttachments {
                     AttachmentType.<ElementType>builder(() -> null).build()
             );
 
+    public static final Supplier<AttachmentType<ElementType>> PRISM_CONVERSION_TYPE =
+            ATTACHMENT_TYPES.register("prism_conversion_type", () ->
+                    AttachmentType.<ElementType>builder(() -> null).build()
+            );
+
     public static void register(IEventBus modEventBus) {
         ATTACHMENT_TYPES.register(modEventBus);
     }
@@ -80,6 +85,25 @@ public class AbloomModAttachments {
     public static void clearProjectileElement(Entity entity) {
         if (entity != null && !entity.level().isClientSide) {
             entity.setData(PROJECTILE_ELEMENT.get(), null);
+        }
+    }
+
+    public static void setPrismConversionType(LivingEntity entity, ElementType type) {
+        if (entity != null && !entity.level().isClientSide) {
+            entity.setData(PRISM_CONVERSION_TYPE.get(), type);
+        }
+    }
+
+    public static ElementType getPrismConversionType(LivingEntity entity) {
+        if (entity != null) {
+            return entity.getData(PRISM_CONVERSION_TYPE.get());
+        }
+        return null;
+    }
+
+    public static void clearPrismConversionType(LivingEntity entity) {
+        if (entity != null && !entity.level().isClientSide) {
+            entity.setData(PRISM_CONVERSION_TYPE.get(), null);
         }
     }
 }
