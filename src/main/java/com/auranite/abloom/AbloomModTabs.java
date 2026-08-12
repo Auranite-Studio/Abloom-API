@@ -30,6 +30,7 @@ public class AbloomModTabs {
                         tabData.accept(AbloomModItems.ETHER_STICK.get());
                         tabData.accept(AbloomModItems.LIGHT_STICK.get());
                         tabData.accept(AbloomModItems.SHADOW_STICK.get());
+                        tabData.accept(AbloomModItems.PRISMATIC_STICK.get());
                     })
                     .build());
 }
