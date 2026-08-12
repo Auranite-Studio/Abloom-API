@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.auranite.abloom.AbloomModAttachments.clearPrismConversionType;
 import static com.auranite.abloom.AbloomModAttachments.setPrismConversionType;
 
 /** Record for critical hit result containing modified damage and crit flag. */
@@ -251,7 +250,6 @@ public class ElementDamageHandler {
             serverTickCounter = 0;
             checkAndResetInactivePoints();
             if (displayManager != null) displayManager.cleanupStaleDisplays();
-            cleanupOrphanedPrismAttachments();
         }
     }
 
@@ -350,57 +348,46 @@ public class ElementDamageHandler {
 
         // Handle Prism damage conversion
         ElementType originalType = type;
-        boolean isConvertedPrism = false;
         if (type == ElementType.PRISMATIC) {
-            // Check if target has Prism effect - if so, convert to stored element type
             if (target.hasEffect(AbloomModEffects.PRISM)) {
-                // PRISM effect is active - check if stored type is still valid
-                ElementType storedType = AbloomModAttachments.getPrismConversionType(target);
+                // PRISM is active: check if a new resonance has appeared
+                ElementType storedType = getConvertedPrismType(target);
                 ElementType currentResonance = getActiveResonanceType(target);
-
-                if (storedType == null || storedType != currentResonance) {
-                    // Resonance changed or attachment is stale
-                    // Check if there's a new valid resonance to convert to
-                    if (currentResonance != null && currentResonance != ElementType.PRISMATIC) {
-                        // Update to the new resonance type
-                        AbloomModAttachments.setPrismConversionType(target, currentResonance);
-                        type = currentResonance;
-                        // Extend PRISM effect to keep conversion active
-                        target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
-                        // Show conversion tooltip for element change
-                        spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
-                    } else if (storedType != null) {
-                        // Resonance fully expired - clear orphaned state
-                        target.removeEffect(AbloomModEffects.PRISM);
-                        safeClearPrismConversionType(target);
-                        type = ElementType.PRISMATIC;
-                    } else {
-                        type = ElementType.PRISMATIC;
-                    }
-                } else {
-                    type = storedType;
-                    // Extend PRISM effect to keep conversion active on successful hits
+                if (currentResonance != null && currentResonance != storedType) {
+                    // New resonance appeared — switch conversion type and extend PRISM
+                    setPrismConversionType(target, currentResonance);
+                    target.removeEffect(AbloomModEffects.PRISM);
                     target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Prism conversion switched from {} to {} (new resonance), PRISM extended", storedType, currentResonance);
+                    }
+                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
+                    type = currentResonance;
+                } else if (currentResonance != null) {
+                    // Same resonance as stored — use it as-is
+                    type = currentResonance;
+                } else {
+                    // No active resonance — use stored type from attachment
+                    type = storedType;
+                    if (type == null) {
+                        type = ElementType.PRISMATIC; // Fallback
+                    }
                 }
             } else {
-                // No Prism effect active - check for any resonance effect to activate Prism
+                // No Prism effect active — activate it from current resonance
                 ElementType resonanceType = getActiveResonanceType(target);
                 if (resonanceType != null && resonanceType != ElementType.PRISMATIC) {
-                    // Apply Prism effect and store the conversion type
                     target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
                     setPrismConversionType(target, resonanceType);
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
                     type = resonanceType;
-                    isConvertedPrism = true;
                 }
-                // Otherwise: pure PRISMATIC damage - no conversion, no accumulation
-            }
-
-            // Track conversion after all resolution logic
-            if (type != ElementType.PRISMATIC) {
-                isConvertedPrism = true;
+                // Prism damage does NOT accumulate resonance points
             }
         }
+
+        // Check if this is converted prism damage - if so, don't accumulate resonance
+        boolean isConvertedPrism = (originalType == ElementType.PRISMATIC && type != ElementType.PRISMATIC);
 
         float damageMultiplier = 1.0f;
 
@@ -479,25 +466,18 @@ public class ElementDamageHandler {
             target.removeEffect(AbloomModEffects.WINDSWEPT);
         }
 
-        // Prism damage (converted or pure) does NOT accumulate resonance points
-        if (isConvertedPrism) {
-            if (AbloomMod.LOGGER.isDebugEnabled()) {
-                AbloomMod.LOGGER.debug("Skipping accumulation for prism damage (type: {})", type);
-            }
-        } else {
-            AbloomModAttachments.addPoints(target, type, pointsToAdd);
-        }
-
-        // Only check threshold for non-prism damage (prism doesn't accumulate points)
-        boolean thresholdReached = false;
-        int pointsAfter = 0;
+        // Prism damage that is converted does NOT accumulate resonance points
+        // Also, pure prism damage without conversion doesn't accumulate
         if (!isConvertedPrism && originalType != ElementType.PRISMATIC) {
-            pointsAfter = AbloomModAttachments.getPoints(target, type);
-            thresholdReached = pointsAfter >= THRESHOLD;
+            AbloomModAttachments.addPoints(target, type, pointsToAdd);
+        } else if (AbloomMod.LOGGER.isDebugEnabled()) {
+            AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
         }
-        if (AbloomMod.LOGGER.isDebugEnabled()) {
-            AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
-        }
+        
+        int pointsAfter = isConvertedPrism || originalType == ElementType.PRISMATIC
+            ? AbloomModAttachments.getPoints(target, type) 
+            : AbloomModAttachments.getPoints(target, type);
+        boolean thresholdReached = pointsAfter >= THRESHOLD;
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
         }
@@ -723,46 +703,6 @@ public class ElementDamageHandler {
                 }
 
                 if (typeTimes.isEmpty()) entityIterator.remove();
-            }
-        }
-    }
-
-    /**
-     * Cleans up orphaned prism conversion types - attachments that remain
-     * after the PRISM effect has expired. This prevents stale conversion types
-     * from affecting future prism damage.
-     */
-    private static void cleanupOrphanedPrismAttachments() {
-        if (currentServer == null) return;
-        for (ServerLevel level : currentServer.getAllLevels()) {
-            for (Entity entity : level.getAllEntities()) {
-                if (!(entity instanceof LivingEntity livingEntity)) continue;
-                if (!livingEntity.isAlive()) continue;
-                ElementType storedType = AbloomModAttachments.getPrismConversionType(livingEntity);
-                if (storedType != null && storedType != ElementType.PRISMATIC) {
-                    if (!livingEntity.hasEffect(AbloomModEffects.PRISM)) {
-                        if (AbloomMod.LOGGER.isDebugEnabled()) {
-                            AbloomMod.LOGGER.debug("Cleaning up orphaned prism conversion type {} for entity {}", storedType, livingEntity.getName().getString());
-                        }
-                        safeClearPrismConversionType(livingEntity);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Safely clears the prism conversion type, handling entities
-     * that may not have initialized attachment holders.
-     */
-    private static void safeClearPrismConversionType(LivingEntity entity) {
-        try {
-            AbloomModAttachments.clearPrismConversionType(entity);
-        } catch (NullPointerException e) {
-            // Entity doesn't have attachment holder initialized (e.g., IronGolem)
-            // Silently ignore - the attachment data will be discarded when entity dies
-            if (AbloomMod.LOGGER.isDebugEnabled()) {
-                AbloomMod.LOGGER.debug("Skipping orphaned prism cleanup for entity {} (no attachment holder)", entity.getName().getString());
             }
         }
     }
