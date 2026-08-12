@@ -89,7 +89,7 @@
   "death.attack.ether_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.ether": "Ether DMG",
   "elemental.tooltip.ether_resonance": "CORRUPTION!",
-  "effect.abloom.ether_resonance": "Corruption",
+  "effect.abloom.corruption": "Corruption",
   "elemental.resistance.ether": "Ether DMG Res: ",
   "item.abloom.ether_stick": "Ether Stick",
   "elemental.tooltip.light": "Light DMG",
