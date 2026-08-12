@@ -209,8 +209,9 @@
         .element-natural { color: #32CD32; font-weight: bold; }
         .element-quantum { color: #9400D3; font-weight: bold; }
         .element-ether { color: #24B3A7; font-weight: bold; }
-        .element-light { color: #FFFFE0; font-weight: bold; }
+        .element-light { color: #FFF1A5; font-weight: bold; }
         .element-shadow { color: #4B0082; font-weight: bold; }
+        .element-prismatic { color: #FFFFFF; font-weight: bold; text-shadow: 0 0 4px #fff, 0 0 8px #a020f0; }
 
         .note {
             background: var(--note-bg, #fff3cd);
@@ -334,7 +335,7 @@
 
             <h3>Key Features:</h3>
             <ul>
-                <li><strong>13 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW</li>
+                <li><strong>14 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW, PRISMATIC</li>
                 <li><strong>Resonance System:</strong> Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
                 <li><strong>15 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain</li>
                 <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 4 attack stages with different elements and accumulation multipliers</li>
@@ -430,8 +431,17 @@
                         <td>Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50% reduction)</td>
                         <td>10 seconds (200 ticks)</td>
                     </tr>
+                    <tr>
+                        <td><span class="element-prismatic">PRISMATIC</span></td>
+                        <td>Prismatic damage does NOT accumulate resonance points. When the target has the Prism effect, prism damage converts to the stored elemental damage type. If no Prism effect is active, hitting a target with any resonance effect applies Prism effect for 30 seconds, and converts subsequent prism damage to that elemental damage type.</td>
+                        <td>30 seconds (600 ticks)</td>
+                    </tr>
                 </tbody>
             </table>
+
+            <div class="note">
+                <strong>Note:</strong> Since prismatic damage does not accumulate resonance points, the <code>accumulation_multiplier</code> field will not affect it.
+            </div>
 
             <h3>Damage Priority System</h3>
             <p>The damage priority system resolves conflicts when multiple mods modify damage simultaneously. Modifiers are sorted by priority (highest to lowest) and called in registration order (FIFO) for equal priorities.</p>
@@ -486,7 +496,7 @@
 
         <section id="effects">
             <h2>Status Effects</h2>
-            <p>Abloom adds 15 custom status effects that can be applied through elemental resonance or other means:</p>
+            <p>Abloom adds 16 custom status effects that can be applied through elemental resonance or other means:</p>
 
             <table>
                 <thead>
@@ -574,7 +584,7 @@
                         <td>Dispersion</td>
                         <td><code>abloom:dispersion</code></td>
                         <td>Damage taken by target increased by a certain amount %</td>
-                        <td style="color: #FFFFE0;">#FFFFE0</td>
+                        <td style="color: #FFFFE0;">#FF1A5</td>
                     </tr>
                     <tr>
                         <td>Eclipse</td>
@@ -587,6 +597,12 @@
                         <td><code>abloom:critical_gain</code></td>
                         <td>+30% crit damage, +15% crit chance, +5% attack speed</td>
                         <td style="color: #FFD700;">#FFD700</td>
+                    </tr>
+                    <tr>
+                        <td>Prism</td>
+                        <td><code>abloom:prism</code></td>
+                        <td>Applied when Prism damage hits a target with an active resonance effect. Stores the converted element type so prism damage transforms into that element.</td>
+                        <td style="color: #FFFFFF; text-shadow: 0 0 4px #fff;">#FFFFFF</td>
                     </tr>
                 </tbody>
             </table>
