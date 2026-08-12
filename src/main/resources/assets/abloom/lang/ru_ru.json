@@ -88,7 +88,7 @@
   "death.attack.ether_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.ether": "Эфирный урон",
   "elemental.tooltip.ether_resonance": "ПОВРЕЖДЕНИЕ!",
-  "effect.abloom.ether_resonance": "Повреждение",
+  "effect.abloom.corruption": "Повреждение",
   "elemental.resistance.ether": "Сопр. эфирному урону: ",
   "item.abloom.ether_stick": "Эфирная палочка",
   "elemental.tooltip.light": "Световой урон",
