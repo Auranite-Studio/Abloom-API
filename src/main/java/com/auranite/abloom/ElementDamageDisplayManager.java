@@ -46,6 +46,8 @@ public class ElementDamageDisplayManager {
     private static final double BREAK_SHIMMER_SPEED = 0.3;
     private static final float BREAK_SHIMMER_INTENSITY = 0.6f;
 
+    private static final int PHYSICS_UPDATE_INTERVAL = 1;
+
     private static class DisplayInfo {
         final TextDisplay display;
         final int targetEntityId;
@@ -64,141 +66,6 @@ public class ElementDamageDisplayManager {
     private static final Map<UUID, double[]> ACTIVE_PHYSICS = new ConcurrentHashMap<>();
 
     private static final CopyOnWriteArrayList<TextDisplay> PENDING_REMOVALS = new CopyOnWriteArrayList<>();
-
-    /**
-     * Tick-based physics update for ALL active displays.
-     * This replaces the old recursive queueServerWork approach to prevent task queue overflow.
-     * Called once per server tick from ElementDamageHandler.onServerTick.
-     */
-    public void tickAllDisplays() {
-        var activeDisplays = new java.util.ArrayList<Map.Entry<UUID, DisplayInfo>>(ACTIVE_DAMAGE_DISPLAYS.entrySet());
-        activeDisplays.addAll(new java.util.ArrayList<>(ACTIVE_STATUS_DISPLAYS.entrySet()));
-
-        if (activeDisplays.isEmpty()) return;
-
-        for (var entry : activeDisplays) {
-            UUID displayUuid = entry.getKey();
-            DisplayInfo info = entry.getValue();
-
-            if (info == null) continue;
-            if (info.display.isRemoved() || info.display.level() == null) {
-                cleanupDisplayResources(displayUuid);
-                continue;
-            }
-
-            double[] physics = ACTIVE_PHYSICS.get(displayUuid);
-            if (physics == null) {
-                cleanupDisplayResources(displayUuid);
-                continue;
-            }
-
-            TextDisplay display = info.display;
-            physics[3]++;
-            int ticksAlive = (int) physics[3];
-            int maxTicks = (int) physics[4];
-            int originalColor = (int) physics[5];
-            double floatPhase = physics[6];
-            boolean isBreak = physics[7] == 1.0;
-            boolean isPrismatic = originalColor == -1;
-
-            if (info.isStatus) {
-                floatPhase += STATUS_FLOAT_SPEED;
-                physics[6] = floatPhase;
-
-                double floatOffset = Math.sin(floatPhase) * STATUS_FLOAT_AMPLITUDE;
-                display.setPos(display.getX(), display.getY() + floatOffset, display.getZ());
-
-                double pulse = (Math.sin(floatPhase * 2) + 1) / 2;
-                int r, g, b;
-                if (isPrismatic) {
-                    int rainbowHue = (int) ((ticksAlive * 10 + floatPhase * 10) % 360);
-                    int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
-                    r = rgb[0];
-                    g = rgb[1];
-                    b = rgb[2];
-                } else {
-                    r = (originalColor >> 16) & 0xFF;
-                    g = (originalColor >> 8) & 0xFF;
-                    b = originalColor & 0xFF;
-                }
-
-                int shimmerR = (int) (r + (255 - r) * pulse * 0.5);
-                int shimmerG = (int) (g + (255 - g) * pulse * 0.5);
-                int shimmerB = (int) (b + (255 - b) * pulse * 0.5);
-                int shimmerColor = (shimmerR << 16) | (shimmerG << 8) | shimmerB;
-
-                Component currentText = display.getText();
-                if (currentText != null) {
-                    display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(shimmerColor).withBold(true)));
-                }
-
-            } else {
-                physics[1] += DAMAGE_GRAVITY;
-                display.setPos(display.getX() + physics[0], display.getY() + physics[1], display.getZ() + physics[2]);
-
-                int finalColor;
-
-                if (isBreak) {
-                    double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0;
-
-                    int r, g, b;
-                    if (isPrismatic) {
-                        int rainbowHue = (int) ((ticksAlive * 20) % 360);
-                        int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
-                        r = rgb[0];
-                        g = rgb[1];
-                        b = rgb[2];
-                    } else {
-                        r = (originalColor >> 16) & 0xFF;
-                        g = (originalColor >> 8) & 0xFF;
-                        b = originalColor & 0xFF;
-                    }
-
-                    int shimmerR = (int) (r + (255 - r) * pulse * BREAK_SHIMMER_INTENSITY);
-                    int shimmerG = (int) (g + (255 - g) * pulse * BREAK_SHIMMER_INTENSITY);
-                    int shimmerB = (int) (b + (255 - b) * pulse * BREAK_SHIMMER_INTENSITY);
-
-                    finalColor = (shimmerR << 16) | (shimmerG << 8) | shimmerB;
-
-                } else {
-                    if (isPrismatic) {
-                        int rainbowHue = (int) ((ticksAlive * 10) % 360);
-                        int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
-                        finalColor = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
-                    } else {
-                        finalColor = originalColor;
-                    }
-                }
-
-                int fadeStartTick = (int) (maxTicks * 0.7);
-                if (ticksAlive >= fadeStartTick) {
-                    int fadeTicks = maxTicks - fadeStartTick;
-                    int currentFadeTick = ticksAlive - fadeStartTick;
-                    float alpha = 1.0f - (currentFadeTick / (float) fadeTicks);
-                    alpha = Math.max(0.0f, Math.min(1.0f, alpha));
-
-                    int r = (finalColor >> 16) & 0xFF;
-                    int g = (finalColor >> 8) & 0xFF;
-                    int b = finalColor & 0xFF;
-
-                    int a = (int) (alpha * 255);
-                    finalColor = (a << 24) | (r << 16) | (g << 8) | b;
-                }
-
-                Component currentText = display.getText();
-                if (currentText != null) {
-                    display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(finalColor).withBold(true)));
-                }
-            }
-
-            if (ticksAlive >= maxTicks) {
-                if (!display.isRemoved() && display.level() != null) {
-                    safeRemoveDisplaySilent(display);
-                }
-                cleanupDisplayResources(displayUuid);
-            }
-        }
-    }
 
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
@@ -288,6 +155,7 @@ public class ElementDamageDisplayManager {
         }
         ACTIVE_STATUS_DISPLAYS.clear();
         ACTIVE_PHYSICS.clear();
+        PENDING_PHYSICS_TASKS.clear();
 
         AbloomMod.LOGGER.info("All element damage displays cleared successfully.");
     }
@@ -332,6 +200,7 @@ public class ElementDamageDisplayManager {
         ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
         ACTIVE_STATUS_DISPLAYS.remove(uuid);
         ACTIVE_PHYSICS.remove(uuid);
+        PENDING_PHYSICS_TASKS.remove(uuid);
     }
 
     public int cleanupDisplaysInChunk(ServerLevel level, int chunkX, int chunkZ) {
@@ -496,6 +365,8 @@ public class ElementDamageDisplayManager {
                     hasBreak ? 1.0 : 0.0
             });
 
+            schedulePhysicsUpdate(serverLevel, displayUuid);
+
             AbloomMod.queueServerWork(DAMAGE_NUMBER_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
                     TextDisplay d = (TextDisplay) serverLevel.getEntity(displayUuid);
@@ -548,6 +419,8 @@ public class ElementDamageDisplayManager {
                     0.0
             });
 
+            schedulePhysicsUpdate(serverLevel, displayUuid);
+
             AbloomMod.queueServerWork(STATUS_TEXT_LIFETIME + 10, () -> {
                 if (ACTIVE_PHYSICS.containsKey(displayUuid)) {
                     TextDisplay d = (TextDisplay) serverLevel.getEntity(displayUuid);
@@ -561,6 +434,157 @@ public class ElementDamageDisplayManager {
     public void spawnStatusText(LivingEntity entity, String text, int color) {
         if (!AbloomConfig.areStatusTextsEnabled()) return;
         spawnStatusText(entity, Component.literal(text), color);
+    }
+
+    private static final Map<UUID, ScheduledPhysicsTask> PENDING_PHYSICS_TASKS = new ConcurrentHashMap<>();
+
+    private static class ScheduledPhysicsTask {
+        final UUID displayUuid;
+        final ServerLevel level;
+
+        ScheduledPhysicsTask(UUID displayUuid, ServerLevel level) {
+            this.displayUuid = displayUuid;
+            this.level = level;
+        }
+    }
+
+    private void schedulePhysicsUpdate(ServerLevel level, UUID displayUuid) {
+        // Проверяем, есть ли уже запланированная задача для этого дисплея
+        if (PENDING_PHYSICS_TASKS.containsKey(displayUuid)) {
+            return; // Задача уже запланирована, не создаем дубликат
+        }
+
+        Runnable physicsTask = () -> {
+            // Удаляем из pending перед выполнением
+            PENDING_PHYSICS_TASKS.remove(displayUuid);
+
+            TextDisplay display = (TextDisplay) level.getEntity(displayUuid);
+            double[] physics = ACTIVE_PHYSICS.get(displayUuid);
+            DisplayInfo info = ACTIVE_DAMAGE_DISPLAYS.get(displayUuid);
+            if (info == null) info = ACTIVE_STATUS_DISPLAYS.get(displayUuid);
+
+            if (display == null || display.isRemoved() || physics == null) {
+                cleanupDisplayResources(displayUuid);
+                return;
+            }
+
+            physics[3]++;
+            int ticksAlive = (int) physics[3];
+            int maxTicks = (int) physics[4];
+            int originalColor = (int) physics[5];
+            double floatPhase = physics[6];
+            boolean isBreak = physics[7] == 1.0;
+            boolean isPrismatic = originalColor == -1; // Призматический урон (радужный цвет)
+
+            if (info != null && info.isStatus) {
+                floatPhase += STATUS_FLOAT_SPEED;
+                physics[6] = floatPhase;
+
+                double floatOffset = Math.sin(floatPhase) * STATUS_FLOAT_AMPLITUDE;
+                display.setPos(display.getX(), display.getY() + floatOffset, display.getZ());
+
+                double pulse = (Math.sin(floatPhase * 2) + 1) / 2;
+                int r, g, b;
+
+                // Если призматический урон, используем радужный цвет
+                if (isPrismatic) {
+                    int rainbowHue = (int) ((ticksAlive * 10 + floatPhase * 10) % 360);
+                    int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
+                    r = rgb[0];
+                    g = rgb[1];
+                    b = rgb[2];
+                } else {
+                    r = (originalColor >> 16) & 0xFF;
+                    g = (originalColor >> 8) & 0xFF;
+                    b = originalColor & 0xFF;
+                }
+
+                int shimmerR = (int) (r + (255 - r) * pulse * 0.5);
+                int shimmerG = (int) (g + (255 - g) * pulse * 0.5);
+                int shimmerB = (int) (b + (255 - b) * pulse * 0.5);
+                int shimmerColor = (shimmerR << 16) | (shimmerG << 8) | shimmerB;
+
+                Component currentText = display.getText();
+                if (currentText != null) {
+                    display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(shimmerColor).withBold(true)));
+                }
+
+            } else {
+                physics[1] += DAMAGE_GRAVITY;
+                display.setPos(display.getX() + physics[0], display.getY() + physics[1], display.getZ() + physics[2]);
+
+                int finalColor;
+
+                if (isBreak) {
+                    double pulse = (Math.sin(ticksAlive * BREAK_SHIMMER_SPEED) + 1.0) / 2.0;
+
+                    int r, g, b;
+
+                    // Если призматический урон, используем радужный цвет
+                    if (isPrismatic) {
+                        int rainbowHue = (int) ((ticksAlive * 20) % 360);
+                        int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
+                        r = rgb[0];
+                        g = rgb[1];
+                        b = rgb[2];
+                    } else {
+                        r = (originalColor >> 16) & 0xFF;
+                        g = (originalColor >> 8) & 0xFF;
+                        b = originalColor & 0xFF;
+                    }
+
+                    int shimmerR = (int) (r + (255 - r) * pulse * BREAK_SHIMMER_INTENSITY);
+                    int shimmerG = (int) (g + (255 - g) * pulse * BREAK_SHIMMER_INTENSITY);
+                    int shimmerB = (int) (b + (255 - b) * pulse * BREAK_SHIMMER_INTENSITY);
+
+                    finalColor = (shimmerR << 16) | (shimmerG << 8) | shimmerB;
+
+                } else {
+                    // Если призматический урон, используем радужный цвет
+                    if (isPrismatic) {
+                        int rainbowHue = (int) ((ticksAlive * 10) % 360);
+                        int[] rgb = hsbToRgb(rainbowHue, 1.0f, 1.0f);
+                        finalColor = (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
+                    } else {
+                        finalColor = originalColor;
+                    }
+                }
+
+                int fadeStartTick = (int) (maxTicks * 0.7);
+                if (ticksAlive >= fadeStartTick) {
+                    int fadeTicks = maxTicks - fadeStartTick;
+                    int currentFadeTick = ticksAlive - fadeStartTick;
+                    float alpha = 1.0f - (currentFadeTick / (float) fadeTicks);
+                    alpha = Math.max(0.0f, Math.min(1.0f, alpha));
+
+                    int r = (finalColor >> 16) & 0xFF;
+                    int g = (finalColor >> 8) & 0xFF;
+                    int b = finalColor & 0xFF;
+
+                    int a = (int) (alpha * 255);
+                    finalColor = (a << 24) | (r << 16) | (g << 8) | b;
+                }
+
+                Component currentText = display.getText();
+                if (currentText != null) {
+                    display.setText(currentText.copy().withStyle(Style.EMPTY.withColor(finalColor).withBold(true)));
+                }
+            }
+
+            if (ticksAlive >= maxTicks) {
+                safeRemoveDisplay(level, displayUuid, display, info);
+                return;
+            }
+
+            // Планируем следующий апдейт только если дисплей еще существует
+            if (!display.isRemoved()) {
+                schedulePhysicsUpdate(level, displayUuid);
+            }
+        };
+
+        // Добавляем в pending и планируем выполнение
+        PENDING_PHYSICS_TASKS.put(displayUuid, new ScheduledPhysicsTask(displayUuid, level));
+        AbloomMod.queueServerWork(1, physicsTask);
     }
 
     /**
