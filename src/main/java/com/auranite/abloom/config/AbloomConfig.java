@@ -87,6 +87,7 @@ public class AbloomConfig {
         DISPLAY_EFFECTS.add("overload");
         DISPLAY_EFFECTS.add("dispersion");
         DISPLAY_EFFECTS.add("eclipse");
+        DISPLAY_EFFECTS.add("prism");
     }
 
     private static volatile boolean cachedDamageNumbers = true;
