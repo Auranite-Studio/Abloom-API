@@ -155,6 +155,7 @@ public class ElementDamageDisplayManager {
         }
         ACTIVE_STATUS_DISPLAYS.clear();
         ACTIVE_PHYSICS.clear();
+        PENDING_PHYSICS_TASKS.clear();
 
         AbloomMod.LOGGER.info("All element damage displays cleared successfully.");
     }
@@ -199,6 +200,7 @@ public class ElementDamageDisplayManager {
         ACTIVE_DAMAGE_DISPLAYS.remove(uuid);
         ACTIVE_STATUS_DISPLAYS.remove(uuid);
         ACTIVE_PHYSICS.remove(uuid);
+        PENDING_PHYSICS_TASKS.remove(uuid);
     }
 
     public int cleanupDisplaysInChunk(ServerLevel level, int chunkX, int chunkZ) {
@@ -434,8 +436,28 @@ public class ElementDamageDisplayManager {
         spawnStatusText(entity, Component.literal(text), color);
     }
 
+    private static final Map<UUID, ScheduledPhysicsTask> PENDING_PHYSICS_TASKS = new ConcurrentHashMap<>();
+    
+    private static class ScheduledPhysicsTask {
+        final UUID displayUuid;
+        final ServerLevel level;
+        
+        ScheduledPhysicsTask(UUID displayUuid, ServerLevel level) {
+            this.displayUuid = displayUuid;
+            this.level = level;
+        }
+    }
+
     private void schedulePhysicsUpdate(ServerLevel level, UUID displayUuid) {
-        AbloomMod.queueServerWork(1, () -> {
+        // Проверяем, есть ли уже запланированная задача для этого дисплея
+        if (PENDING_PHYSICS_TASKS.containsKey(displayUuid)) {
+            return; // Задача уже запланирована, не создаем дубликат
+        }
+        
+        Runnable physicsTask = () -> {
+            // Удаляем из pending перед выполнением
+            PENDING_PHYSICS_TASKS.remove(displayUuid);
+            
             TextDisplay display = (TextDisplay) level.getEntity(displayUuid);
             double[] physics = ACTIVE_PHYSICS.get(displayUuid);
             DisplayInfo info = ACTIVE_DAMAGE_DISPLAYS.get(displayUuid);
@@ -554,10 +576,15 @@ public class ElementDamageDisplayManager {
                 return;
             }
 
+            // Планируем следующий апдейт только если дисплей еще существует
             if (!display.isRemoved()) {
                 schedulePhysicsUpdate(level, displayUuid);
             }
-        });
+        };
+        
+        // Добавляем в pending и планируем выполнение
+        PENDING_PHYSICS_TASKS.put(displayUuid, new ScheduledPhysicsTask(displayUuid, level));
+        AbloomMod.queueServerWork(1, physicsTask);
     }
 
     /**
