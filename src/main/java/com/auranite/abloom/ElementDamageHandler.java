@@ -246,7 +246,10 @@ public class ElementDamageHandler {
     @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Pre event) {
         currentServer = event.getServer();
-        if (displayManager != null) displayManager.processPendingRemovals();
+        if (displayManager != null) {
+            displayManager.tickAllDisplays();
+            displayManager.processPendingRemovals();
+        }
         serverTickCounter++;
         if (serverTickCounter >= CLEANUP_INTERVAL) {
             serverTickCounter = 0;
