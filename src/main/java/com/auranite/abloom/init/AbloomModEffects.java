@@ -1,5 +1,6 @@
-package com.auranite.abloom;
+package com.auranite.abloom.init;
 
+import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.effect.*;
 import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.core.registries.Registries;

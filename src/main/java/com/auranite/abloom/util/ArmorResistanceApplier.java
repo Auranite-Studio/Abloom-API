@@ -1,8 +1,8 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.registries.ArmorResistanceRegistry;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
