@@ -1,6 +1,6 @@
 {
   "item": "minecraft:netherite_sword",
-  "element": "PHYSICAL",
+  "base_element": "PHYSICAL",
   "crit_chance": 0.33,
   "crit_damage": 1.5,
   "accumulation_multiplier": 5.0

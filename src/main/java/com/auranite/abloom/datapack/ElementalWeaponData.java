@@ -19,6 +19,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Data class representing elemental weapon configuration from datapack JSON.
  * Supports both legacy single-element format and new multi-stage attack format.
+ * 
+ * <p><b>Element resolution rules:</b></p>
+ * <ul>
+ *   <li><b>base_element</b>: primary element for tooltip display and general use (applies to all weapons)</li>
+ *   <li><b>stages[].element</b>: element used for damage calculation for each specific stage</li>
+ * </ul>
  */
 public class ElementalWeaponData {
 
@@ -26,8 +32,7 @@ public class ElementalWeaponData {
     public static final int MAX_STAGES = 4;
 
     private final String item;
-    private final String element; // fallback display element (used only if stages are defined)
-    private final String baseElement; // base element for multi-stage weapons (used for tooltip display)
+    private final String baseElement; // primary element for tooltip display and general use
     private final float accumulationMultiplier; // total accumulation for tooltip display
     private final float critChance;
     private final float critDamage;
@@ -39,12 +44,12 @@ public class ElementalWeaponData {
      */
     public static class WeaponStage {
         private final int stageNumber;
-        private final String elementType;
+        private final String stageElement; // element for damage calculation of this stage
         private final float accumulationMultiplier;
 
-        public WeaponStage(int stageNumber, String elementType, float accumulationMultiplier) {
+        public WeaponStage(int stageNumber, String stageElement, float accumulationMultiplier) {
             this.stageNumber = stageNumber;
-            this.elementType = elementType;
+            this.stageElement = stageElement;
             this.accumulationMultiplier = accumulationMultiplier;
         }
 
@@ -52,12 +57,12 @@ public class ElementalWeaponData {
             return stageNumber;
         }
 
-        public String getElementTypeString() {
-            return elementType;
+        public String getStageElementString() {
+            return stageElement;
         }
 
-        public ElementType getElementType() {
-            return ElementType.safeValueOf(elementType.toUpperCase());
+        public ElementType getStageElementType() {
+            return ElementType.safeValueOf(stageElement.toUpperCase());
         }
 
         public float getAccumulationMultiplier() {
@@ -68,13 +73,12 @@ public class ElementalWeaponData {
     // Per-UUID stage tracking for multi-stage attacks
     private final Map<UUID, Integer> stageProgress = new ConcurrentHashMap<>();
 
-    public ElementalWeaponData(String item, String element, String baseElement, float accumulationMultiplier, float critChance, float critDamage) {
-        this(item, element, baseElement, accumulationMultiplier, critChance, critDamage, Collections.emptyList());
+    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage) {
+        this(item, baseElement, accumulationMultiplier, critChance, critDamage, Collections.emptyList());
     }
 
-    public ElementalWeaponData(String item, String element, String baseElement, float accumulationMultiplier, float critChance, float critDamage, List<WeaponStage> stages) {
+    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, List<WeaponStage> stages) {
         this.item = item;
-        this.element = element;
         this.baseElement = baseElement;
         this.accumulationMultiplier = accumulationMultiplier;
         this.critChance = critChance;
@@ -86,16 +90,12 @@ public class ElementalWeaponData {
         return item;
     }
 
-    public String getElement() {
-        return element;
-    }
-
     public String getBaseElement() {
         return baseElement;
     }
 
     public Optional<ElementType> getBaseElementType() {
-        if (!hasStages() || baseElement == null || baseElement.isEmpty()) {
+        if (baseElement == null || baseElement.isEmpty()) {
             return Optional.empty();
         }
         ElementType result = ElementType.safeValueOf(baseElement.toUpperCase());
@@ -123,12 +123,12 @@ public Optional<Identifier> getItemResourceLocation() {
         }
     }
 
+    /**
+     * Gets the base element type for this weapon.
+     * Used for tooltip display and general element determination.
+     */
     public Optional<ElementType> getElementType() {
-        if (hasStages()) {
-            return Optional.empty(); // stages override the fallback element
-        }
-        ElementType result = ElementType.safeValueOf(element);
-        return result != null ? Optional.of(result) : Optional.empty();
+        return getBaseElementType();
     }
 
     public boolean hasStages() {
@@ -184,40 +184,58 @@ public Optional<Identifier> getItemResourceLocation() {
 
     /**
      * Parse ElementalWeaponData from JSON object.
-     * Supports both legacy format (element, accumulation_multiplier, etc.)
-     * and new multi-stage format (stages object).
+     * Supports both legacy format (base_element) and multi-stage format (stages array or object).
+     * 
+     * <p>Element resolution:</p>
+     * <ul>
+     *   <li><b>base_element</b>: primary element for tooltip display (required)</li>
+     *   <li><b>stages[].element</b>: element used per-stage for damage calculation</li>
+     * </ul>
      */
     public static ElementalWeaponData fromJson(JsonObject json) {
         String item = GsonHelper.getAsString(json, "item");
-        String element = GsonHelper.getAsString(json, "element", "PHYSICAL");
-        String baseElement = json.has("base_element") ? GsonHelper.getAsString(json, "base_element", null) : null;
-        float accumulationMultiplier = GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f);
-        float critChance = GsonHelper.getAsFloat(json, "crit_chance", 0.0f);
-        float critDamage = GsonHelper.getAsFloat(json, "crit_damage", 0.0f);
+        
+        // base_element can be on top level OR inside stages object
+        String baseElement = null;
+        if (json.has("base_element")) {
+            baseElement = GsonHelper.getAsString(json, "base_element", null);
+        } else if (json.has("stages") && json.get("stages").isJsonObject()) {
+            JsonObject stagesObj = json.getAsJsonObject("stages");
+            if (stagesObj.has("base_element")) {
+                baseElement = GsonHelper.getAsString(stagesObj, "base_element", null);
+            }
+        }
+        if (baseElement == null || baseElement.isEmpty()) {
+            baseElement = "PHYSICAL";
+        }
 
-        // Check for stages object
+        // Create stages list
         List<WeaponStage> stages = Collections.emptyList();
         if (json.has("stages")) {
             JsonElement stagesElem = json.get("stages");
             if (stagesElem.isJsonArray()) {
-                // Legacy array format: [ {...}, {...}, ... ]
+                // Array format: [ {...}, {...}, ... ]
                 stages = parseStagesArray(stagesElem.getAsJsonArray());
             } else if (stagesElem.isJsonObject()) {
-                // New object format: { "1": {...}, "2": {...}, ... }
+                // Object format: { "1": {...}, "2": {...}, ... }
                 stages = parseStagesObject(stagesElem.getAsJsonObject());
             }
         }
 
-        return new ElementalWeaponData(item, element, baseElement, accumulationMultiplier, critChance, critDamage, stages);
+        return new ElementalWeaponData(item, baseElement,
+                GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f),
+                GsonHelper.getAsFloat(json, "crit_chance", 0.0f),
+                GsonHelper.getAsFloat(json, "crit_damage", 0.0f),
+                stages);
     }
 
     private static List<WeaponStage> parseStagesArray(JsonArray stagesArray) {
         List<WeaponStage> stageList = new ArrayList<>();
         for (int i = 0; i < stagesArray.size() && i < MAX_STAGES; i++) {
             JsonObject stageData = stagesArray.get(i).getAsJsonObject();
-            String element = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
+            String stageElement = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
             float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
-            stageList.add(new WeaponStage(i + 1, element, accumMultiplier));
+            stageList.add(new WeaponStage(i + 1, stageElement, accumMultiplier));
         }
         return stageList;
     }
@@ -234,14 +252,14 @@ public Optional<Identifier> getItemResourceLocation() {
                 }
 
                 JsonObject stageData = stagesObj.getAsJsonObject(stageKey);
-                String element = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
+                String stageElement = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
                 float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
 
-                if (ElementType.safeValueOf(element.toUpperCase()) == null) {
-                    AbloomMod.LOGGER.warn("Unknown element type '{}' for stage {} of weapon, defaulting to PHYSICAL", element, stageNumber);
+                if (ElementType.safeValueOf(stageElement.toUpperCase()) == null) {
+                    AbloomMod.LOGGER.warn("Unknown element type '{}' for stage {} of weapon, defaulting to PHYSICAL", stageElement, stageNumber);
                 }
 
-                stageList.add(new WeaponStage(stageNumber, element, accumMultiplier));
+                stageList.add(new WeaponStage(stageNumber, stageElement, accumMultiplier));
             } catch (NumberFormatException e) {
                 AbloomMod.LOGGER.warn("Invalid stage key '{}' in stages object, skipping", stageKey);
             }

@@ -190,7 +190,18 @@ public class ElementalWeaponRegistry {
 	 * Get the base element for a multi-stage weapon.
 	 */
 	public static ElementType getBaseElement(Identifier itemLocation) {
-		return WEAPON_BASE_ELEMENTS.get(itemLocation);
+		ElementType result = WEAPON_BASE_ELEMENTS.get(itemLocation);
+		if (result != null) {
+			return result;
+		}
+		// Fallback to first stage's element if base_element not set
+		if (hasStages(itemLocation)) {
+			List<StageData> stages = getStages(itemLocation);
+			if (!stages.isEmpty()) {
+				return stages.get(0).element();
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -249,10 +260,18 @@ public class ElementalWeaponRegistry {
 
 		Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
-		// If weapon has stages, return base element if set, otherwise null
+		// If weapon has stages, return base element if set, otherwise first stage element
 		if (hasStages(itemId)) {
 			ElementType baseElement = getBaseElement(itemId);
-			return baseElement;
+			if (baseElement != null) {
+				return baseElement;
+			}
+			// Fallback to first stage's element
+			List<StageData> stages = getStages(itemId);
+			if (!stages.isEmpty()) {
+				return stages.get(0).element();
+			}
+			return ElementType.PHYSICAL;
 		}
 
 		WeaponData data = getWeaponData(stack);

@@ -1,6 +1,6 @@
 {
   "item": "abloom:ice_stick",
-  "element": "ICE",
+  "base_element": "ICE",
   "crit_chance": 0.5,
   "crit_damage": 1.0,
   "accumulation_multiplier": 50.0
