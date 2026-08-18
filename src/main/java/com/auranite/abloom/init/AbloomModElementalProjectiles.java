@@ -14,17 +14,18 @@ public class AbloomModElementalProjectiles {
 
     public static void registerAll() {
 
-        ElementalProjectileRegistry.registerProjectile(EntityType.FIREBALL, ElementType.FIRE, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.SMALL_FIREBALL, ElementType.FIRE, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.DRAGON_FIREBALL, ElementType.ENERGY, 0f);
+        // allowOverride = true → projectile берёт элемент из оружия стрелка (attachment) приоритетно
+        ElementalProjectileRegistry.registerProjectile(EntityType.FIREBALL, ElementType.FIRE, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.SMALL_FIREBALL, ElementType.FIRE, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.DRAGON_FIREBALL, ElementType.QUANTUM, 0f, false);
 
-        ElementalProjectileRegistry.registerProjectile(EntityType.FIREWORK_ROCKET, ElementType.PHYSICAL, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.WITHER_SKULL, ElementType.EARTH, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.SHULKER_BULLET, ElementType.WIND, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.LLAMA_SPIT, ElementType.WATER, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.BREEZE_WIND_CHARGE, ElementType.WIND, 0f);
-        ElementalProjectileRegistry.registerProjectile(EntityType.WIND_CHARGE, ElementType.WIND, 0f);
-
+        ElementalProjectileRegistry.registerProjectile(EntityType.FIREWORK_ROCKET, ElementType.PHYSICAL, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.WITHER_SKULL, ElementType.QUANTUM, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.SHULKER_BULLET, ElementType.WIND, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.LLAMA_SPIT, ElementType.WATER, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.BREEZE_WIND_CHARGE, ElementType.WIND, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.WIND_CHARGE, ElementType.WIND, 0f, false);
+        ElementalProjectileRegistry.registerProjectile(EntityType.TRIDENT, ElementType.WATER, 12f, true);
         registerCustomProjectiles();
 
         AbloomMod.LOGGER.info("Registered {} elemental projectile types",

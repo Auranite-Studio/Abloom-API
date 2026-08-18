@@ -1,7 +1,7 @@
 {
   "item": "minecraft:wooden_axe",
   "element": "PHYSICAL",
-  "crit_chance": 0.14,
-  "crit_damage": 1.0,
+  "crit_chance": 0.08,
+  "crit_damage": 0.50,
   "accumulation_multiplier": 2.0
 }
