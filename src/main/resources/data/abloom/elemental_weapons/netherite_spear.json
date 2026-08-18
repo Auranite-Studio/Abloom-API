@@ -1,6 +1,6 @@
 {
   "item": "minecraft:netherite_spear",
-  "element": "PHYSICAL",
+  "basic_element": "PHYSICAL",
   "crit_chance": 0.33,
   "crit_damage": 1.5,
   "accumulation_multiplier": 9.0

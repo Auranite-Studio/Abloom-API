@@ -1,6 +1,6 @@
 {
   "item": "minecraft:wooden_spear",
-  "element": "PHYSICAL",
+  "basic_element": "PHYSICAL",
   "crit_chance": 0.12,
   "crit_damage": 0.25,
   "accumulation_multiplier": 3.0
