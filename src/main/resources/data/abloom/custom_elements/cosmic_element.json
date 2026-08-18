@@ -1,0 +1,10 @@
+{
+  "element_id": "COSMIC",
+  "damage_type_id": "cosmic_dmg",
+  "damage_color": 0xFF6BFF,
+  "effect_class": null,
+  "properties": {
+    "description": "Cosmic element channels the power of stars and celestial bodies",
+    "resistance_tag": "cosmic_resistance"
+  }
+}

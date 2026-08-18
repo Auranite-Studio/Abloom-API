@@ -3,6 +3,7 @@ package com.auranite.abloom;
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
+import com.auranite.abloom.datapack.CustomElementLoader;
 import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -44,6 +45,9 @@ import java.util.ArrayList;
 public class AbloomMod {
     public static final Logger LOGGER = LogManager.getLogger(AbloomMod.class);
     public static final String MODID = "abloom";
+    
+    // Custom element loader instance
+    private static CustomElementLoader customElementLoader;
 
     public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
@@ -69,6 +73,7 @@ public class AbloomMod {
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         // Register datapack for elemental weapons
         modEventBus.addListener(this::setup);
+        modEventBus.addListener(this::registerReloadListeners);
     }
     
     private void setup(final FMLCommonSetupEvent event) {
@@ -83,6 +88,14 @@ public class AbloomMod {
             
             AbloomMod.LOGGER.info("Datapack loading complete");
         });
+    }
+    
+    /**
+     * Register reload listeners for datapacks.
+     */
+    private void registerReloadListeners(net.neoforged.neoforge.event.AddReloadListenerEvent event) {
+        customElementLoader = new CustomElementLoader();
+        event.addListener(customElementLoader);
     }
     @SubscribeEvent
     public void onLevelLoad(LevelEvent.Load event) {
@@ -171,6 +184,13 @@ public class AbloomMod {
             net.minecraft.core.HolderLookup.Provider lookupProvider = serverLevel.registryAccess();
             ElementResistanceRegistry.init(lookupProvider);
             ElementResistanceManager.debugPrintRegistry();
+            
+            // Register custom elements from datapacks after reload
+            if (customElementLoader != null) {
+                AbloomMod.LOGGER.info("Registering custom elements from datapacks...");
+                customElementLoader.registerElements();
+                AbloomMod.LOGGER.info("Custom elements registered successfully");
+            }
         }
     }
 }

@@ -70,9 +70,29 @@ public class ElementDamageDisplayManager {
     public static void registerDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
     }
+    
+    /**
+     * Register a damage color for an element type (supports custom elements).
+     */
+    public static void registerDamageColor(String elementName, int color) {
+        ElementType type = ElementType.safeValueOf(elementName);
+        if (type != null) {
+            DAMAGE_COLORS.put(type, color);
+        }
+    }
 
     public static void setDamageColor(ElementType type, int color) {
         DAMAGE_COLORS.put(type, color);
+    }
+    
+    /**
+     * Set a damage color for an element type by name (supports custom elements).
+     */
+    public static void setDamageColor(String elementName, int color) {
+        ElementType type = ElementType.safeValueOf(elementName);
+        if (type != null) {
+            DAMAGE_COLORS.put(type, color);
+        }
     }
 
     public static Map<ElementType, Integer> getAllDamageColors() {
@@ -84,6 +104,18 @@ public class ElementDamageDisplayManager {
         // Для призматического урона возвращаем специальное значение -1 для радужного цвета
         if (type == ElementType.PRISMATIC) return -1;
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
+    }
+    
+    /**
+     * Get the damage color for an element by name (supports custom elements).
+     */
+    public static int getDamageColor(String elementName) {
+        ElementType type = ElementType.safeValueOf(elementName);
+        if (type != null) {
+            if (type == ElementType.PRISMATIC) return -1;
+            return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
+        }
+        return 0xFFFFFF;
     }
 
     public void cleanupStaleDisplays() {

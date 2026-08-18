@@ -1,0 +1,10 @@
+{
+  "element_id": "VOID",
+  "damage_type_id": "void_dmg",
+  "damage_color": 0x2B004C,
+  "effect_class": null,
+  "properties": {
+    "description": "Void element deals damage from the emptiness between dimensions",
+    "resistance_tag": "void_resistance"
+  }
+}
