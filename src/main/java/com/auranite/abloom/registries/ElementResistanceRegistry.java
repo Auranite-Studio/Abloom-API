@@ -1,5 +1,8 @@
-package com.auranite.abloom;
+package com.auranite.abloom.registries;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementResistanceManager;
+import com.auranite.abloom.util.ElementType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;

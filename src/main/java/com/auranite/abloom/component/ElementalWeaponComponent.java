@@ -1,5 +1,6 @@
-package com.auranite.abloom;
+package com.auranite.abloom.component;
 
+import com.auranite.abloom.util.ElementType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;

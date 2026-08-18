@@ -1,5 +1,8 @@
-package com.auranite.abloom;
+package com.auranite.abloom.init;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
