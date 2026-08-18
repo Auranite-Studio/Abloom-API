@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -97,27 +98,13 @@ public class ElementalWeaponProvider {
             }
 
             // Determine the base element for tooltip display
-            ElementType baseElement = null;
-
-            if (weaponData.hasStages()) {
-                // Multi-stage weapon: use base_element field, or fall back to first stage
-                var baseElementOpt = weaponData.getBaseElementType();
-                if (baseElementOpt.isPresent()) {
-                    baseElement = baseElementOpt.get();
-                    ElementalWeaponRegistry.setBaseElement(location, baseElement);
-                    AbloomMod.LOGGER.debug("Base element for multi-stage weapon {}: {}", location, baseElement);
-                }
-            } else {
-                // Single-element weapon: use element field
-                var elementTypeOpt = weaponData.getElementType();
-                if (!elementTypeOpt.isPresent()) {
-                    AbloomMod.LOGGER.warn("Invalid element type in {} (from mod {}): {}", sourcePath, modId, weaponData.getElement());
-                    return;
-                }
-                baseElement = elementTypeOpt.get();
-                ElementalWeaponRegistry.setBaseElement(location, baseElement);
-                AbloomMod.LOGGER.debug("Base element for weapon {}: {}", location, baseElement);
+            var baseElementOpt = weaponData.getBaseElementType();
+            if (!baseElementOpt.isPresent()) {
+                AbloomMod.LOGGER.warn("Missing base_element in {} (from mod {})", sourcePath, modId);
+                return;
             }
+            ElementType baseElement = baseElementOpt.get();
+            ElementalWeaponRegistry.setBaseElement(location, baseElement);
 
             // Handle multi-stage weapons
             if (weaponData.hasStages()) {
@@ -127,10 +114,10 @@ public class ElementalWeaponProvider {
                         location, stages.size(), modId);
 
                 for (WeaponStage stage : stages) {
-                    ElementType stageElement = stage.getElementType();
+                    ElementType stageElement = stage.getStageElementType();
                     if (stageElement == null) {
                         AbloomMod.LOGGER.warn("Invalid element type in stage {} of {} (from mod {}): {}, using PHYSICAL",
-                                stage.getStageNumber(), location, modId, stage.getElementTypeString());
+                                stage.getStageNumber(), location, modId, stage.getStageElementString());
                         stageElement = ElementType.PHYSICAL;
                     }
 

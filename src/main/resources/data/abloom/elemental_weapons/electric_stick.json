@@ -1,6 +1,6 @@
 {
   "item": "abloom:electric_stick",
-  "element": "ELECTRIC",
+  "base_element": "ELECTRIC",
   "crit_chance": 0.5,
   "crit_damage": 1.0,
   "accumulation_multiplier": 50.0
