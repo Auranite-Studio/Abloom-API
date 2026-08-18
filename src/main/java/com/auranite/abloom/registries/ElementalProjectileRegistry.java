@@ -29,6 +29,8 @@ public class ElementalProjectileRegistry {
 
     private static final Map<Class<? extends Entity>, Float> PROJECTILE_CLASS_ACCUM_MAP = new ConcurrentHashMap<>();
 
+    private static final java.util.Set<EntityType<?>> OVERRIDE_ENTITY_TYPE_SET = ConcurrentHashMap.newKeySet();
+
     private static boolean inheritElementFromShooter = true;
 
     /**
@@ -41,18 +43,32 @@ public class ElementalProjectileRegistry {
 
     /**
      * Registers a projectile type with its elemental type and accumulation multiplier.
+     * By default, attachment data does NOT override registered type.
      * @param entityType the projectile entity type
      * @param element the elemental type
      * @param accumulationMultiplier the accumulation multiplier
      */
     public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier) {
+        registerProjectile(entityType, element, accumulationMultiplier, false);
+    }
+
+    /**
+     * Registers a projectile type with its elemental type and accumulation multiplier.
+     * @param entityType the projectile entity type
+     * @param element the elemental type
+     * @param accumulationMultiplier the accumulation multiplier
+     * @param allowOverride if true, projectile can override its element via
+     *                      {@link AbloomModAttachments#setProjectileElement} (e.g. from shooter's weapon)
+     */
+    public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier, boolean allowOverride) {
         if (entityType == null || element == null) {
             AbloomMod.LOGGER.warn("Cannot register null projectile type or element");
             return;
         }
         PROJECTILE_ELEMENT_MAP.put(entityType, element);
         PROJECTILE_ACCUM_MAP.put(entityType, accumulationMultiplier);
-        AbloomMod.LOGGER.debug("Registered projectile {} → {} (accum: x{})", entityType, element, accumulationMultiplier);
+        OVERRIDE_ENTITY_TYPE_SET.add(entityType);
+        AbloomMod.LOGGER.debug("Registered projectile {} → {} (accum: x{}, override: {})", entityType, element, accumulationMultiplier, allowOverride);
     }
 
     /**
@@ -83,24 +99,35 @@ public class ElementalProjectileRegistry {
 
     /**
      * Gets the elemental type for a projectile entity.
-     * Checks entity type, class hierarchy, and attachment data.
+     * Priority order (highest to lowest):
+     * <ol>
+     *   <li>Attachment data (only if the projectile type was registered with {@code allowOverride=true})</li>
+     *   <li>Type registry (registered via {@link #registerProjectile} with EntityType)</li>
+     *   <li>Class registry (registered via {@link #registerProjectileByClass} with Class)</li>
+     * </ol>
+     *
      * @param entity the projectile entity
      * @return optional containing the elemental type, or empty if not elemental
      */
     public static Optional<ElementType> getElementForEntity(Entity entity) {
         if (entity == null) return Optional.empty();
 
+        boolean canOverride = OVERRIDE_ENTITY_TYPE_SET.contains(entity.getType());
+
+        // Attachment data takes priority only if allowed at registration time
+        if (canOverride && AbloomModAttachments.hasProjectileElement(entity)) {
+            return Optional.ofNullable(AbloomModAttachments.getProjectileElement(entity));
+        }
+
+        // Type registry
         ElementType byType = PROJECTILE_ELEMENT_MAP.get(entity.getType());
         if (byType != null) return Optional.of(byType);
 
+        // Class registry
         for (Map.Entry<Class<? extends Entity>, ElementType> entry : PROJECTILE_CLASS_MAP.entrySet()) {
             if (entry.getKey().isInstance(entity)) {
                 return Optional.of(entry.getValue());
             }
-        }
-
-        if (AbloomModAttachments.hasProjectileElement(entity)) {
-            return Optional.ofNullable(AbloomModAttachments.getProjectileElement(entity));
         }
 
         return Optional.empty();
@@ -108,15 +135,23 @@ public class ElementalProjectileRegistry {
 
     /**
      * Gets the accumulation multiplier for a projectile entity.
+     * Priority mirrors {@link #getElementForEntity(Entity)}:
+     * <ol>
+     *   <li>Type registry</li>
+     *   <li>Class registry</li>
+     * </ol>
+     *
      * @param entity the projectile entity
      * @return optional containing the accumulation multiplier, or empty if not found
      */
     public static Optional<Float> getAccumulationMultiplierForEntity(Entity entity) {
         if (entity == null) return Optional.empty();
 
+        // Priority 1: Type registry
         Float byType = PROJECTILE_ACCUM_MAP.get(entity.getType());
         if (byType != null) return Optional.of(byType);
 
+        // Priority 2: Class registry
         for (Map.Entry<Class<? extends Entity>, Float> entry : PROJECTILE_CLASS_ACCUM_MAP.entrySet()) {
             if (entry.getKey().isInstance(entity)) {
                 return Optional.of(entry.getValue());
