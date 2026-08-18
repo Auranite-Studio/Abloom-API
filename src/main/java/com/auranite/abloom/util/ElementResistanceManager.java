@@ -1,5 +1,7 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.init.AbloomModEffects;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;

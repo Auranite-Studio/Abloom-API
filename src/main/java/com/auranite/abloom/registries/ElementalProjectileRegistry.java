@@ -1,5 +1,9 @@
-package com.auranite.abloom;
+package com.auranite.abloom.registries;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.handler.ElementDamageHandler;
+import com.auranite.abloom.init.AbloomModAttachments;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;

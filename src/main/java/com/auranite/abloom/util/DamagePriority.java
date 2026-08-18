@@ -1,4 +1,4 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
 import java.lang.annotation.*;
 

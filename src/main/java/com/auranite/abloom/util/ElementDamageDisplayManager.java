@@ -1,6 +1,8 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
+import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.init.AbloomModEffects;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -11,7 +13,6 @@ import net.minecraft.world.entity.Display.TextDisplay;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 
 import java.util.EnumMap;
 import java.util.Iterator;

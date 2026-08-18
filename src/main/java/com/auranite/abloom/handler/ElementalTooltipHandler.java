@@ -1,7 +1,12 @@
-package com.auranite.abloom;
+package com.auranite.abloom.handler;
 
-import com.auranite.abloom.datapack.ElementalWeaponData;
-import com.auranite.abloom.datapack.ElementalWeaponProvider;
+import com.auranite.abloom.*;
+import com.auranite.abloom.component.ElementalResistanceComponent;
+import com.auranite.abloom.registries.ElementalWeaponRegistry;
+import com.auranite.abloom.init.AbloomModAttributes;
+import com.auranite.abloom.util.ElementDamageDisplayManager;
+import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.ElementalWeaponUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -115,8 +120,8 @@ public class ElementalTooltipHandler {
         double entityBonusCritDamage = 0.0;
         var player = event.getEntity();
         if (player != null && player instanceof LivingEntity livingEntity) {
-            var critChanceHolder = AbloomAttributes.CRIT_CHANCE.getKey();
-            var critDamageHolder = AbloomAttributes.CRIT_DMG.getKey();
+            var critChanceHolder = AbloomModAttributes.CRIT_CHANCE.getKey();
+            var critDamageHolder = AbloomModAttributes.CRIT_DMG.getKey();
             var critChanceAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceHolder));
             var critDamageAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageHolder));
             if (critChanceAttr != null) {

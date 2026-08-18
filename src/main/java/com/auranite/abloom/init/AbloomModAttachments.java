@@ -1,5 +1,7 @@
-package com.auranite.abloom;
+package com.auranite.abloom.init;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;

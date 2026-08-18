@@ -1,8 +1,9 @@
 /*
  *    MCreator note: This file will be REGENERATED on each build.
  */
-package com.auranite.abloom;
+package com.auranite.abloom.init;
 
+import com.auranite.abloom.AbloomMod;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.event.entity.EntityAttributeModificationEvent;
@@ -14,7 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 @EventBusSubscriber
-public class AbloomAttributes {
+public class AbloomModAttributes {
     public static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create(BuiltInRegistries.ATTRIBUTE, AbloomMod.MODID);
     public static final DeferredHolder<Attribute, Attribute> CRIT_DMG = REGISTRY.register("crit_dmg", () -> new RangedAttribute("attribute.power.crit_dmg", 0, 0, 10).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> CRIT_CHANCE = REGISTRY.register("crit_chance", () -> new RangedAttribute("attribute.power.crit_chance", 0, 0, 1).setSyncable(true));

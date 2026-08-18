@@ -1,6 +1,6 @@
 package com.auranite.abloom.datapack;
 
-import com.auranite.abloom.ElementType;
+import com.auranite.abloom.util.ElementType;
 import com.auranite.abloom.AbloomMod;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;

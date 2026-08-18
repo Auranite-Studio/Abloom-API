@@ -1,5 +1,6 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
+import com.auranite.abloom.AbloomMod;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 

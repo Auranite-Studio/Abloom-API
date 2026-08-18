@@ -3,7 +3,11 @@ package com.auranite.abloom;
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
-import com.auranite.abloom.util.TauntTargetGoal;
+import com.auranite.abloom.handler.ElementDamageHandler;
+import com.auranite.abloom.init.*;
+import com.auranite.abloom.registries.ElementResistanceRegistry;
+import com.auranite.abloom.registries.ElementalProjectileRegistry;
+import com.auranite.abloom.util.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -12,7 +16,6 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -60,7 +63,7 @@ public class AbloomMod {
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
-        AbloomAttributes.REGISTRY.register(modEventBus);
+        AbloomModAttributes.REGISTRY.register(modEventBus);
         
         ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
         ElementDamageHandler.setDisplayManager(displayManager);

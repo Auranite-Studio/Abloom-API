@@ -1,7 +1,6 @@
 package com.auranite.abloom.mixins;
 
-import com.auranite.abloom.ElementDamageHandler;
-import com.auranite.abloom.AbloomModEffects;
+import com.auranite.abloom.init.AbloomModEffects;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectCategory;

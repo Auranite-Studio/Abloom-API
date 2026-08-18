@@ -1,5 +1,8 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.component.ElementalWeaponComponent;
+import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;

@@ -1,1 +1,1 @@
-ElementDamageHandler.dealElementDamage(${input$entity}, com.auranite.abloom.ElementType.${field$elemental_type}, (float) ${input$damage}, (int) ${input$accumulation});
+ElementDamageHandler.dealElementDamage(${input$entity}, ElementType.${field$elemental_type}, (float) ${input$damage}, (int) ${input$accumulation});
