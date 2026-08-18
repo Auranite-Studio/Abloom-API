@@ -1,6 +1,7 @@
 package com.auranite.abloom.init;
 
 import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.init.AbloomModItems;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;

@@ -1,8 +1,8 @@
 package com.auranite.abloom.effect;
 
-import com.auranite.abloom.ElementDamageHandler;
-import com.auranite.abloom.ElementType;
-import com.auranite.abloom.AbloomModEffects;
+import com.auranite.abloom.handler.ElementDamageHandler;
+import com.auranite.abloom.init.AbloomModEffects;
+import com.auranite.abloom.util.ElementType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;

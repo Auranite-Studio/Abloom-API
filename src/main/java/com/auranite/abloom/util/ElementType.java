@@ -1,8 +1,9 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+import com.auranite.abloom.AbloomMod;
 import net.minecraft.resources.Identifier;
 
 public enum ElementType {

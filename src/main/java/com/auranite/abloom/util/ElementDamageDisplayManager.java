@@ -1,6 +1,8 @@
-package com.auranite.abloom;
+package com.auranite.abloom.util;
 
+import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.init.AbloomModEffects;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;

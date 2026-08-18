@@ -1,5 +1,14 @@
-package com.auranite.abloom;
+package com.auranite.abloom.handler;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.component.ElementalResistanceComponent;
+import com.auranite.abloom.component.ElementalWeaponComponent;
+import com.auranite.abloom.init.AbloomModAttachments;
+import com.auranite.abloom.init.AbloomModAttributes;
+import com.auranite.abloom.init.AbloomModEffects;
+import com.auranite.abloom.registries.ElementalProjectileRegistry;
+import com.auranite.abloom.registries.ElementalWeaponRegistry;
+import com.auranite.abloom.util.*;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -37,7 +46,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.auranite.abloom.AbloomModAttachments.setPrismConversionType;
+import static com.auranite.abloom.init.AbloomModAttachments.setPrismConversionType;
 
 /** Record for critical hit result containing modified damage and crit flag. */
 record CritResult(float damage, boolean isCrit) {}
@@ -735,7 +744,7 @@ public class ElementDamageHandler {
         }
 
         // Get crit chance from entity attributes
-        ResourceKey<Attribute> critChanceKey = AbloomAttributes.CRIT_CHANCE.getKey();
+        ResourceKey<Attribute> critChanceKey = AbloomModAttributes.CRIT_CHANCE.getKey();
         AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critChanceKey));
         double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : 0.0;
         double entityCritChance = Math.max(0.0, entityCritChanceVal);
@@ -746,7 +755,7 @@ public class ElementDamageHandler {
                 + ElementalWeaponComponent.getCritChance(weapon);
 
         // Get crit damage from entity attributes
-        ResourceKey<Attribute> critDamageKey = AbloomAttributes.CRIT_DMG.getKey();
+        ResourceKey<Attribute> critDamageKey = AbloomModAttributes.CRIT_DMG.getKey();
         AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critDamageKey));
         double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : 0.0;
         double entityCritDamage = Math.max(0.0, entityCritDamageVal);
