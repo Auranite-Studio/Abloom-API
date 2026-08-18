@@ -324,8 +324,14 @@ public class ElementDamageHandler {
         ElementType type = getElementTypeFromSource(source);
         float currentAccumMultiplier = 1.0f;
 
+        // Check if the element came from a projectile (not from the attacker's weapon directly)
+        Entity directEntity = source.getDirectEntity();
+        boolean projectileDriven = directEntity != null && ElementalProjectileRegistry.isElementalProjectile(directEntity);
+
         // Check for multi-stage weapon
-        if (attacker != null && type != null) {
+        // Only apply stage elements if the damage is NOT projectile-driven
+        // (projectiles with allowOverride=true should keep their attached element priority)
+        if (attacker != null && type != null && !projectileDriven) {
             ItemStack weapon = attacker.getMainHandItem();
             Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
 
@@ -619,10 +625,9 @@ public class ElementDamageHandler {
     private static ElementType getElementTypeFromSource(DamageSource source) {
         Entity directEntity = source.getDirectEntity();
         if (directEntity != null) {
-            Optional<ElementType> registryElement = ElementalProjectileRegistry.getElementForEntity(directEntity);
-            if (registryElement.isPresent()) return registryElement.get();
-            if (AbloomModAttachments.hasProjectileElement(directEntity))
-                return AbloomModAttachments.getProjectileElement(directEntity);
+            // ElementalProjectileRegistry now handles attachment priority internally
+            Optional<ElementType> element = ElementalProjectileRegistry.getElementForEntity(directEntity);
+            if (element.isPresent()) return element.get();
         }
         Entity causingEntity = source.getEntity();
         if (causingEntity instanceof LivingEntity attacker) {

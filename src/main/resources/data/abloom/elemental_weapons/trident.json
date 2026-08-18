@@ -1,7 +1,20 @@
 {
   "item": "minecraft:trident",
-  "element": "PHYSICAL",
-  "crit_chance": 0.05,
-  "crit_damage": 0.5,
-  "accumulation_multiplier": 4.0
+  "stages": {
+    "1": {
+      "element": "PHYSICAL",
+      "accumulation_multiplier": 3.0
+    },
+    "2": {
+      "element": "PHYSICAL",
+      "accumulation_multiplier": 3.0
+    },
+    "3": {
+      "element": "WATER",
+      "accumulation_multiplier": 6.0
+    },
+    "base_element": "WATER",
+    "crit_chance": 0.24,
+    "crit_damage": 0.75
+  }
 }
