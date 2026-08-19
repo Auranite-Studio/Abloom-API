@@ -209,6 +209,15 @@ public Optional<Identifier> getItemResourceLocation() {
             baseElement = "PHYSICAL";
         }
 
+        // Read crit_chance and crit_damage - can be on top level OR inside stages object
+        float critChance = GsonHelper.getAsFloat(json, "crit_chance", 0.0f);
+        float critDamage = GsonHelper.getAsFloat(json, "crit_damage", 0.0f);
+        if (critChance == 0.0f && critDamage == 0.0f && json.has("stages") && json.get("stages").isJsonObject()) {
+            JsonObject stagesObj = json.getAsJsonObject("stages");
+            if (stagesObj.has("crit_chance")) critChance = GsonHelper.getAsFloat(stagesObj, "crit_chance", 0.0f);
+            if (stagesObj.has("crit_damage")) critDamage = GsonHelper.getAsFloat(stagesObj, "crit_damage", 0.0f);
+        }
+
         // Create stages list
         List<WeaponStage> stages = Collections.emptyList();
         if (json.has("stages")) {
@@ -224,8 +233,8 @@ public Optional<Identifier> getItemResourceLocation() {
 
         return new ElementalWeaponData(item, baseElement,
                 GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f),
-                GsonHelper.getAsFloat(json, "crit_chance", 0.0f),
-                GsonHelper.getAsFloat(json, "crit_damage", 0.0f),
+                critChance,
+                critDamage,
                 stages);
     }
 
