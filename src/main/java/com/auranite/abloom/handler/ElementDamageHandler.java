@@ -748,7 +748,7 @@ public class ElementDamageHandler {
         ResourceKey<Attribute> critChanceKey = AbloomModAttributes.CRIT_CHANCE.getKey();
         AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceKey));
         double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : 0.0;
-        double entityCritChance = Math.max(0.0, entityCritChanceVal);
+        double entityCritChance = entityCritChanceVal;
 
         // Get crit chance from weapon
         ItemStack weapon = attacker.getMainHandItem();
@@ -759,15 +759,15 @@ public class ElementDamageHandler {
         ResourceKey<Attribute> critDamageKey = AbloomModAttributes.CRIT_DMG.getKey();
         AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageKey));
         double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : 0.0;
-        double entityCritDamage = Math.max(0.0, entityCritDamageVal);
+        double entityCritDamage = entityCritDamageVal;
 
         // Get crit damage from weapon
         double weaponCritDamage = ElementalWeaponRegistry.getCritDamage(weapon)
                 + ElementalWeaponComponent.getCritDamage(weapon);
 
-        // Sum additively (as per user request)
-        double totalCritChance = Math.min(1.0, entityCritChance + weaponCritChance);
-        double totalCritDamage = Math.min(10.0, entityCritDamage + weaponCritDamage);
+        // Sum additively, clamp final totals to [0, max] so debuffs cannot fully override weapon bonuses
+        double totalCritChance = Math.max(0.0, Math.min(1.0, entityCritChance + weaponCritChance));
+        double totalCritDamage = Math.max(0.0, Math.min(10.0, entityCritDamage + weaponCritDamage));
 
         // Random check
         if (attacker.level().random.nextFloat() < totalCritChance) {
