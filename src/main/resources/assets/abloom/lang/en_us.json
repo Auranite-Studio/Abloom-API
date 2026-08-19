@@ -101,6 +101,7 @@
   "elemental.tooltip.shadow_eclipse": "ECLIPSE!",
   "effect.abloom.eclipse": "Eclipse",
   "effect.abloom.critical_gain": "Critical Gain",
+  "effect.abloom.suppression": "Suppression",
   "elemental.resistance.shadow": "Shadow DMG Res: ",
   "item.abloom.shadow_stick": "Shadow Stick",
   "elemental.tooltip.crit_chance": "Crit Chance: %s",
