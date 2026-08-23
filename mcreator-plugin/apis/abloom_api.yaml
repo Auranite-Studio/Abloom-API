@@ -7,7 +7,7 @@ neoforge-1.21.1:
     }
     
      dependencies {
-        implementation 'maven.modrinth:abloom-api:cET5f5d7'
+        implementation 'maven.modrinth:2Aw7aACS:tRY2vLA4'
      }
 
   update_files:
