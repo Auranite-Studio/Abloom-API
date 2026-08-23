@@ -26,3 +26,9 @@
   texture: dispersion
 - ECLIPSE:
   texture: eclipse
+- PRISM:
+  texture: prism
+- CRITICAL_GAIN:
+  texture: critical_gain
+- SUPPRESSION:
+  texture: suppression
