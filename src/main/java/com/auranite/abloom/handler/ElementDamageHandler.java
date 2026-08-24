@@ -1,15 +1,14 @@
 package com.auranite.abloom.handler;
 
-import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.*;
 import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.component.ElementalWeaponComponent;
-import com.auranite.abloom.init.AbloomModAttachments;
-import com.auranite.abloom.init.AbloomModAttributes;
-import com.auranite.abloom.init.AbloomModEffects;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
+import com.auranite.abloom.init.AbloomModAttributes;
+import com.auranite.abloom.init.AbloomModAttachments;
+import com.auranite.abloom.init.AbloomModEffects;
 import com.auranite.abloom.util.*;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -20,7 +19,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -311,13 +309,13 @@ public class ElementDamageHandler {
      * Value: integer stage index.
      */
     private static final Map<String, Integer> STAGE_TRACKER = new ConcurrentHashMap<>();
-    
+
     /**
      * Tracks the last access time (in ticks) for each stage tracker key.
      * Used for periodic cleanup of stale entries.
      */
     private static final Map<String, Long> STAGE_TRACKER_TIMES = new ConcurrentHashMap<>();
-    
+
     /** Time in ticks after which a stage tracker entry is considered stale and can be removed. */
     private static final int STAGE_TRACKER_STALE_TICKS = 600; // 30 seconds
 
@@ -327,7 +325,7 @@ public class ElementDamageHandler {
     private static String getStageKey(LivingEntity attacker, LivingEntity target) {
         return attacker.getId() + "_" + target.getId();
     }
-    
+
     /**
      * Clean up stale stage tracker entries that haven't been accessed for STAGE_TRACKER_STALE_TICKS.
      */
@@ -354,9 +352,66 @@ public class ElementDamageHandler {
         Entity directEntity = source.getDirectEntity();
         boolean projectileDriven = directEntity != null && ElementalProjectileRegistry.isElementalProjectile(directEntity);
 
-        // Check for multi-stage weapon
+        // Check for multi-stage weapon: FIRST update the stage progression, THEN use it
         // Only apply stage elements if the damage is NOT projectile-driven
         // (projectiles with allowOverride=true should keep their attached element priority)
+        if (attacker != null && source.getEntity() == attacker) {
+            ItemStack weapon = attacker.getMainHandItem();
+            Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                String stageKey = getStageKey(attacker, target);
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
+                long currentTime = target.level().getGameTime();
+
+                boolean isFirstHitEver = !STAGE_TRACKER_TIMES.containsKey(stageKey);
+                boolean isCooldownExpired = ElementalWeaponRegistry.isCooldownExpired(attacker, target, currentTime);
+                int prevStage = currentStage;
+
+                if (isFirstHitEver) {
+                    // First hit ever: use stage 0 without advancing
+                    currentStage = 0;
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon {} first hit ever, using stage {}",
+                                weaponId, currentStage);
+                    }
+                    // Initialize cooldown timer on first hit
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else if (currentStage == -1) {
+                    // Just after cooldown reset: use stage 0 without advancing
+                    currentStage = 0;
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon {} after cooldown reset, using stage 0",
+                                weaponId);
+                    }
+                    // Update cooldown timer
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else if (!isCooldownExpired) {
+                    // Hit within cooldown → advance to next stage
+                    currentStage = (currentStage + 1) % stages.size();
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
+                                weaponId, prevStage, currentStage);
+                    }
+                    // Update cooldown timer on each hit within cooldown
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else {
+                    // Cooldown expired → mark for reset, next hit will use stage 0
+                    currentStage = -1; // Special marker: indicates stages were reset
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 0 on next hit",
+                                weaponId);
+                    }
+                    // Reset cooldown timer
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                }
+
+                STAGE_TRACKER.put(stageKey, currentStage);
+                STAGE_TRACKER_TIMES.put(stageKey, currentTime);
+            }
+        }
+
+        // Now use the stage for damage calculation (after progression is updated)
         if (attacker != null && type != null && !projectileDriven) {
             ItemStack weapon = attacker.getMainHandItem();
             Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
@@ -365,8 +420,13 @@ public class ElementDamageHandler {
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
                 String stageKey = getStageKey(attacker, target);
 
-                // Get current stage
+                // Get current stage (already updated above)
                 Integer currentStageNum = STAGE_TRACKER.getOrDefault(stageKey, 0);
+
+                // Handle special case: if stage is -1 (cooldown just expired), use stage 0 for this hit
+                if (currentStageNum == -1) {
+                    currentStageNum = 0;
+                }
 
                 ElementalWeaponRegistry.StageData currentStage = stages.get(currentStageNum);
                 if (currentStage != null) {
@@ -513,10 +573,10 @@ public class ElementDamageHandler {
         } else if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
         }
-        
+
         int pointsAfter = isConvertedPrism || originalType == ElementType.PRISMATIC
-            ? AbloomModAttachments.getPoints(target, type) 
-            : AbloomModAttachments.getPoints(target, type);
+                ? AbloomModAttachments.getPoints(target, type)
+                : AbloomModAttachments.getPoints(target, type);
         boolean thresholdReached = pointsAfter >= THRESHOLD;
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
@@ -537,39 +597,6 @@ public class ElementDamageHandler {
             }
             finalDamage = applyThresholdEffect(target, type, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
-        }
-
-        // Advance multi-stage attack progression with cooldown
-        if (attacker != null && source.getEntity() == attacker) {
-            ItemStack weapon = attacker.getMainHandItem();
-            Identifier weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
-            if (ElementalWeaponRegistry.hasStages(weaponId)) {
-                String stageKey = getStageKey(attacker, target);
-                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
-                Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
-
-                boolean isFirstHit = currentStage == 0 && !STAGE_TRACKER_TIMES.containsKey(stageKey);
-                int prevStage = currentStage;
-                if (isFirstHit || !ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
-                    // First hit or hit within cooldown → advance to next stage
-                    currentStage = (currentStage + 1) % stages.size();
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
-                                weaponId, prevStage, currentStage);
-                    }
-                } else {
-                    // Cooldown expired → reset to stage 0
-                    currentStage = 0;
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage {}",
-                                weaponId, currentStage);
-                    }
-                }
-
-                STAGE_TRACKER.put(stageKey, currentStage);
-                STAGE_TRACKER_TIMES.put(stageKey, target.level().getGameTime());
-                ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
-            }
         }
 
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
@@ -762,7 +789,7 @@ public class ElementDamageHandler {
         ResourceKey<Attribute> critChanceKey = AbloomModAttributes.CRIT_CHANCE.getKey();
         AttributeInstance critChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critChanceKey));
         double entityCritChanceVal = critChanceAttr != null ? critChanceAttr.getValue() : 0.0;
-        double entityCritChance = Math.max(0.0, entityCritChanceVal);
+        double entityCritChance = entityCritChanceVal;
 
         // Get crit chance from weapon
         ItemStack weapon = attacker.getMainHandItem();
@@ -773,15 +800,15 @@ public class ElementDamageHandler {
         ResourceKey<Attribute> critDamageKey = AbloomModAttributes.CRIT_DMG.getKey();
         AttributeInstance critDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getOrThrow(critDamageKey));
         double entityCritDamageVal = critDamageAttr != null ? critDamageAttr.getValue() : 0.0;
-        double entityCritDamage = Math.max(0.0, entityCritDamageVal);
+        double entityCritDamage = entityCritDamageVal;
 
         // Get crit damage from weapon
         double weaponCritDamage = ElementalWeaponRegistry.getCritDamage(weapon)
                 + ElementalWeaponComponent.getCritDamage(weapon);
 
-        // Sum additively (as per user request)
-        double totalCritChance = Math.min(1.0, entityCritChance + weaponCritChance);
-        double totalCritDamage = Math.min(10.0, entityCritDamage + weaponCritDamage);
+        // Sum additively, clamp final totals to [0, max] so debuffs cannot fully override weapon bonuses
+        double totalCritChance = Math.max(0.0, Math.min(1.0, entityCritChance + weaponCritChance));
+        double totalCritDamage = Math.max(0.0, Math.min(10.0, entityCritDamage + weaponCritDamage));
 
         // Random check
         if (attacker.level().getRandom().nextFloat() < totalCritChance) {
