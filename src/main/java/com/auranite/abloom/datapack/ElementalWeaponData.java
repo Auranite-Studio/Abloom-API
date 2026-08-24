@@ -206,7 +206,7 @@ public Optional<Identifier> getItemResourceLocation() {
         }
 
         return new ElementalWeaponData(item, baseElement,
-                stages.isEmpty() ? 1.0f : getTotalAccumulation(stages),
+                GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f),
                 critChance,
                 critDamage,
                 stages);
