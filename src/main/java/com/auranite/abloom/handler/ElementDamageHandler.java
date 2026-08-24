@@ -261,6 +261,7 @@ public class ElementDamageHandler {
             serverTickCounter = 0;
             checkAndResetInactivePoints();
             if (displayManager != null) displayManager.cleanupStaleDisplays();
+            cleanupStaleStageTracker();
         }
     }
 
@@ -307,14 +308,39 @@ public class ElementDamageHandler {
 
     /**
      * Tracks the current stage for each (attacker, target) pair in multi-stage weapons.
+     * Value: integer stage index.
      */
     private static final Map<String, Integer> STAGE_TRACKER = new ConcurrentHashMap<>();
+    
+    /**
+     * Tracks the last access time (in ticks) for each stage tracker key.
+     * Used for periodic cleanup of stale entries.
+     */
+    private static final Map<String, Long> STAGE_TRACKER_TIMES = new ConcurrentHashMap<>();
+    
+    /** Time in ticks after which a stage tracker entry is considered stale and can be removed. */
+    private static final int STAGE_TRACKER_STALE_TICKS = 600; // 30 seconds
 
     /**
      * Generates a unique key for tracking stage progress between two entities.
      */
     private static String getStageKey(LivingEntity attacker, LivingEntity target) {
         return attacker.getId() + "_" + target.getId();
+    }
+    
+    /**
+     * Clean up stale stage tracker entries that haven't been accessed for STAGE_TRACKER_STALE_TICKS.
+     */
+    private static void cleanupStaleStageTracker() {
+        if (currentServer == null) return;
+        long currentTime = currentServer.overworld().getGameTime();
+        STAGE_TRACKER_TIMES.entrySet().removeIf(entry -> {
+            if (currentTime - entry.getValue() > STAGE_TRACKER_STALE_TICKS) {
+                STAGE_TRACKER.remove(entry.getKey());
+                return true;
+            }
+            return false;
+        });
     }
 
     private static float doProcessLivingHurt(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
@@ -341,9 +367,6 @@ public class ElementDamageHandler {
 
                 // Get current stage
                 Integer currentStageNum = STAGE_TRACKER.getOrDefault(stageKey, 0);
-                if (currentStageNum >= stages.size()) {
-                    currentStageNum = 0; // Reset after completing all stages
-                }
 
                 ElementalWeaponRegistry.StageData currentStage = stages.get(currentStageNum);
                 if (currentStage != null) {
@@ -525,40 +548,27 @@ public class ElementDamageHandler {
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
                 Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
 
-                // First stage: always advance (ensures stage 0 fires exactly once)
-                if (currentStage == 0) {
-                    STAGE_TRACKER.put(stageKey, 1);
-                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
+                boolean isFirstHit = currentStage == 0 && !STAGE_TRACKER_TIMES.containsKey(stageKey);
+                int prevStage = currentStage;
+                if (isFirstHit || !ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
+                    // First hit or hit within cooldown → advance to next stage
+                    currentStage = (currentStage + 1) % stages.size();
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage 1 to stage 2",
-                                weaponId);
-                    }
-                } else if (ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
-                    // Cooldown expired, reset to first stage
-                    STAGE_TRACKER.put(stageKey, 0);
-                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 1",
-                                weaponId);
+                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
+                                weaponId, prevStage, currentStage);
                     }
                 } else {
-                    // Cooldown not expired, advance to next stage
-                    if (currentStage < stages.size() - 1) {
-                        STAGE_TRACKER.put(stageKey, currentStage + 1);
-                        ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
-                        if (AbloomMod.LOGGER.isDebugEnabled()) {
-                            AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
-                                    weaponId, currentStage + 1, currentStage + 2);
-                        }
-                    } else {
-                        // Completed all stages, reset to first stage
-                        STAGE_TRACKER.put(stageKey, 0);
-                        ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
-                        if (AbloomMod.LOGGER.isDebugEnabled()) {
-                            AbloomMod.LOGGER.debug("Completed all stages for multi-stage weapon {}, resetting to stage 1", weaponId);
-                        }
+                    // Cooldown expired → reset to stage 0
+                    currentStage = 0;
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage {}",
+                                weaponId, currentStage);
                     }
                 }
+
+                STAGE_TRACKER.put(stageKey, currentStage);
+                STAGE_TRACKER_TIMES.put(stageKey, target.level().getGameTime());
+                ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target);
             }
         }
 
