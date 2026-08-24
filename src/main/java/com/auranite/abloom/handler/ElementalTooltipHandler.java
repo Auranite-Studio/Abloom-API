@@ -110,9 +110,20 @@ public class ElementalTooltipHandler {
         float weaponCritChance = ElementalWeaponUtils.getCritChance(stack);
         float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);
 
-        if (type == ElementType.PRISMATIC || accumPoints > 1.0f) {
-            MutableComponent elementText = getElementText(type);
-            event.getToolTip().add(1, elementText);
+        // Show element type based on weapon type:
+        // - Weapons with attack stages: always show element type (including PHYSICAL)
+        // - Weapons without attack stages: show element type only if accumPoints > 1.0
+        boolean hasStages = ElementalWeaponRegistry.hasStages(itemId);
+        if (type != null) {
+            if (hasStages) {
+                // Always show for weapons with stages
+                MutableComponent elementText = getElementText(type);
+                event.getToolTip().add(1, elementText);
+            } else if (accumPoints > 1.0f) {
+                // For weapons without stages, show only if accumPoints > 1.0
+                MutableComponent elementText = getElementText(type);
+                event.getToolTip().add(1, elementText);
+            }
         }
 
         // Get base and modified attribute values from the player/entity

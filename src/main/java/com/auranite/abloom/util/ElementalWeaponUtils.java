@@ -3,10 +3,12 @@ package com.auranite.abloom.util;
 import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.component.ElementalWeaponComponent;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 import java.util.Optional;
 
@@ -17,6 +19,8 @@ import java.util.Optional;
  * Supports both single-element and multi-stage elemental weapons.
  */
 public class ElementalWeaponUtils {
+
+    private static final String ACCUM_POINTS_KEY = "accum_points";
 
     private ElementalWeaponUtils() {}
 
@@ -161,9 +165,14 @@ public class ElementalWeaponUtils {
     public static float getAccumulationMultiplier(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return 1.0f;
 
-        float componentAccum = ElementalWeaponComponent.getAccumMultiplier(stack);
-        if (componentAccum != 1.0f) {
-            return componentAccum;
+        // First check component data
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData != null) {
+            // Component exists, check if it has accum_points
+            var tag = customData.copyTag();
+            if (tag.contains(ACCUM_POINTS_KEY)) {
+                return tag.getFloat(ACCUM_POINTS_KEY);
+            }
         }
 
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
