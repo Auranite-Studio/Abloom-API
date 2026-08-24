@@ -544,22 +544,28 @@ public class ElementDamageHandler {
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
                 Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
 
-                boolean isFirstHit = currentStage == 0 && !STAGE_TRACKER_TIMES.containsKey(stageKey);
                 int prevStage = currentStage;
-                if (isFirstHit || !ElementalWeaponRegistry.isCooldownExpired(attacker, target)) {
-                    // First hit or hit within cooldown → advance to next stage
+                boolean cooldownExpired = ElementalWeaponRegistry.isCooldownExpired(attacker, target);
+                
+                if (!cooldownExpired) {
+                    // Cooldown NOT expired → advance to next stage (cyclic)
+                    // Stage 0 -> 1, Stage 1 -> 2, Stage 2 -> 3, Stage 3 -> 4, etc.
                     currentStage = (currentStage + 1) % stages.size();
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
+                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {} (cooldown active)",
                                 weaponId, prevStage, currentStage);
                     }
                 } else {
                     // Cooldown expired → reset to stage 0
-                    currentStage = 0;
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage {}",
-                                weaponId, currentStage);
+                    // But only if we're not already at stage 0 to avoid double-trigger
+                    if (currentStage != 0) {
+                        currentStage = 0;
+                        if (AbloomMod.LOGGER.isDebugEnabled()) {
+                            AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting from {} to stage 0",
+                                    weaponId, prevStage);
+                        }
                     }
+                    // If already at stage 0 and cooldown expired, stay at stage 0 (no change needed)
                 }
 
                 STAGE_TRACKER.put(stageKey, currentStage);
