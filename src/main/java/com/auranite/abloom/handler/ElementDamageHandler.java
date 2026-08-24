@@ -350,9 +350,66 @@ public class ElementDamageHandler {
         Entity directEntity = source.getDirectEntity();
         boolean projectileDriven = directEntity != null && ElementalProjectileRegistry.isElementalProjectile(directEntity);
 
-        // Check for multi-stage weapon
+        // Check for multi-stage weapon: FIRST update the stage progression, THEN use it
         // Only apply stage elements if the damage is NOT projectile-driven
         // (projectiles with allowOverride=true should keep their attached element priority)
+        if (attacker != null && source.getEntity() == attacker) {
+            ItemStack weapon = attacker.getMainHandItem();
+            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
+            if (ElementalWeaponRegistry.hasStages(weaponId)) {
+                String stageKey = getStageKey(attacker, target);
+                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
+                Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
+                long currentTime = target.level().getGameTime();
+
+                boolean isFirstHitEver = !STAGE_TRACKER_TIMES.containsKey(stageKey);
+                boolean isCooldownExpired = ElementalWeaponRegistry.isCooldownExpired(attacker, target, currentTime);
+                int prevStage = currentStage;
+                
+                if (isFirstHitEver) {
+                    // First hit ever: use stage 0 without advancing
+                    currentStage = 0;
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon {} first hit ever, using stage {}",
+                                weaponId, currentStage);
+                    }
+                    // Initialize cooldown timer on first hit
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else if (currentStage == -1) {
+                    // Just after cooldown reset: use stage 0 without advancing
+                    currentStage = 0;
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon {} after cooldown reset, using stage 0",
+                                weaponId);
+                    }
+                    // Update cooldown timer
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else if (!isCooldownExpired) {
+                    // Hit within cooldown → advance to next stage
+                    currentStage = (currentStage + 1) % stages.size();
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
+                                weaponId, prevStage, currentStage);
+                    }
+                    // Update cooldown timer on each hit within cooldown
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else {
+                    // Cooldown expired → mark for reset, next hit will use stage 0
+                    currentStage = -1; // Special marker: indicates stages were reset
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 0 on next hit",
+                                weaponId);
+                    }
+                    // Reset cooldown timer
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                }
+
+                STAGE_TRACKER.put(stageKey, currentStage);
+                STAGE_TRACKER_TIMES.put(stageKey, currentTime);
+            }
+        }
+
+        // Now use the stage for damage calculation (after progression is updated)
         if (attacker != null && type != null && !projectileDriven) {
             ItemStack weapon = attacker.getMainHandItem();
             ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
@@ -361,7 +418,7 @@ public class ElementDamageHandler {
                 List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
                 String stageKey = getStageKey(attacker, target);
 
-                // Get current stage
+                // Get current stage (already updated above)
                 Integer currentStageNum = STAGE_TRACKER.getOrDefault(stageKey, 0);
                 
                 // Handle special case: if stage is -1 (cooldown just expired), use stage 0 for this hit
@@ -538,63 +595,6 @@ public class ElementDamageHandler {
             }
             finalDamage = applyThresholdEffect(target, type, finalDamage);
             AbloomModAttachments.resetPoints(target, type);
-        }
-
-        // Advance multi-stage attack progression with cooldown
-        if (attacker != null && source.getEntity() == attacker) {
-            ItemStack weapon = attacker.getMainHandItem();
-            ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
-            if (ElementalWeaponRegistry.hasStages(weaponId)) {
-                String stageKey = getStageKey(attacker, target);
-                List<ElementalWeaponRegistry.StageData> stages = ElementalWeaponRegistry.getStages(weaponId);
-                Integer currentStage = STAGE_TRACKER.getOrDefault(stageKey, 0);
-                long currentTime = target.level().getGameTime();
-
-                boolean isFirstHitEver = !STAGE_TRACKER_TIMES.containsKey(stageKey);
-                boolean isCooldownExpired = ElementalWeaponRegistry.isCooldownExpired(attacker, target, currentTime);
-                int prevStage = currentStage;
-                
-                if (isFirstHitEver) {
-                    // First hit ever: use stage 0 without advancing
-                    currentStage = 0;
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Multi-stage weapon {} first hit ever, using stage {}",
-                                weaponId, currentStage);
-                    }
-                    // Initialize cooldown timer on first hit
-                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
-                } else if (currentStage == -1) {
-                    // Just after cooldown reset: use stage 0 without advancing, then set to 0 for next iteration
-                    currentStage = 0;
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Multi-stage weapon {} after cooldown reset, using stage 0",
-                                weaponId);
-                    }
-                    // Update cooldown timer
-                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
-                } else if (!isCooldownExpired) {
-                    // Hit within cooldown → advance to next stage
-                    currentStage = (currentStage + 1) % stages.size();
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Advancing multi-stage weapon {} from stage {} to {}",
-                                weaponId, prevStage, currentStage);
-                    }
-                    // Update cooldown timer on each hit within cooldown
-                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
-                } else {
-                    // Cooldown expired → mark for reset, next hit will use stage 0
-                    currentStage = -1; // Special marker: indicates stages were reset
-                    if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 0 on next hit",
-                                weaponId);
-                    }
-                    // Reset cooldown timer
-                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
-                }
-
-                STAGE_TRACKER.put(stageKey, currentStage);
-                STAGE_TRACKER_TIMES.put(stageKey, currentTime);
-            }
         }
 
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
