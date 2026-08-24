@@ -349,18 +349,18 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get the attack cooldown based on entity's attack speed + 1 second.
 	 * @param attacker the attacking entity
-	 * @return cooldown in milliseconds
+	 * @return cooldown in ticks
 	 */
-	public static long getAttackCooldown(LivingEntity attacker) {
+	public static int getAttackCooldownTicks(LivingEntity attacker) {
 		if (attacker == null) {
-			return (long) ((1.0f / DEFAULT_ATTACK_SPEED + 1.0f) * 1000);
+			return (int) ((1.0f / DEFAULT_ATTACK_SPEED + 1.5f) * 20);
 		}
 		
 		float attackSpeed = (float) attacker.getAttributeValue(Attributes.ATTACK_SPEED);
 		if (attackSpeed <= 0) attackSpeed = DEFAULT_ATTACK_SPEED;
 		
-		// Cooldown = (1 / attackSpeed) + 1.5 seconds
-		return (long) ((1.0f / attackSpeed + 1.5f) * 1000);
+		// Cooldown = (1 / attackSpeed) + 1.5 seconds, converted to ticks (20 ticks/second)
+		return (int) ((1.0f / attackSpeed + 1.5f) * 20);
 	}
 
 	/**
@@ -372,9 +372,12 @@ public class ElementalWeaponRegistry {
 
 	/**
 	 * Check if cooldown has expired for a (attacker, target) pair.
+	 * @param attacker the attacking entity
+	 * @param target the target entity
+	 * @param currentGameTime current game time in ticks
 	 * @return true if enough time has passed to reset stages
 	 */
-	public static boolean isCooldownExpired(LivingEntity attacker, LivingEntity target) {
+	public static boolean isCooldownExpired(LivingEntity attacker, LivingEntity target, long currentGameTime) {
 		String key = getCooldownKey(attacker, target);
 		Long lastAttackTime = STAGE_COOLDOWN_TRACKER.get(key);
 		
@@ -382,18 +385,21 @@ public class ElementalWeaponRegistry {
 			return true; // No previous attack, cooldown expired
 		}
 		
-		long elapsed = System.currentTimeMillis() - lastAttackTime;
-		long cooldown = getAttackCooldown(attacker);
+		long elapsed = currentGameTime - lastAttackTime;
+		int cooldown = getAttackCooldownTicks(attacker);
 		
 		return elapsed >= cooldown;
 	}
 
 	/**
 	 * Reset stages for a (attacker, target) pair and update cooldown.
+	 * @param attacker the attacking entity
+	 * @param target the target entity
+	 * @param currentGameTime current game time in ticks
 	 */
-	public static void resetStagesAndCooldown(LivingEntity attacker, LivingEntity target) {
+	public static void resetStagesAndCooldown(LivingEntity attacker, LivingEntity target, long currentGameTime) {
 		String key = getCooldownKey(attacker, target);
-		STAGE_COOLDOWN_TRACKER.put(key, System.currentTimeMillis());
+		STAGE_COOLDOWN_TRACKER.put(key, currentGameTime);
 		// Note: actual stage reset is handled by ElementDamageHandler
 	}
 
