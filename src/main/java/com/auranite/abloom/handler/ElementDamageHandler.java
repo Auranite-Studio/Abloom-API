@@ -563,6 +563,15 @@ public class ElementDamageHandler {
                     }
                     // Initialize cooldown timer on first hit
                     ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
+                } else if (currentStage == -1) {
+                    // Just after cooldown reset: use stage 0 without advancing, then set to 0 for next iteration
+                    currentStage = 0;
+                    if (AbloomMod.LOGGER.isDebugEnabled()) {
+                        AbloomMod.LOGGER.debug("Multi-stage weapon {} after cooldown reset, using stage 0",
+                                weaponId);
+                    }
+                    // Update cooldown timer
+                    ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
                 } else if (!isCooldownExpired) {
                     // Hit within cooldown → advance to next stage
                     currentStage = (currentStage + 1) % stages.size();
@@ -573,11 +582,10 @@ public class ElementDamageHandler {
                     // Update cooldown timer on each hit within cooldown
                     ElementalWeaponRegistry.resetStagesAndCooldown(attacker, target, currentTime);
                 } else {
-                    // Cooldown expired → reset to stage 0, but DON'T use it yet
-                    // The next hit will start from stage 0 and advance to stage 1
+                    // Cooldown expired → mark for reset, next hit will use stage 0
                     currentStage = -1; // Special marker: indicates stages were reset
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, stages reset (will start from 0 on next hit)",
+                        AbloomMod.LOGGER.debug("Cooldown expired for multi-stage weapon {}, resetting to stage 0 on next hit",
                                 weaponId);
                     }
                     // Reset cooldown timer
