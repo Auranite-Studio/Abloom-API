@@ -28,8 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ElementalWeaponData {
 
-    /** Maximum number of attack stages */
-    public static final int MAX_STAGES = 4;
+    /** Maximum number of attack stages (0-based: 0-5, displayed as 1-6) */
+    public static final int MAX_STAGES = 6;
 
     private final String item;
     private final String baseElement; // primary element for tooltip display and general use
@@ -41,9 +41,10 @@ public class ElementalWeaponData {
 
     /**
      * Represents a single attack stage with its element and accumulation multiplier.
+     * Stage numbers are 0-based (0-5). Displayed as 1-6 to users.
      */
     public static class WeaponStage {
-        private final int stageNumber;
+        private final int stageNumber; // 0-based (0-5)
         private final String stageElement; // element for damage calculation of this stage
         private final float accumulationMultiplier;
 
@@ -55,6 +56,11 @@ public class ElementalWeaponData {
 
         public int getStageNumber() {
             return stageNumber;
+        }
+
+        /** Stage number displayed to user (1-based) */
+        public int getDisplayStageNumber() {
+            return stageNumber + 1;
         }
 
         public String getStageElementString() {
@@ -69,9 +75,6 @@ public class ElementalWeaponData {
             return accumulationMultiplier;
         }
     }
-
-    // Per-UUID stage tracking for multi-stage attacks
-    private final Map<UUID, Integer> stageProgress = new ConcurrentHashMap<>();
 
     public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage) {
         this(item, baseElement, accumulationMultiplier, critChance, critDamage, Collections.emptyList());
@@ -141,7 +144,7 @@ public class ElementalWeaponData {
 
     public WeaponStage getCurrentStage() {
         if (!hasStages()) return null;
-        return stages.get(0); // Stage 1 is first
+        return stages.get(0); // First stage (index 0)
     }
 
     public WeaponStage getStageByNumber(int stageNumber) {
@@ -151,36 +154,7 @@ public class ElementalWeaponData {
                 .orElse(null);
     }
 
-    /**
-     * Get the current stage for a specific entity that is being hit by this weapon.
-     * Used for tracking progress through multi-stage attacks.
-     */
-    public WeaponStage getCurrentStageForEntity(UUID entityId) {
-        if (!hasStages()) return null;
-        Integer stageIndex = stageProgress.get(entityId);
-        int stageNum = (stageIndex != null) ? stageIndex + 1 : 0;
-        if (stageNum >= stages.size()) {
-            stageNum = 0; // reset to first stage after completing all
-        }
-        return stages.get(stageNum);
-    }
 
-    /**
-     * Advance the stage for a specific entity after a hit.
-     */
-    public void advanceStageForEntity(UUID entityId) {
-        if (!hasStages()) return;
-        Integer current = stageProgress.getOrDefault(entityId, 0);
-        int next = Math.min(current + 1, stages.size() - 1);
-        stageProgress.put(entityId, next);
-    }
-
-    /**
-     * Reset the stage progress for a specific entity.
-     */
-    public void resetStageForEntity(UUID entityId) {
-        stageProgress.remove(entityId);
-    }
 
     /**
      * Parse ElementalWeaponData from JSON object.
@@ -232,11 +206,24 @@ public class ElementalWeaponData {
         }
 
         return new ElementalWeaponData(item, baseElement,
-                GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f),
+                stages.isEmpty() ? 1.0f : getTotalAccumulation(stages),
                 critChance,
                 critDamage,
                 stages);
     }
+
+    /**
+     * Calculate total accumulation across all stages.
+     */
+    private static float getTotalAccumulation(List<WeaponStage> stages) {
+        float total = 0f;
+        for (WeaponStage stage : stages) {
+            total += stage.getAccumulationMultiplier();
+        }
+        return total > 0 ? total : 1.0f;
+    }
+
+
 
     private static List<WeaponStage> parseStagesArray(JsonArray stagesArray) {
         List<WeaponStage> stageList = new ArrayList<>();
@@ -244,7 +231,8 @@ public class ElementalWeaponData {
             JsonObject stageData = stagesArray.get(i).getAsJsonObject();
             String stageElement = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
             float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
-            stageList.add(new WeaponStage(i + 1, stageElement, accumMultiplier));
+            // 0-based stage number
+            stageList.add(new WeaponStage(i, stageElement, accumMultiplier));
         }
         return stageList;
     }
@@ -254,9 +242,10 @@ public class ElementalWeaponData {
 
         for (String stageKey : stagesObj.keySet()) {
             try {
-                int stageNumber = Integer.parseInt(stageKey);
-                if (stageNumber < 1 || stageNumber > MAX_STAGES) {
-                    AbloomMod.LOGGER.warn("Invalid stage number {} for weapon, must be 1-{}, skipping", stageNumber, MAX_STAGES);
+                // Key is 1-based (1-6), convert to 0-based (0-5)
+                int stageKeyNumber = Integer.parseInt(stageKey);
+                if (stageKeyNumber < 1 || stageKeyNumber > MAX_STAGES) {
+                    AbloomMod.LOGGER.warn("Invalid stage number {} for weapon, must be 1-{}, skipping", stageKeyNumber, MAX_STAGES);
                     continue;
                 }
 
@@ -265,10 +254,11 @@ public class ElementalWeaponData {
                 float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
 
                 if (ElementType.safeValueOf(stageElement.toUpperCase()) == null) {
-                    AbloomMod.LOGGER.warn("Unknown element type '{}' for stage {} of weapon, defaulting to PHYSICAL", stageElement, stageNumber);
+                    AbloomMod.LOGGER.warn("Unknown element type '{}' for stage {} of weapon, defaulting to PHYSICAL", stageElement, stageKeyNumber);
                 }
 
-                stageList.add(new WeaponStage(stageNumber, stageElement, accumMultiplier));
+                // Store as 0-based
+                stageList.add(new WeaponStage(stageKeyNumber - 1, stageElement, accumMultiplier));
             } catch (NumberFormatException e) {
                 AbloomMod.LOGGER.warn("Invalid stage key '{}' in stages object, skipping", stageKey);
             }

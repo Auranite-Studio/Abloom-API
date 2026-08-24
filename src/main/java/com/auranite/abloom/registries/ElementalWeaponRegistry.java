@@ -103,7 +103,7 @@ public class ElementalWeaponRegistry {
 	 * Each stage has its own element type and accumulation multiplier.
 	 * 
 	 * @param itemLocation The item resource location
-	 * @param stageNumber The stage number (1-based, max 4)
+	 * @param stageNumber The stage number (0-based, max 6, i.e. 0-5)
 	 * @param stageElement The element type for this stage
 	 * @param stageAccumulation The accumulation multiplier for this stage
 	 * @param critChance Critical hit chance (shared across all stages)
@@ -113,9 +113,9 @@ public class ElementalWeaponRegistry {
 			                                                 ElementType stageElement, float stageAccumulation,
 			                                                 float critChance, float critDamage) {
 		if (itemLocation == null || stageElement == null) return;
-		if (stageNumber < 1 || stageNumber > ElementalWeaponData.MAX_STAGES) {
-			AbloomMod.LOGGER.warn("Invalid stage number {} for weapon {}, must be 1-{}", 
-					stageNumber, itemLocation, ElementalWeaponData.MAX_STAGES);
+		if (stageNumber < 0 || stageNumber >= ElementalWeaponData.MAX_STAGES) {
+			AbloomMod.LOGGER.warn("Invalid stage number {} for weapon {}, must be 0-{}", 
+					stageNumber, itemLocation, ElementalWeaponData.MAX_STAGES - 1);
 			return;
 		}
 		
@@ -159,7 +159,7 @@ public class ElementalWeaponRegistry {
 				StageData firstStage = stages.get(0);
 				registerWeapon(item, firstStage.element(), firstStage.accumulation(), critChance, critDamage);
 				WEAPON_DATA_BY_ID.put(itemLocation, new WeaponData(firstStage.element(), Math.max(0f, firstStage.accumulation()), critChance, critDamage));
-				AbloomMod.LOGGER.info("Registered multi-stage weapon: {} with {} stages", itemLocation, stages.size());
+				AbloomMod.LOGGER.info("Registered multi-stage weapon: {} with {} stages (0-{})", itemLocation, stages.size(), stages.size() - 1);
 			}
 		}
 
@@ -359,8 +359,8 @@ public class ElementalWeaponRegistry {
 		float attackSpeed = (float) attacker.getAttributeValue(Attributes.ATTACK_SPEED);
 		if (attackSpeed <= 0) attackSpeed = DEFAULT_ATTACK_SPEED;
 		
-		// Cooldown = (1 / attackSpeed) + 1 second
-		return (long) ((1.0f / attackSpeed + 1.0f) * 1000);
+		// Cooldown = (1 / attackSpeed) + 1.5 seconds
+		return (long) ((1.0f / attackSpeed + 1.5f) * 1000);
 	}
 
 	/**
