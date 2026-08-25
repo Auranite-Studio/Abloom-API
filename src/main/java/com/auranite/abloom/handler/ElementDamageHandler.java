@@ -3,6 +3,8 @@ package com.auranite.abloom.handler;
 import com.auranite.abloom.*;
 import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.component.ElementalWeaponComponent;
+import com.auranite.abloom.network.SpawnDamageNumberPacket;
+import com.auranite.abloom.network.SpawnStatusTextPacket;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
@@ -34,6 +36,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.ChunkDataEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.EnumMap;
 import java.util.Iterator;
@@ -81,13 +84,7 @@ public class ElementDamageHandler {
     private static int serverTickCounter = 0;
     private static final int CLEANUP_INTERVAL = 20;
 
-    private static ElementDamageDisplayManager displayManager;
-
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
-
-    private static final int MAX_ACTIVE_DISPLAYS = 500;
-    private static int currentDisplayCount = 0;
-    private static final Object DISPLAY_COUNT_LOCK = new Object();
 
     /**
      * Process damage with priority handling to avoid conflicts with other mods.
@@ -167,64 +164,7 @@ public class ElementDamageHandler {
         }
     }
 
-    /**
-     * Sets the display manager for rendering damage numbers and status texts.
-     * @param manager the display manager instance
-     */
-    public static void setDisplayManager(ElementDamageDisplayManager manager) {
-        displayManager = manager;
-    }
 
-    /**
-     * Initializes damage colors for all element types.
-     * Must be called during mod initialization before any displays are spawned.
-     */
-    public static void initDamageColors() {
-        ElementDamageDisplayManager.registerDamageColor(ElementType.FIRE, 0xFF5500);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.PHYSICAL, 0xC0C0C0);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.WIND, 0x00FFFF);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.WATER, 0x0080FF);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.EARTH, 0x8B4513);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.ICE, 0x00BFFF);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.ELECTRIC, 0xFF19FF);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.ENERGY, 0xFFFF00);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.NATURAL, 0x32CD32);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.QUANTUM, 0x9400D3);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.ETHER, 0x24B3A7);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.LIGHT, 0xFFF1A5);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.SHADOW, 0x4B0082);
-        ElementDamageDisplayManager.registerDamageColor(ElementType.PRISMATIC, 0xFFFFFF);
-    }
-
-    /**
-     * Checks if a damage display can be spawned ( respects max display limit ).
-     * @return true if display can be spawned, false if limit reached
-     */
-    public static boolean canSpawnDisplay() {
-        synchronized (DISPLAY_COUNT_LOCK) {
-            return currentDisplayCount < MAX_ACTIVE_DISPLAYS;
-        }
-    }
-
-    /**
-     * Increments the count of active damage displays.
-     * Should only be called when spawning a new display.
-     */
-    public static void incrementDisplayCount() {
-        synchronized (DISPLAY_COUNT_LOCK) {
-            currentDisplayCount++;
-        }
-    }
-
-    /**
-     * Decrements the count of active damage displays.
-     * Should only be called when removing a display.
-     */
-    public static void decrementDisplayCount() {
-        synchronized (DISPLAY_COUNT_LOCK) {
-            currentDisplayCount = Math.max(0, currentDisplayCount - 1);
-        }
-    }
 
     /**
      * Checks if damage is currently being processed by the elemental system.
@@ -234,31 +174,32 @@ public class ElementDamageHandler {
         return IS_PROCESSING_DAMAGE.get();
     }
 
-    /**
-     * Gets the current count of active damage displays.
-     * @return number of active displays
-     */
-    public static int getCurrentDisplayCount() {
-        synchronized (DISPLAY_COUNT_LOCK) {
-            return currentDisplayCount;
-        }
-    }
+    private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
 
     /**
-     * Handles server tick events for display cleanup and accumulation reset.
-     * Processes pending removals and checks for inactive accumulation points.
+     * Initializes damage colors for all element types.
+     * Must be called during mod initialization before any displays are spawned.
      */
-    @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Pre event) {
-        currentServer = event.getServer();
-        if (displayManager != null) displayManager.processPendingRemovals();
-        serverTickCounter++;
-        if (serverTickCounter >= CLEANUP_INTERVAL) {
-            serverTickCounter = 0;
-            checkAndResetInactivePoints();
-            if (displayManager != null) displayManager.cleanupStaleDisplays();
-            cleanupStaleStageTracker();
-        }
+    public static void initDamageColors() {
+        DAMAGE_COLORS.put(ElementType.FIRE, 0xFF5500);
+        DAMAGE_COLORS.put(ElementType.PHYSICAL, 0xC0C0C0);
+        DAMAGE_COLORS.put(ElementType.WIND, 0x00FFFF);
+        DAMAGE_COLORS.put(ElementType.WATER, 0x0080FF);
+        DAMAGE_COLORS.put(ElementType.EARTH, 0x8B4513);
+        DAMAGE_COLORS.put(ElementType.ICE, 0x00BFFF);
+        DAMAGE_COLORS.put(ElementType.ELECTRIC, 0xFF19FF);
+        DAMAGE_COLORS.put(ElementType.ENERGY, 0xFFFF00);
+        DAMAGE_COLORS.put(ElementType.NATURAL, 0x32CD32);
+        DAMAGE_COLORS.put(ElementType.QUANTUM, 0x9400D3);
+        DAMAGE_COLORS.put(ElementType.ETHER, 0x24B3A7);
+        DAMAGE_COLORS.put(ElementType.LIGHT, 0xFFF1A5);
+        DAMAGE_COLORS.put(ElementType.SHADOW, 0x4B0082);
+        DAMAGE_COLORS.put(ElementType.PRISMATIC, 0xFFFFFF);
+    }
+
+    public static int getDamageColor(ElementType type) {
+        if (type == null) return 0xFFFFFF;
+        return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
     }
 
     /**
@@ -459,7 +400,7 @@ public class ElementDamageHandler {
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
                         AbloomMod.LOGGER.debug("Prism conversion switched from {} to {} (new resonance), PRISM extended", storedType, currentResonance);
                     }
-                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
+                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
                     type = currentResonance;
                 } else if (currentResonance != null) {
                     // Same resonance as stored — use it as-is
@@ -477,7 +418,7 @@ public class ElementDamageHandler {
                 if (resonanceType != null && resonanceType != ElementType.PRISMATIC) {
                     target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
                     setPrismConversionType(target, resonanceType);
-                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
+                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
                     type = resonanceType;
                 }
                 // Prism damage does NOT accumulate resonance points
@@ -605,7 +546,6 @@ public class ElementDamageHandler {
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
-        clearActiveDisplays(entity);
         DAMAGE_COOLDOWNS.remove(entity.getId());
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
@@ -618,43 +558,25 @@ public class ElementDamageHandler {
     @SubscribeEvent
     public static void onEntityLeaveLevel(EntityLeaveLevelEvent event) {
         Entity entity = event.getEntity();
-        if (entity instanceof LivingEntity livingEntity) {
-            clearActiveDisplays(livingEntity);
+        if (entity instanceof LivingEntity) {
             DAMAGE_COOLDOWNS.remove(entity.getId());
             synchronized (LAST_DAMAGE_LOCK) {
                 LAST_DAMAGE_TIME.remove(entity.getId());
             }
             // Clean up stage tracking and cooldown for leaving entity
             STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
-            ElementalWeaponRegistry.cleanupEntityCooldowns(livingEntity);
+            ElementalWeaponRegistry.cleanupEntityCooldowns((LivingEntity) entity);
         }
     }
 
     @SubscribeEvent
     public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) return;
-        if (displayManager != null) {
-            displayManager.clearActiveDisplays(player);
-        }
         int playerId = player.getId();
         DAMAGE_COOLDOWNS.remove(playerId);
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(playerId);
         }
-    }
-
-    @SubscribeEvent
-    public static void onLevelUnload(LevelEvent.Unload event) {
-        if (!(event.getLevel() instanceof ServerLevel level)) return;
-    }
-
-    @SubscribeEvent
-    public static void onChunkUnload(ChunkDataEvent.Save event) {
-        if (displayManager == null) return;
-        if (!(event.getLevel() instanceof ServerLevel level)) return;
-        int chunkX = event.getChunk().getPos().x;
-        int chunkZ = event.getChunk().getPos().z;
-        displayManager.cleanupDisplaysInChunk(level, chunkX, chunkZ);
     }
 
     private static ElementType getElementTypeFromSource(DamageSource source) {
@@ -719,55 +641,12 @@ public class ElementDamageHandler {
         }
     }
 
-    private static void checkAndResetInactivePoints() {
-        if (currentServer == null) return;
-        long currentTime = currentServer.overworld().getGameTime();
-        long expiryTime = currentTime - RESET_DELAY_TICKS;
-        synchronized (LAST_DAMAGE_LOCK) {
-            Iterator<Map.Entry<Integer, Map<ElementType, Long>>> entityIterator = LAST_DAMAGE_TIME.entrySet().iterator();
-            while (entityIterator.hasNext()) {
-                Map.Entry<Integer, Map<ElementType, Long>> entityEntry = entityIterator.next();
-                int entityId = entityEntry.getKey();
-                Map<ElementType, Long> typeTimes = entityEntry.getValue();
-
-                LivingEntity livingEntity = null;
-                for (ServerLevel level : currentServer.getAllLevels()) {
-                    Entity entity = level.getEntity(entityId);
-                    if (entity instanceof LivingEntity le && le.isAlive()) {
-                        livingEntity = le;
-                        break;
-                    }
-                }
-
-                if (livingEntity == null) {
-                    entityIterator.remove();
-                    continue;
-                }
-
-                Iterator<Map.Entry<ElementType, Long>> typeIterator = typeTimes.entrySet().iterator();
-                while (typeIterator.hasNext()) {
-                    Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
-                    if (typeEntry.getValue() <= expiryTime) {
-                        AbloomModAttachments.resetPoints(livingEntity, typeEntry.getKey());
-                        typeIterator.remove();
-                    }
-                }
-
-                if (typeTimes.isEmpty()) entityIterator.remove();
-            }
-        }
-    }
-
     private static boolean canShowDamage(LivingEntity entity) {
         long currentTime = entity.level().getGameTime();
         Long lastTime = DAMAGE_COOLDOWNS.get(entity.getId());
         if (lastTime != null && currentTime - lastTime < COOLDOWN_TICKS) return false;
         DAMAGE_COOLDOWNS.put(entity.getId(), currentTime);
         return true;
-    }
-
-    private static void clearActiveDisplays(LivingEntity entity) {
-        if (displayManager != null) displayManager.clearActiveDisplays(entity);
     }
 
     /**
@@ -822,17 +701,19 @@ public class ElementDamageHandler {
     }
 
     private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit) {
-        if (!canSpawnDisplay()) return;
-        if (displayManager != null) {
-            incrementDisplayCount();
-            displayManager.spawnDamageNumber(entity, amount, type, isCrit);
-        }
+        int color = getDamageColor(type);
+        boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
+        PacketDistributor.sendToPlayersTrackingEntity(
+            entity,
+            new SpawnDamageNumberPacket(entity.getId(), amount, type, color, isCrit, hasBreak)
+        );
     }
 
     public static void spawnStatusText(LivingEntity entity, Component textComponent, int color) {
-        if (!canSpawnDisplay() || displayManager == null) return;
-        incrementDisplayCount();
-        displayManager.spawnStatusText(entity, textComponent, color);
+        PacketDistributor.sendToPlayersTrackingEntity(
+            entity,
+            new SpawnStatusTextPacket(entity.getId(), textComponent, color)
+        );
     }
 
     public static void spawnStatusText(LivingEntity entity, String text, int color) {
@@ -844,14 +725,6 @@ public class ElementDamageHandler {
     }
 
     public static void setThreshold(int threshold) {
-    }
-
-    public static void setDamageColor(ElementType type, int color) {
-        ElementDamageDisplayManager.setDamageColor(type, color);
-    }
-
-    public static Map<ElementType, Integer> getAllDamageColors() {
-        return ElementDamageDisplayManager.getAllDamageColors();
     }
 
     private static float getArmorResistanceBonus(LivingEntity entity, ElementType type) {

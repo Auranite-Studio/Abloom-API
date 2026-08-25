@@ -4,7 +4,6 @@ import com.auranite.abloom.*;
 import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
-import com.auranite.abloom.util.ElementDamageDisplayManager;
 import com.auranite.abloom.util.ElementType;
 import com.auranite.abloom.util.ElementalWeaponUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -76,7 +75,7 @@ public class ElementalTooltipHandler {
             case ETHER -> 0x24B3A7;
             case LIGHT -> 0xFFF1A5;
             case SHADOW -> 0x4B0082;
-            case PRISMATIC -> ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC);
+            case PRISMATIC -> 0xFFFFFF;
             default -> 0xFFFFFF;
         };
     }

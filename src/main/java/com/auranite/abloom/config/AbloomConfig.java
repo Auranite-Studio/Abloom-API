@@ -8,29 +8,28 @@ import org.apache.commons.lang3.tuple.Pair;
 public class AbloomConfig {
 
     public static class Client {
+        public final ModConfigSpec.BooleanValue enableDamageNumbers;
+        public final ModConfigSpec.BooleanValue enableStatusTexts;
+        public final ModConfigSpec.IntValue damageNumberSpawnRadius;
+
         public Client(ModConfigSpec.Builder builder) {
-            builder.push("Client Settings");
+            builder.push("Damage Display Settings");
+            this.enableDamageNumbers = builder
+                    .translation("abloom.config.enableDamageNumbers")
+                    .define("enableDamageNumbers", true);
+            this.enableStatusTexts = builder
+                    .translation("abloom.config.enableStatusTexts")
+                    .define("enableStatusTexts", true);
+            this.damageNumberSpawnRadius = builder
+                    .translation("abloom.config.damageNumberSpawnRadius")
+                    .defineInRange("damageNumberSpawnRadius", 48, 1, 128);
             builder.pop();
         }
     }
 
     public static class Server {
-        public final ModConfigSpec.BooleanValue enableDamageNumbers;
-        public final ModConfigSpec.BooleanValue enableStatusTexts;
-        public final ModConfigSpec.IntValue damageNumberSpawnRadius;
-
         public Server(ModConfigSpec.Builder builder) {
-            builder.push("Damage Display Settings");
-            enableDamageNumbers = builder
-                    .translation("abloom.config.enableDamageNumbers")
-                    .define("enableDamageNumbers", true);
-            enableStatusTexts = builder
-                    .translation("abloom.config.enableStatusTexts")
-                    .define("enableStatusTexts", true);
-            damageNumberSpawnRadius = builder
-                    .translation("abloom.config.damageNumberSpawnRadius")
-                    .defineInRange("damageNumberSpawnRadius", 16, 1, 128);
-            builder.pop();
+            // Server settings can be added here if needed
         }
     }
 
@@ -41,7 +40,7 @@ public class AbloomConfig {
 
     private static volatile boolean cachedDamageNumbers = true;
     private static volatile boolean cachedStatusTexts = true;
-    private static volatile int cachedDamageNumberSpawnRadius = 16;
+    private static volatile int cachedDamageNumberSpawnRadius = 48;
 
     static {
         final Pair<Client, ModConfigSpec> clientSpec = new ModConfigSpec.Builder().configure(Client::new);
@@ -79,11 +78,12 @@ public class AbloomConfig {
     }
 
     private static void syncConfigValues(net.neoforged.fml.config.ModConfig config) {
-        if (config.getSpec() == SERVER_SPEC) {
+        // Read from CLIENT_SPEC since damage numbers are client-side visuals
+        if (config.getSpec() == CLIENT_SPEC) {
             try {
-                cachedDamageNumbers = SERVER_CONFIG.enableDamageNumbers.get();
-                cachedStatusTexts = SERVER_CONFIG.enableStatusTexts.get();
-                cachedDamageNumberSpawnRadius = SERVER_CONFIG.damageNumberSpawnRadius.get();
+                cachedDamageNumbers = CLIENT_CONFIG.enableDamageNumbers.get();
+                cachedStatusTexts = CLIENT_CONFIG.enableStatusTexts.get();
+                cachedDamageNumberSpawnRadius = CLIENT_CONFIG.damageNumberSpawnRadius.get();
             } catch (IllegalStateException ignored) {
             }
         }
