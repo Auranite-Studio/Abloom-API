@@ -7,7 +7,7 @@ neoforge-1.21.1:
     }
     
      dependencies {
-        implementation 'maven.modrinth:2Aw7aACS:8JYC799H'
+        implementation 'maven.modrinth:2Aw7aACS:deRC1tWd'
      }
 
   update_files:
