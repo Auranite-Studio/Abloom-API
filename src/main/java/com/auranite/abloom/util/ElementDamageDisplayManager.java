@@ -312,10 +312,14 @@ public class ElementDamageDisplayManager {
     }
 
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
-        spawnDamageNumber(entity, amount, type, false);
+        spawnDamageNumber(entity, amount, type, false, false);
     }
 
     public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit) {
+        spawnDamageNumber(entity, amount, type, isCrit, false);
+    }
+
+    public void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit, boolean isMultiCrit) {
         if (!AbloomConfig.areDamageNumbersEnabled()) return;
         if (!(entity.level() instanceof ServerLevel serverLevel)) return;
         double spawnRadiusSq = 16.0 * 16.0;
@@ -330,9 +334,11 @@ public class ElementDamageDisplayManager {
         double offsetX = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
         double offsetZ = (serverLevel.random.nextFloat() - 0.5f) * 0.5;
 
-        // Format damage text, add "!!" for critical hits
+        // Format damage text, add "!!" for critical hits, "!!!" for multi-crit
         String text = String.format("%.1f", amount);
-        if (isCrit) {
+        if (isMultiCrit) {
+            text += "!!!";
+        } else if (isCrit) {
             text += "!!";
         }
 
