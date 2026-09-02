@@ -1,7 +1,11 @@
-package com.auranite.abloom;
+package com.auranite.abloom.handler;
 
-import com.auranite.abloom.datapack.ElementalWeaponData;
-import com.auranite.abloom.datapack.ElementalWeaponProvider;
+import com.auranite.abloom.*;
+import com.auranite.abloom.component.ElementalResistanceComponent;
+import com.auranite.abloom.registries.ElementalWeaponRegistry;
+import com.auranite.abloom.init.AbloomModAttributes;
+import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.ElementalWeaponUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -71,7 +75,7 @@ public class ElementalTooltipHandler {
             case ETHER -> 0x24B3A7;
             case LIGHT -> 0xFFF1A5;
             case SHADOW -> 0x4B0082;
-            case PRISMATIC -> ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC);
+            case PRISMATIC -> 0xFFFFFF;
             default -> 0xFFFFFF;
         };
     }
@@ -115,41 +119,37 @@ public class ElementalTooltipHandler {
         double entityBonusCritDamage = 0.0;
         var player = event.getEntity();
         if (player != null && player instanceof LivingEntity livingEntity) {
-            var critChanceHolder = AbloomAttributes.CRIT_CHANCE.getKey();
-            var critDamageHolder = AbloomAttributes.CRIT_DMG.getKey();
+            var critChanceHolder = AbloomModAttributes.CRIT_CHANCE.getKey();
+            var critDamageHolder = AbloomModAttributes.CRIT_DMG.getKey();
             var critChanceAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critChanceHolder));
             var critDamageAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(critDamageHolder));
             if (critChanceAttr != null) {
-                double base = critChanceAttr.getBaseValue();
-                double current = critChanceAttr.getValue();
-                entityBonusCritChance = current - base;
+                entityBonusCritChance = critChanceAttr.getValue();
             }
             if (critDamageAttr != null) {
-                double base = critDamageAttr.getBaseValue();
-                double current = critDamageAttr.getValue();
-                entityBonusCritDamage = current - base;
+                entityBonusCritDamage = critDamageAttr.getValue();
             }
         }
 
-        if (weaponCritChance > 0.0f || weaponCritDamage > 0.0f) {
-            if (weaponCritChance > 0.0f) {
-                int weaponPercent = Math.round(weaponCritChance * 100);
-                int entityPercent = (int) Math.round(entityBonusCritChance * 100);
-                String entityStr = entityPercent != 0 ? " (" + (entityPercent > 0 ? "+" : "") + entityPercent + "%)" : "";
+        // Sum weapon crit values with entity attribute bonuses
+        double totalCritChance = weaponCritChance + entityBonusCritChance;
+        double totalCritDamage = weaponCritDamage + entityBonusCritDamage;
+
+        if (totalCritChance > 0.0 || totalCritDamage > 0.0) {
+            if (totalCritChance > 0.0) {
+                int totalPercent = Math.round((float) Math.min(totalCritChance, 2.0) * 100);
                 MutableComponent critChanceText = Component.translatable(
                         KEY_CRIT_CHANCE,
-                        weaponPercent + "%" + entityStr
+                        totalPercent + "%"
                 );
                 critChanceText.setStyle(critChanceText.getStyle().withColor(0x00AA00));
                 event.getToolTip().add(Component.literal(" ").append(critChanceText));
             }
-            if (weaponCritDamage > 0.0f) {
-                int weaponPercent = Math.round(weaponCritDamage * 100);
-                int entityPercent = (int) Math.round(entityBonusCritDamage * 100);
-                String entityStr = entityPercent != 0 ? " (" + (entityPercent > 0 ? "+" : "") + entityPercent + "%)" : "";
+            if (totalCritDamage > 0.0) {
+                int totalPercent = Math.round((float) totalCritDamage * 100);
                 MutableComponent critDamageText = Component.translatable(
                         KEY_CRIT_DAMAGE,
-                        weaponPercent + "%" + entityStr
+                        totalPercent + "%"
                 );
                 critDamageText.setStyle(critDamageText.getStyle().withColor(0x00AA00));
                 event.getToolTip().add(Component.literal(" ").append(critDamageText));

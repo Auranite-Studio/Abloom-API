@@ -1,5 +1,7 @@
-package com.auranite.abloom;
+package com.auranite.abloom.registries;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementType;
 import com.auranite.abloom.datapack.ElementalWeaponData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -43,19 +45,19 @@ public class ElementalWeaponRegistry {
 
 	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier, float critChance, float critDamage) {
 		if (item == null || type == null) return;
-		
+
 		// Check for duplicates
 		if (WEAPON_DATA.containsKey(item)) {
 			AbloomMod.LOGGER.warn("Weapon {} already registered, skipping duplicate registration", item.getDescriptionId());
 			return;
 		}
-		
+
 		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
 		if (WEAPON_DATA_BY_ID.containsKey(itemId)) {
 			AbloomMod.LOGGER.warn("Weapon {} already registered by ID, skipping duplicate registration", itemId);
 			return;
 		}
-		
+
 		WEAPON_DATA.put(item, new WeaponData(type, Math.max(0f, accumulationMultiplier), critChance, critDamage));
 		WEAPON_DATA_BY_ID.put(itemId, new WeaponData(type, Math.max(0f, accumulationMultiplier), critChance, critDamage));
 		AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (accum: x{}, crit: {:.0f}%/{:.0f}%)",
@@ -75,13 +77,13 @@ public class ElementalWeaponRegistry {
 
 	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier, float critChance, float critDamage) {
 		if (itemLocation == null || type == null) return;
-		
+
 		// Check for conflicts
 		if (BUILTIN_REGISTRATIONS.contains(itemLocation)) {
 			AbloomMod.LOGGER.warn("Duplicate builtin registration for {}: skipping", itemLocation);
 			return;
 		}
-		
+
 		// Try to get the item from registry
 		var optionalItem = BuiltInRegistries.ITEM.getOptional(itemLocation);
 		if (optionalItem.isPresent()) {
@@ -99,32 +101,32 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Register a multi-stage elemental weapon.
 	 * Each stage has its own element type and accumulation multiplier.
-	 * 
+	 *
 	 * @param itemLocation The item resource location
-	 * @param stageNumber The stage number (1-based, max 4)
+	 * @param stageNumber The stage number (0-based, max 6, i.e. 0-5)
 	 * @param stageElement The element type for this stage
 	 * @param stageAccumulation The accumulation multiplier for this stage
 	 * @param critChance Critical hit chance (shared across all stages)
 	 * @param critDamage Critical hit damage multiplier (shared across all stages)
 	 */
-	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber, 
-			                                                 ElementType stageElement, float stageAccumulation,
-			                                                 float critChance, float critDamage) {
+	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber,
+													  ElementType stageElement, float stageAccumulation,
+													  float critChance, float critDamage) {
 		if (itemLocation == null || stageElement == null) return;
-		if (stageNumber < 1 || stageNumber > ElementalWeaponData.MAX_STAGES) {
-			AbloomMod.LOGGER.warn("Invalid stage number {} for weapon {}, must be 1-{}", 
-					stageNumber, itemLocation, ElementalWeaponData.MAX_STAGES);
+		if (stageNumber < 0 || stageNumber >= ElementalWeaponData.MAX_STAGES) {
+			AbloomMod.LOGGER.warn("Invalid stage number {} for weapon {}, must be 0-{}",
+					stageNumber, itemLocation, ElementalWeaponData.MAX_STAGES - 1);
 			return;
 		}
-		
+
 		// Skip duplicate check - stages can be registered multiple times
 		// We only want to add to BUILTIN_REGISTRATIONS once after all stages are registered
 
 		StageData stageData = new StageData(stageNumber, stageElement, stageAccumulation);
-		
+
 		// Get or create stages list
 		List<StageData> stages = WEAPON_STAGES.computeIfAbsent(itemLocation, k -> new ArrayList<>());
-		
+
 		// Check if this stage already exists
 		boolean stageFound = false;
 		for (int i = 0; i < stages.size(); i++) {
@@ -137,15 +139,15 @@ public class ElementalWeaponRegistry {
 		if (!stageFound) {
 			stages.add(stageData);
 		}
-		
+
 		// Sort stages by number
 		stages.sort((a, b) -> Integer.compare(a.stageNumber(), b.stageNumber()));
-		
+
 		// Clamp to max stages
 		while (stages.size() > ElementalWeaponData.MAX_STAGES) {
 			stages.remove(stages.size() - 1);
 		}
-		
+
 		// Mark as builtin registered and register weapon with first stage only once
 		if (!BUILTIN_REGISTRATIONS.contains(itemLocation)) {
 			BUILTIN_REGISTRATIONS.add(itemLocation);
@@ -157,7 +159,7 @@ public class ElementalWeaponRegistry {
 				StageData firstStage = stages.get(0);
 				registerWeapon(item, firstStage.element(), firstStage.accumulation(), critChance, critDamage);
 				WEAPON_DATA_BY_ID.put(itemLocation, new WeaponData(firstStage.element(), Math.max(0f, firstStage.accumulation()), critChance, critDamage));
-				AbloomMod.LOGGER.info("Registered multi-stage weapon: {} with {} stages", itemLocation, stages.size());
+				AbloomMod.LOGGER.info("Registered multi-stage weapon: {} with {} stages (0-{})", itemLocation, stages.size(), stages.size() - 1);
 			}
 		}
 
@@ -188,7 +190,18 @@ public class ElementalWeaponRegistry {
 	 * Get the base element for a multi-stage weapon.
 	 */
 	public static ElementType getBaseElement(ResourceLocation itemLocation) {
-		return WEAPON_BASE_ELEMENTS.get(itemLocation);
+		ElementType result = WEAPON_BASE_ELEMENTS.get(itemLocation);
+		if (result != null) {
+			return result;
+		}
+		// Fallback to first stage's element if base_element not set
+		if (hasStages(itemLocation)) {
+			List<StageData> stages = getStages(itemLocation);
+			if (!stages.isEmpty()) {
+				return stages.get(0).element();
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -247,10 +260,18 @@ public class ElementalWeaponRegistry {
 
 		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
-		// If weapon has stages, return base element if set, otherwise null
+		// If weapon has stages, return base element if set, otherwise first stage element
 		if (hasStages(itemId)) {
 			ElementType baseElement = getBaseElement(itemId);
-			return baseElement;
+			if (baseElement != null) {
+				return baseElement;
+			}
+			// Fallback to first stage's element
+			List<StageData> stages = getStages(itemId);
+			if (!stages.isEmpty()) {
+				return stages.get(0).element();
+			}
+			return ElementType.PHYSICAL;
 		}
 
 		WeaponData data = getWeaponData(stack);
@@ -275,14 +296,14 @@ public class ElementalWeaponRegistry {
 
 	public static float getAccumulationMultiplier(ItemStack stack) {
 		if (stack == null || stack.isEmpty()) return 1.0f;
-		
+
 		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-		
+
 		// If weapon has stages, return total accumulation
 		if (hasStages(itemId)) {
 			return getTotalAccumulationMultiplier(itemId);
 		}
-		
+
 		WeaponData data = getWeaponData(stack);
 		return data != null ? data.accumulationMultiplier() : 1.0f;
 	}
@@ -328,18 +349,18 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get the attack cooldown based on entity's attack speed + 1 second.
 	 * @param attacker the attacking entity
-	 * @return cooldown in milliseconds
+	 * @return cooldown in ticks
 	 */
-	public static long getAttackCooldown(LivingEntity attacker) {
+	public static int getAttackCooldownTicks(LivingEntity attacker) {
 		if (attacker == null) {
-			return (long) ((1.0f / DEFAULT_ATTACK_SPEED + 1.0f) * 1000);
+			return (int) ((1.0f / DEFAULT_ATTACK_SPEED + 1.5f) * 20);
 		}
-		
+
 		float attackSpeed = (float) attacker.getAttributeValue(Attributes.ATTACK_SPEED);
 		if (attackSpeed <= 0) attackSpeed = DEFAULT_ATTACK_SPEED;
-		
-		// Cooldown = (1 / attackSpeed) + 1 second
-		return (long) ((1.0f / attackSpeed + 1.0f) * 1000);
+
+		// Cooldown = (1 / attackSpeed) + 1.5 seconds, converted to ticks (20 ticks/second)
+		return (int) ((1.0f / attackSpeed + 1.5f) * 20);
 	}
 
 	/**
@@ -351,28 +372,34 @@ public class ElementalWeaponRegistry {
 
 	/**
 	 * Check if cooldown has expired for a (attacker, target) pair.
+	 * @param attacker the attacking entity
+	 * @param target the target entity
+	 * @param currentGameTime current game time in ticks
 	 * @return true if enough time has passed to reset stages
 	 */
-	public static boolean isCooldownExpired(LivingEntity attacker, LivingEntity target) {
+	public static boolean isCooldownExpired(LivingEntity attacker, LivingEntity target, long currentGameTime) {
 		String key = getCooldownKey(attacker, target);
 		Long lastAttackTime = STAGE_COOLDOWN_TRACKER.get(key);
-		
+
 		if (lastAttackTime == null) {
 			return true; // No previous attack, cooldown expired
 		}
-		
-		long elapsed = System.currentTimeMillis() - lastAttackTime;
-		long cooldown = getAttackCooldown(attacker);
-		
+
+		long elapsed = currentGameTime - lastAttackTime;
+		int cooldown = getAttackCooldownTicks(attacker);
+
 		return elapsed >= cooldown;
 	}
 
 	/**
 	 * Reset stages for a (attacker, target) pair and update cooldown.
+	 * @param attacker the attacking entity
+	 * @param target the target entity
+	 * @param currentGameTime current game time in ticks
 	 */
-	public static void resetStagesAndCooldown(LivingEntity attacker, LivingEntity target) {
+	public static void resetStagesAndCooldown(LivingEntity attacker, LivingEntity target, long currentGameTime) {
 		String key = getCooldownKey(attacker, target);
-		STAGE_COOLDOWN_TRACKER.put(key, System.currentTimeMillis());
+		STAGE_COOLDOWN_TRACKER.put(key, currentGameTime);
 		// Note: actual stage reset is handled by ElementDamageHandler
 	}
 

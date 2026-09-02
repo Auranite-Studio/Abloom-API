@@ -7,6 +7,13 @@ import com.auranite.abloom.datapack.ArmorResistanceProvider;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 import com.auranite.abloom.network.EffectDisplayNetworking;
 import com.auranite.abloom.util.TauntTargetGoal;
+import com.auranite.abloom.handler.ElementDamageHandler;
+import com.auranite.abloom.init.*;
+import com.auranite.abloom.network.SpawnDamageNumberPacket;
+import com.auranite.abloom.network.SpawnStatusTextPacket;
+import com.auranite.abloom.registries.ElementResistanceRegistry;
+import com.auranite.abloom.registries.ElementalProjectileRegistry;
+import com.auranite.abloom.util.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
@@ -15,6 +22,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -35,6 +43,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.FriendlyByteBuf;
 
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.Map;
@@ -75,9 +84,45 @@ public class AbloomMod {
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
+        modEventBus.addListener(this::onClientSetup);
+        // Register datapack for elemental weapons
         modEventBus.addListener(this::setup);
     }
     
+    private void onClientSetup(final FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            try {
+                new com.auranite.abloom.client.DamageNumbers(net.neoforged.fml.loading.FMLPaths.CONFIGDIR.get());
+            } catch (Exception e) {
+                LOGGER.error("Failed to initialize DamageNumbers: {}", e.getMessage());
+            }
+        });
+    }
+
+    private void handleSpawnDamageNumber(SpawnDamageNumberPacket packet, net.neoforged.neoforge.network.handling.IPayloadContext context) {
+        context.enqueueWork(() -> {
+            com.auranite.abloom.client.DamageNumbers.getHandler().spawnDamageNumber(
+                packet.entityId(),
+                packet.damage(),
+                packet.elementType(),
+                packet.color(),
+                packet.isCrit(),
+                packet.hasBreak(),
+                packet.isMultiCrit()
+            );
+        });
+    }
+
+    private void handleSpawnStatusText(SpawnStatusTextPacket packet, net.neoforged.neoforge.network.handling.IPayloadContext context) {
+        context.enqueueWork(() -> {
+            com.auranite.abloom.client.DamageNumbers.getHandler().spawnStatusText(
+                packet.entityId(),
+                packet.text(),
+                packet.color()
+            );
+        });
+    }
+
     private void setup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             AbloomMod.LOGGER.info("Loading elemental weapons datapack...");
@@ -136,6 +181,13 @@ public class AbloomMod {
     private void registerNetworking(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(MODID);
         MESSAGES.forEach((id, networkMessage) -> registrar.playBidirectional(id, ((NetworkMessage) networkMessage).reader(), ((NetworkMessage) networkMessage).handler()));
+
+        // Register damage number packets
+        registrar.playToClient(SpawnDamageNumberPacket.TYPE, SpawnDamageNumberPacket.STREAM_CODEC,
+            (packet, context) -> handleSpawnDamageNumber(packet, context));
+        registrar.playToClient(SpawnStatusTextPacket.TYPE, SpawnStatusTextPacket.STREAM_CODEC,
+            (packet, context) -> handleSpawnStatusText(packet, context));
+
         networkingRegistered = true;
     }
 

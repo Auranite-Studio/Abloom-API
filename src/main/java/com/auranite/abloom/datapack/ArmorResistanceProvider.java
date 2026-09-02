@@ -1,8 +1,8 @@
 package com.auranite.abloom.datapack;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.ArmorResistanceRegistry;
-import com.auranite.abloom.ElementType;
+import com.auranite.abloom.registries.ArmorResistanceRegistry;
+import com.auranite.abloom.util.ElementType;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.resources.ResourceLocation;

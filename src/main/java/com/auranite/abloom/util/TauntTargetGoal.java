@@ -1,6 +1,6 @@
 package com.auranite.abloom.util;
 
-import com.auranite.abloom.AbloomModEffects;
+import com.auranite.abloom.init.AbloomModEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;

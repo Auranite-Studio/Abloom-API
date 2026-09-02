@@ -1,5 +1,6 @@
-package com.auranite.abloom;
+package com.auranite.abloom.init;
 
+import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.effect.*;
 import com.auranite.abloom.util.TauntTargetGoal;
 import net.minecraft.core.registries.Registries;
@@ -34,6 +35,8 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> ECLIPSE = REGISTRY.register("eclipse", () -> new EclipseEffect(0x4B0082));
     public static final DeferredHolder<MobEffect, MobEffect> CRITICAL_GAIN = REGISTRY.register("critical_gain", () -> new CriticalGainEffect(0xFFD700));
     public static final DeferredHolder<MobEffect, MobEffect> PRISM = REGISTRY.register("prism", () -> new PrismEffect(0xFFFFFF));
+    public static final DeferredHolder<MobEffect, MobEffect> SUPPRESSION = REGISTRY.register("suppression", () -> new SuppressionEffect(0xEE204D));
+    public static final DeferredHolder<MobEffect, MobEffect> FLUORESCENCE = REGISTRY.register("fluorescence", () -> new FluorescenceEffect(0xFFD700));
 
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {

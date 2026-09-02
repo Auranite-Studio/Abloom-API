@@ -1,5 +1,7 @@
-package com.auranite.abloom;
+package com.auranite.abloom.init;
 
+import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
@@ -23,11 +25,6 @@ public class AbloomModAttachments {
 
     public static final Supplier<AttachmentType<ElementType>> PROJECTILE_ELEMENT =
             ATTACHMENT_TYPES.register("projectile_element", () ->
-                    AttachmentType.<ElementType>builder(() -> null).build()
-            );
-
-    public static final Supplier<AttachmentType<ElementType>> PRISM_CONVERSION_TYPE =
-            ATTACHMENT_TYPES.register("prism_conversion_type", () ->
                     AttachmentType.<ElementType>builder(() -> null).build()
             );
 
@@ -89,21 +86,54 @@ public class AbloomModAttachments {
     }
 
     public static void setPrismConversionType(LivingEntity entity, ElementType type) {
-        if (entity != null && !entity.level().isClientSide) {
-            entity.setData(PRISM_CONVERSION_TYPE.get(), type);
+        if (entity != null && !entity.level().isClientSide && type != null) {
+            entity.getPersistentData().putString("Abloom_PrismConversionType", type.name());
         }
     }
 
     public static ElementType getPrismConversionType(LivingEntity entity) {
         if (entity != null) {
-            return entity.getData(PRISM_CONVERSION_TYPE.get());
+            String typeName = entity.getPersistentData().getString("Abloom_PrismConversionType");
+            if (!typeName.isEmpty()) {
+                try {
+                    return ElementType.valueOf(typeName);
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            }
         }
         return null;
     }
 
     public static void clearPrismConversionType(LivingEntity entity) {
-        if (entity != null && !entity.level().isClientSide) {
-            entity.setData(PRISM_CONVERSION_TYPE.get(), null);
+        if (entity != null) {
+            entity.getPersistentData().remove("Abloom_PrismConversionType");
+        }
+    }
+
+    public static void setFluorescenceType(LivingEntity entity, ElementType type) {
+        if (entity != null && !entity.level().isClientSide && type != null) {
+            entity.getPersistentData().putString("Abloom_FluorescenceType", type.name());
+        }
+    }
+
+    public static ElementType getFluorescenceType(LivingEntity entity) {
+        if (entity != null) {
+            String typeName = entity.getPersistentData().getString("Abloom_FluorescenceType");
+            if (!typeName.isEmpty()) {
+                try {
+                    return ElementType.valueOf(typeName);
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void clearFluorescenceType(LivingEntity entity) {
+        if (entity != null) {
+            entity.getPersistentData().remove("Abloom_FluorescenceType");
         }
     }
 }

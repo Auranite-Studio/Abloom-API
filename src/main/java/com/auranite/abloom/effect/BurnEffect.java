@@ -1,6 +1,6 @@
 package com.auranite.abloom.effect;
 
-import com.auranite.abloom.AbloomModEffects;
+import com.auranite.abloom.init.AbloomModEffects;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
