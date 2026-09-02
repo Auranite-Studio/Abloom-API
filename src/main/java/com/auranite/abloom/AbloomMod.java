@@ -77,15 +77,12 @@ public class AbloomMod {
         AbloomModEffects.REGISTRY.register(modEventBus);
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
-        AbloomAttributes.REGISTRY.register(modEventBus);
-        
-        ElementDamageDisplayManager displayManager = new ElementDamageDisplayManager();
-        ElementDamageHandler.setDisplayManager(displayManager);
+        AbloomModAttributes.REGISTRY.register(modEventBus);
+
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(this::onClientSetup);
-        // Register datapack for elemental weapons
         modEventBus.addListener(this::setup);
     }
     
@@ -135,33 +132,6 @@ public class AbloomMod {
             
             AbloomMod.LOGGER.info("Datapack loading complete");
         });
-    }
-    @SubscribeEvent
-    public void onLevelLoad(LevelEvent.Load event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel) {
-
-            serverLevel.getServer().execute(() -> {
-                try {
-                    ElementDamageDisplayManager.cleanupOrphanedDisplaysOnWorldLoad(serverLevel);
-                } catch (Exception e) {
-                    LOGGER.error("Failed to cleanup orphaned displays", e);
-                }
-            });
-        }
-    }
-
-    @SubscribeEvent
-    public void onServerTick(ServerTickEvent.Pre event) {
-        MinecraftServer server = event.getServer();
-        if (server.isDedicatedServer() || server.isSingleplayer()) {
-            for (ServerLevel level : server.getAllLevels()) {
-                try {
-                    ElementDamageDisplayManager.tickSelfDestructDisplays(level);
-                } catch (Exception e) {
-                    LOGGER.warn("Error in self-destruct tick for level {}", level.dimension().location(), e);
-                }
-            }
-        }
     }
 
     private static boolean networkingRegistered = false;
