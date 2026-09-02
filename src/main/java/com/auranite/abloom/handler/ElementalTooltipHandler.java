@@ -137,7 +137,7 @@ public class ElementalTooltipHandler {
 
         if (totalCritChance > 0.0 || totalCritDamage > 0.0) {
             if (totalCritChance > 0.0) {
-                int totalPercent = Math.round((float) totalCritChance * 100);
+                int totalPercent = Math.round((float) Math.min(totalCritChance, 2.0) * 100);
                 MutableComponent critChanceText = Component.translatable(
                         KEY_CRIT_CHANCE,
                         totalPercent + "%"

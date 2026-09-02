@@ -18,7 +18,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 public class AbloomModAttributes {
     public static final DeferredRegister<Attribute> REGISTRY = DeferredRegister.create(BuiltInRegistries.ATTRIBUTE, AbloomMod.MODID);
     public static final DeferredHolder<Attribute, Attribute> CRIT_DMG = REGISTRY.register("crit_dmg", () -> new RangedAttribute("attribute.power.crit_dmg", 0, -10, 10).setSyncable(true));
-    public static final DeferredHolder<Attribute, Attribute> CRIT_CHANCE = REGISTRY.register("crit_chance", () -> new RangedAttribute("attribute.power.crit_chance", 0, -1, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> CRIT_CHANCE = REGISTRY.register("crit_chance", () -> new RangedAttribute("attribute.power.crit_chance", 0, -1, 2).setSyncable(true));
 
     @SubscribeEvent
     public static void addAttributes(EntityAttributeModificationEvent event) {
