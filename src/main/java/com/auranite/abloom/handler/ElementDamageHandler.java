@@ -3,6 +3,8 @@ package com.auranite.abloom.handler;
 import com.auranite.abloom.*;
 import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.component.ElementalWeaponComponent;
+import com.auranite.abloom.network.SpawnDamageNumberPacket;
+import com.auranite.abloom.network.SpawnStatusTextPacket;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
@@ -44,7 +46,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.auranite.abloom.init.AbloomModAttachments.setPrismConversionType;
-
 /** Record for critical hit result containing modified damage and crit flag. */
 record CritResult(float damage, boolean isCrit) {}
 
@@ -172,6 +173,7 @@ public class ElementDamageHandler {
         return IS_PROCESSING_DAMAGE.get();
     }
 
+    private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
     /**
      * Initializes damage colors for all element types.
      * Must be called during mod initialization before any displays are spawned.
@@ -396,7 +398,7 @@ public class ElementDamageHandler {
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
                         AbloomMod.LOGGER.debug("Prism conversion switched from {} to {} (new resonance), PRISM extended", storedType, currentResonance);
                     }
-                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
+                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
                     type = currentResonance;
                 } else if (currentResonance != null) {
                     // Same resonance as stored — use it as-is
@@ -414,7 +416,7 @@ public class ElementDamageHandler {
                 if (resonanceType != null && resonanceType != ElementType.PRISMATIC) {
                     target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
                     setPrismConversionType(target, resonanceType);
-                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), ElementDamageDisplayManager.getDamageColor(ElementType.PRISMATIC));
+                    spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
                     type = resonanceType;
                 }
                 // Prism damage does NOT accumulate resonance points
