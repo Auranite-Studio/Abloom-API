@@ -1,8 +1,12 @@
 package com.auranite.abloom;
 
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.client.ClientEventHandler;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
+import com.auranite.abloom.network.ClientEntityEffectsStorage;
+import com.auranite.abloom.network.EffectDisplayNetworking;
+import com.auranite.abloom.util.TauntTargetGoal;
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.*;
 import com.auranite.abloom.network.SpawnDamageNumberPacket;
@@ -18,6 +22,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -28,6 +33,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.fml.util.thread.SidedThreadGroups;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.bus.api.IEventBus;
 
@@ -54,7 +60,12 @@ public class AbloomMod {
     public AbloomMod(IEventBus modEventBus, ModContainer modContainer) {
 
         NeoForge.EVENT_BUS.register(this);
+
+        if (FMLLoader.getDist().isClient()) {
+            NeoForge.EVENT_BUS.register(new ClientEventHandler());
+        }
         modEventBus.addListener(this::registerNetworking);
+        modEventBus.addListener(EffectDisplayNetworking::register);
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, AbloomConfig.CLIENT_SPEC);
         modContainer.registerConfig(ModConfig.Type.SERVER, AbloomConfig.SERVER_SPEC);
@@ -67,12 +78,11 @@ public class AbloomMod {
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
         AbloomModAttributes.REGISTRY.register(modEventBus);
-        
+
         ElementDamageHandler.initDamageColors();
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(this::onClientSetup);
-        // Register datapack for elemental weapons
         modEventBus.addListener(this::setup);
     }
     
@@ -109,7 +119,7 @@ public class AbloomMod {
             );
         });
     }
-    
+
     private void setup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             AbloomMod.LOGGER.info("Loading elemental weapons datapack...");
@@ -123,7 +133,6 @@ public class AbloomMod {
             AbloomMod.LOGGER.info("Datapack loading complete");
         });
     }
-
 
     private static boolean networkingRegistered = false;
     private static final Map<CustomPacketPayload.Type<?>, NetworkMessage<?>> MESSAGES = new HashMap<>();
@@ -142,13 +151,13 @@ public class AbloomMod {
     private void registerNetworking(final RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar(MODID);
         MESSAGES.forEach((id, networkMessage) -> registrar.playBidirectional(id, ((NetworkMessage) networkMessage).reader(), ((NetworkMessage) networkMessage).handler()));
-        
+
         // Register damage number packets
         registrar.playToClient(SpawnDamageNumberPacket.TYPE, SpawnDamageNumberPacket.STREAM_CODEC,
             (packet, context) -> handleSpawnDamageNumber(packet, context));
         registrar.playToClient(SpawnStatusTextPacket.TYPE, SpawnStatusTextPacket.STREAM_CODEC,
             (packet, context) -> handleSpawnStatusText(packet, context));
-        
+
         networkingRegistered = true;
     }
 
@@ -157,6 +166,11 @@ public class AbloomMod {
     public static void queueServerWork(int tick, Runnable action) {
         if (Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER)
             workQueue.add(new Tuple<>(action, tick));
+    }
+
+    @SubscribeEvent
+    public void onPlayerLoggedOut(net.neoforged.neoforge.event.entity.player.PlayerEvent.PlayerLoggedOutEvent event) {
+        ClientEntityEffectsStorage.clearAll();
     }
 
     @SubscribeEvent
