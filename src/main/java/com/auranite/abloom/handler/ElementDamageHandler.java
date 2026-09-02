@@ -20,6 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -281,6 +282,23 @@ public class ElementDamageHandler {
     private static float doProcessLivingHurt(LivingEntity target, DamageSource source, float baseDamage, float currentDamage) {
         LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
+
+        // Consume Fluorescence: apply Prism to target with stored type
+        if (attacker != null && attacker.hasEffect(AbloomModEffects.FLUORESCENCE)) {
+            ElementType fluorescenceType = AbloomModAttachments.getFluorescenceType(attacker);
+            if (fluorescenceType != null) {
+                attacker.removeEffect(AbloomModEffects.FLUORESCENCE);
+                AbloomModAttachments.clearFluorescenceType(attacker);
+
+                setPrismConversionType(target, fluorescenceType);
+                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
+
+                if (AbloomMod.LOGGER.isDebugEnabled()) {
+                    AbloomMod.LOGGER.debug("Fluorescence consumed: attacker {} applies Prism to {} with type {}",
+                            attacker.getName().getString(), target.getName().getString(), fluorescenceType);
+                }
+            }
+        }
 
         ElementType type = getElementTypeFromSource(source);
         float currentAccumMultiplier = 1.0f;
@@ -545,6 +563,20 @@ public class ElementDamageHandler {
     @SubscribeEvent
     public static void onLivingDeath(LivingDeathEvent event) {
         LivingEntity entity = event.getEntity();
+        // Only process on server side
+        if (entity.level().isClientSide) return;
+
+        DamageSource source = event.getSource();
+        LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
+
+        // Fallback: if source.getEntity() is null, try getDirectEntity (e.g. for projectiles)
+        if (attacker == null) {
+            Entity directEntity = source.getDirectEntity();
+            if (directEntity instanceof LivingEntity livingDirect) {
+                attacker = livingDirect;
+            }
+        }
+        
         DAMAGE_COOLDOWNS.remove(entity.getId());
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
@@ -552,6 +584,29 @@ public class ElementDamageHandler {
         // Clean up stage tracking and cooldown for dead entity
         STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
         ElementalWeaponRegistry.cleanupEntityCooldowns(entity);
+
+        // Clean up Fluorescence when entity dies
+        AbloomModAttachments.clearFluorescenceType(entity);
+
+        // If entity dies with PRISM_CONVERSION_TYPE, give Fluorescence to attacker
+        if (attacker != null && attacker.isAlive()) {
+            ElementType fluorescenceType = AbloomModAttachments.getPrismConversionType(entity);
+
+            if (fluorescenceType != null) {
+                AbloomModAttachments.setFluorescenceType(attacker, fluorescenceType);
+                attacker.addEffect(new MobEffectInstance(AbloomModEffects.FLUORESCENCE, 1200, 0, false, true));
+                if (AbloomMod.LOGGER.isDebugEnabled()) {
+                    AbloomMod.LOGGER.debug("Entity {} died, attacker {} gets Fluorescence with type {}",
+                            entity.getName().getString(), attacker.getName().getString(), fluorescenceType);
+                }
+            } else if (AbloomMod.LOGGER.isDebugEnabled()) {
+                AbloomMod.LOGGER.debug("Entity {} died, no PRISM_CONVERSION_TYPE found, skipping Fluorescence",
+                        entity.getName().getString());
+            }
+        } else if (AbloomMod.LOGGER.isDebugEnabled()) {
+            AbloomMod.LOGGER.debug("Entity {} died, no valid attacker found (attacker={}, alive={}), skipping Fluorescence",
+                    entity.getName().getString(), attacker != null ? attacker.getName().getString() : "null", attacker != null && attacker.isAlive());
+        }
     }
 
     @SubscribeEvent
@@ -637,6 +692,45 @@ public class ElementDamageHandler {
     private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new EnumMap<>(ElementType.class)).put(type, entity.level().getGameTime());
+        }
+    }
+
+    private static void checkAndResetInactivePoints() {
+        if (currentServer == null) return;
+        long currentTime = currentServer.overworld().getGameTime();
+        long expiryTime = currentTime - RESET_DELAY_TICKS;
+        synchronized (LAST_DAMAGE_LOCK) {
+            Iterator<Map.Entry<Integer, Map<ElementType, Long>>> entityIterator = LAST_DAMAGE_TIME.entrySet().iterator();
+            while (entityIterator.hasNext()) {
+                Map.Entry<Integer, Map<ElementType, Long>> entityEntry = entityIterator.next();
+                int entityId = entityEntry.getKey();
+                Map<ElementType, Long> typeTimes = entityEntry.getValue();
+
+                LivingEntity livingEntity = null;
+                for (ServerLevel level : currentServer.getAllLevels()) {
+                    Entity entity = level.getEntity(entityId);
+                    if (entity instanceof LivingEntity le && le.isAlive()) {
+                        livingEntity = le;
+                        break;
+                    }
+                }
+
+                if (livingEntity == null) {
+                    entityIterator.remove();
+                    continue;
+                }
+
+                Iterator<Map.Entry<ElementType, Long>> typeIterator = typeTimes.entrySet().iterator();
+                while (typeIterator.hasNext()) {
+                    Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
+                    if (typeEntry.getValue() <= expiryTime) {
+                        AbloomModAttachments.resetPoints(livingEntity, typeEntry.getKey());
+                        typeIterator.remove();
+                    }
+                }
+
+                if (typeTimes.isEmpty()) entityIterator.remove();
+            }
         }
     }
 
