@@ -47,7 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.auranite.abloom.init.AbloomModAttachments.setPrismConversionType;
 /** Record for critical hit result containing modified damage and crit flag. */
-record CritResult(float damage, boolean isCrit) {}
+record CritResult(float damage, boolean isCrit, boolean isMultiCrit) {}
 
 /**
  * Handles elemental damage calculations, accumulation tracking, and threshold effects.
@@ -527,6 +527,7 @@ public class ElementDamageHandler {
         CritResult critResult = applyCriticalHit(attacker, finalDamage);
         finalDamage = critResult.damage();
         boolean isCrit = critResult.isCrit();
+        boolean isMultiCrit = critResult.isMultiCrit();
 
         if (thresholdReached) {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
@@ -536,7 +537,7 @@ public class ElementDamageHandler {
             AbloomModAttachments.resetPoints(target, type);
         }
 
-        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit);
+        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit, isMultiCrit);
         updateLastDamageTime(target, type);
         return finalDamage;
     }
@@ -657,7 +658,7 @@ public class ElementDamageHandler {
      */
     private static CritResult applyCriticalHit(LivingEntity attacker, float baseDamage) {
         if (attacker == null) {
-            return new CritResult(baseDamage, false);
+            return new CritResult(baseDamage, false, false);
         }
 
         // Get crit chance from entity attributes
@@ -682,28 +683,33 @@ public class ElementDamageHandler {
                 + ElementalWeaponComponent.getCritDamage(weapon);
 
         // Sum additively, clamp final totals to [0, max] so debuffs cannot fully override weapon bonuses
-        double totalCritChance = Math.max(0.0, Math.min(1.0, entityCritChance + weaponCritChance));
+        // Crit chance can now go up to 2.0 (200%) to enable multi-crit
+        double totalCritChance = Math.max(0.0, Math.min(2.0, entityCritChance + weaponCritChance));
         double totalCritDamage = Math.max(0.0, Math.min(10.0, entityCritDamage + weaponCritDamage));
 
-        // Random check
+        // Random check for normal crit (always triggers if chance >= 1.0)
         if (attacker.level().random.nextFloat() < totalCritChance) {
             float critDamage = baseDamage * (1.0f + (float) totalCritDamage);
-            return new CritResult(critDamage, true);
+            boolean isMultiCrit = totalCritChance > 1.0f && attacker.level().random.nextFloat() < (totalCritChance - 1.0f);
+            if (isMultiCrit) {
+                critDamage *= 2.0f;
+            }
+            return new CritResult(critDamage, true, isMultiCrit);
         }
 
-        return new CritResult(baseDamage, false);
+        return new CritResult(baseDamage, false, false);
     }
 
     private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
-        spawnDamageNumber(entity, amount, type, false);
+        spawnDamageNumber(entity, amount, type, false, false);
     }
 
-    private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit) {
+    private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit, boolean isMultiCrit) {
         int color = getDamageColor(type);
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
         PacketDistributor.sendToPlayersTrackingEntity(
             entity,
-            new SpawnDamageNumberPacket(entity.getId(), amount, type, color, isCrit, hasBreak)
+            new SpawnDamageNumberPacket(entity.getId(), amount, type, color, isCrit, hasBreak, isMultiCrit)
         );
     }
 

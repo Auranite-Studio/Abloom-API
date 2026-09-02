@@ -14,7 +14,8 @@ public record SpawnDamageNumberPacket(
         @Nullable ElementType elementType,
         int color,
         boolean isCrit,
-        boolean hasBreak
+        boolean hasBreak,
+        boolean isMultiCrit
 ) implements CustomPacketPayload {
 
     public static final Type<SpawnDamageNumberPacket> TYPE = new Type<>(
@@ -32,7 +33,8 @@ public record SpawnDamageNumberPacket(
                     int color = buffer.readInt();
                     boolean isCrit = buffer.readBoolean();
                     boolean hasBreak = buffer.readBoolean();
-                    return new SpawnDamageNumberPacket(entityId, damage, elementType, color, isCrit, hasBreak);
+                    boolean isMultiCrit = buffer.readBoolean();
+                    return new SpawnDamageNumberPacket(entityId, damage, elementType, color, isCrit, hasBreak, isMultiCrit);
                 }
 
                 @Override
@@ -48,6 +50,7 @@ public record SpawnDamageNumberPacket(
                     buffer.writeInt(packet.color);
                     buffer.writeBoolean(packet.isCrit);
                     buffer.writeBoolean(packet.hasBreak);
+                    buffer.writeBoolean(packet.isMultiCrit);
                 }
             };
 

@@ -9,6 +9,6 @@ import com.auranite.abloom.util.ElementType;
 
 public interface DamageNumbersHandler {
    void onEntityHealthChange(@NotNull LivingEntity entity, float oldHealth, float newHealth);
-   void spawnDamageNumber(int entityId, float damage, @Nullable ElementType elementType, int color, boolean isCrit, boolean hasBreak);
+   void spawnDamageNumber(int entityId, float damage, @Nullable ElementType elementType, int color, boolean isCrit, boolean hasBreak, boolean isMultiCrit);
    void spawnStatusText(int entityId, @NotNull Component text, int color);
 }

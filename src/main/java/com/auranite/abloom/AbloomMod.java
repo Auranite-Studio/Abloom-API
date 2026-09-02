@@ -94,7 +94,8 @@ public class AbloomMod {
                 packet.elementType(),
                 packet.color(),
                 packet.isCrit(),
-                packet.hasBreak()
+                packet.hasBreak(),
+                packet.isMultiCrit()
             );
         });
     }

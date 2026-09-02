@@ -126,7 +126,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
    }
 
    @Override
-   public void spawnDamageNumber(int entityId, float damage, @Nullable ElementType elementType, int color, boolean isCrit, boolean hasBreak) {
+   public void spawnDamageNumber(int entityId, float damage, @Nullable ElementType elementType, int color, boolean isCrit, boolean hasBreak, boolean isMultiCrit) {
       if (!AbloomConfig.areDamageNumbersEnabled()) {
          return;
       }
@@ -180,7 +180,9 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
       if (text.endsWith(".0")) {
          text = text.substring(0, text.length() - 2);
       }
-      if (isCrit) {
+      if (isMultiCrit) {
+         text += "!!!";
+      } else if (isCrit) {
          text += "!!";
       }
       particle.setText(text);
