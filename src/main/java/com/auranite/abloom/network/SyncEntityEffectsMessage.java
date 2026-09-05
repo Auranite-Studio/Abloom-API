@@ -155,7 +155,9 @@ public record SyncEntityEffectsMessage(int entityId, List<MobEffectInstance> eff
 
     public static void syncEffectsAfterRemoval(MobEffectInstance effectInstance, LivingEntity entity2) {
         if (!entity2.level().isClientSide()) {
-            List<MobEffectInstance> effects = entity2.getActiveEffects().stream().filter((effect) -> effect.getEffect().value() != effectInstance.getEffect().value()).toList();
+            List<MobEffectInstance> effects = entity2.getActiveEffects().stream()
+                    .filter((effect) -> effectInstance == null || effect.getEffect().value() != effectInstance.getEffect().value())
+                    .toList();
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity2, new SyncEntityEffectsMessage(entity2.getId(), effects));
         }
 
