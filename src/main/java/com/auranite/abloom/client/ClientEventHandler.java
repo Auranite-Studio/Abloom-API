@@ -41,9 +41,9 @@ public class ClientEventHandler {
 
                 if (!shouldRender) continue;
 
-                double x = entity.getX();
-                double y = entity.getY();
-                double z = entity.getZ();
+                double x = entity.xo + (entity.getX() - entity.xo) * partialTick;
+                double y = entity.yo + (entity.getY() - entity.yo) * partialTick;
+                double z = entity.zo + (entity.getZ() - entity.zo) * partialTick;
 
                 float distance = (float) Math.sqrt(
                         (x - camPos.x) * (x - camPos.x) +
