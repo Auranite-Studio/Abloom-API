@@ -291,7 +291,7 @@ public class ElementDamageHandler {
                 AbloomModAttachments.clearFluorescenceType(attacker);
 
                 setPrismConversionType(target, fluorescenceType);
-                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
 
                 if (AbloomMod.LOGGER.isDebugEnabled()) {
                     AbloomMod.LOGGER.debug("Fluorescence consumed: attacker {} applies Prism to {} with type {}",
@@ -412,7 +412,7 @@ public class ElementDamageHandler {
                     // New resonance appeared — switch conversion type and extend PRISM
                     setPrismConversionType(target, currentResonance);
                     target.removeEffect(AbloomModEffects.PRISM);
-                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
+                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
                         AbloomMod.LOGGER.debug("Prism conversion switched from {} to {} (new resonance), PRISM extended", storedType, currentResonance);
                     }
@@ -432,7 +432,7 @@ public class ElementDamageHandler {
                 // No Prism effect active — activate it from current resonance
                 ElementType resonanceType = getActiveResonanceType(target);
                 if (resonanceType != null && resonanceType != ElementType.PRISMATIC) {
-                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 600, 0, false, true));
+                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
                     setPrismConversionType(target, resonanceType);
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
                     type = resonanceType;
@@ -855,70 +855,70 @@ public class ElementDamageHandler {
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage) {
         return switch (type) {
-            case LIGHT -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 200, 0, false, true));
-                spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
-                yield originalDamage;
-            }
             case FIRE -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 200, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 12 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
-                yield originalDamage;
+                yield originalDamage * 1.25f;
             }
             case PHYSICAL -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 120, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 14 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
                 yield originalDamage * 2.0f;
             }
             case WIND -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 160, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 20 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
-                yield originalDamage;
+                yield originalDamage * 1.5f;
             }
             case WATER -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 240, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 20 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
                 yield originalDamage * 1.5f;
             }
             case EARTH -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 100, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 7 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
-                yield originalDamage;
+                yield originalDamage * 1.5f;
             }
             case ICE -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 240, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 16 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
-                yield originalDamage;
+                yield originalDamage * 1.25f;
             }
             case ELECTRIC -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 200, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 14 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
-                yield originalDamage;
+                yield originalDamage * 1.5f;
             }
             case ENERGY -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 200, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 14 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
-                yield originalDamage;
+                yield originalDamage * 1.5f;
             }
             case NATURAL -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 160, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 12 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
-                yield originalDamage;
+                yield originalDamage * 1.25f;
             }
             case QUANTUM -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 120, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 12 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
-                yield originalDamage;
+                yield originalDamage * 1.25f;
             }
             case ETHER -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 160, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 12 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
-                yield originalDamage;
+                yield originalDamage * 1.25f;
+            }
+            case LIGHT -> {
+                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 14 * 20, 0, false, true));
+                spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
+                yield originalDamage * 1.5f;
             }
             case SHADOW -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 200, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 14 * 20, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.shadow_eclipse"), 0x4B0082);
-                yield originalDamage;
+                yield originalDamage * 1.5f;
             }
             default -> originalDamage;
         };
