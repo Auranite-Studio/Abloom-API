@@ -8,7 +8,7 @@
 
 ### Element System
 
-The mod defines 13 element types:
+The mod defines 14 element types:
 
 | Element | Damage ID | Damage Color |
 |---------|----------|------------|
