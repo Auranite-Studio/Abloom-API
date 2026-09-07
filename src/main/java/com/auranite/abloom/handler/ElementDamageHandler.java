@@ -799,6 +799,9 @@ public class ElementDamageHandler {
     }
 
     private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit, boolean isMultiCrit) {
+        // Only send packet from server side
+        if (entity.level().isClientSide) return;
+        
         int color = getDamageColor(type);
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
         PacketDistributor.sendToPlayersTrackingEntity(
@@ -808,6 +811,9 @@ public class ElementDamageHandler {
     }
 
     public static void spawnStatusText(LivingEntity entity, Component textComponent, int color) {
+        // Only send packet from server side
+        if (entity.level().isClientSide) return;
+        
         PacketDistributor.sendToPlayersTrackingEntity(
             entity,
             new SpawnStatusTextPacket(entity.getId(), textComponent, color)
