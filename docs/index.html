@@ -476,7 +476,7 @@
             <ul>
                 <li><strong>14 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW, PRISMATIC</li>
                 <li><strong>Resonance System:</strong> Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
-                <li><strong>17 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Fluorescence</li>
+                <li><strong>18 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Fluorescence, Suppression</li>
                 <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 4 attack stages with different elements and accumulation multipliers</li>
                 <li><strong>Critical Hit System:</strong> Custom CRIT_CHANCE and CRIT_DMG attributes with weapon-specific bonuses</li>
                 <li><strong>Armor Resistances:</strong> Armor pieces can provide resistance or weakness to specific elements (-0.99 to 0.99)</li>
@@ -746,8 +746,14 @@
                     <tr>
                         <td>Fluorescence</td>
                         <td><code>abloom:fluorescence</code></td>
-                        <td>Beneficial effect stored on the attacker. When the attacker deals elemental damage, Fluorescence is consumed and applies a corresponding Prism effect to the target, converting future prism damage to the stored element type. Lasts 60 seconds (1200 ticks). Obtained by killing an entity that has an active Prism conversion effect.</td>
+                        <td>Beneficial effect stored on the attacker. When the attacker deals elemental damage, Fluorescence is consumed and applies a corresponding Prism effect to the target, converting future prismatic damage to the stored element type. Lasts 60 seconds (1200 ticks). Obtained by killing an entity that has an active Prism conversion effect.</td>
                         <td style="color: #FFD700;">#FFD700</td>
+                    </tr>
+                    <tr>
+                        <td>Suppression</td>
+                        <td><code>abloom:suppression</code></td>
+                        <td>Reduces critical damage by 30%</td>
+                        <td style="color: #EE204D;">#EE204D</td>
                     </tr>
                 </tbody>
             </table>
