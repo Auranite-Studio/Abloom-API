@@ -1,6 +1,6 @@
 ## Overview
 
-**Abloom API** is a library mod for NeoForge that adds an elemental damage system, elemental energy accumulation, and resonance effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, and a resistance system for mobs.
+**Abloom API** is a library mod for NeoForge that adds an elemental damage system, elemental resonance points accumulation, and resonance effects. The mod provides infrastructure for creating weapons with elemental properties, projectiles, and a resistance system for mobs.
 
 ---
 
