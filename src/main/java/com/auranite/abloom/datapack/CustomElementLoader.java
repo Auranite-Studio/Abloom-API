@@ -41,6 +41,7 @@ public class CustomElementLoader extends SimpleJsonResourceReloadListener {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String FOLDER = "custom_elements";
     
+    private Map<String, JsonElement> jsonMap = new HashMap<>();
     private Map<String, CustomElementData> customElements = new HashMap<>();
 
     public CustomElementLoader() {
@@ -49,6 +50,7 @@ public class CustomElementLoader extends SimpleJsonResourceReloadListener {
 
     @Override
     protected void apply(Map<String, JsonElement> jsonMap, ResourceManager resourceManager, ProfilerFiller profiler) {
+        this.jsonMap = jsonMap;
         Map<String, CustomElementData> elements = new HashMap<>();
         
         profiler.push("custom_elements");
@@ -115,11 +117,12 @@ public class CustomElementLoader extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<String, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler, Runnable onLoadComplete) {
+    protected void apply(Map<String, JsonElement> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         apply(object, resourceManager, profiler);
         CustomElementProvider.setElements(this.customElements);
         // Sync with ElementType
         com.auranite.abloom.util.ElementType.syncCustomElements(this.customElements);
-        onLoadComplete.run();
+        // Sync damage colors
+        ElementDamageHandler.syncCustomElementColors(this.customElements);
     }
 }

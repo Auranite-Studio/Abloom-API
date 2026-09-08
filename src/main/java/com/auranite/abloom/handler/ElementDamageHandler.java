@@ -3,6 +3,7 @@ package com.auranite.abloom.handler;
 import com.auranite.abloom.*;
 import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.component.ElementalWeaponComponent;
+import com.auranite.abloom.datapack.CustomElementData;
 import com.auranite.abloom.network.SpawnDamageNumberPacket;
 import com.auranite.abloom.network.SpawnStatusTextPacket;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;

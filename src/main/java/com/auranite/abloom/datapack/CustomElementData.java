@@ -144,7 +144,7 @@ public class CustomElementData {
                 AbloomMod.LOGGER.warn("Invalid effect type '{}' for custom element '{}'", effectTypeStr, elementId);
             }
 
-            JsonObject configObj = GsonHelper.getAsObject(effectObj, "config", new JsonObject());
+            JsonObject configObj = effectObj.has("config") ? effectObj.getAsJsonObject("config") : new JsonObject();
             int duration = GsonHelper.getAsInt(configObj, "duration", 100);
             int amplifier = GsonHelper.getAsInt(configObj, "amplifier", 0);
 

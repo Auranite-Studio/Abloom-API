@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 import java.util.Map;
+import java.util.Optional;
 
 public class ElementalResistanceComponent {
 
