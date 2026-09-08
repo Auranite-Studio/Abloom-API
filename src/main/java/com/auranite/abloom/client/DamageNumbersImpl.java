@@ -15,12 +15,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.EnumMap;
 import java.util.Map;
 
 public class DamageNumbersImpl implements DamageNumbersHandler {
    private final Deque<TextParticle> particles = new ArrayDeque<>();
-   private final Map<ElementType, Integer> damageColors = new EnumMap<>(ElementType.class);
+   private final Map<ElementType, Integer> damageColors = new java.util.HashMap<>();
 
    public DamageNumbersImpl() {
       initDefaultColors();
@@ -261,7 +260,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
    }
 
    public Map<ElementType, Integer> getAllDamageColors() {
-      return new EnumMap<>(damageColors);
+      return new java.util.HashMap<>(damageColors);
    }
 
    /**

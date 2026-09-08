@@ -9,7 +9,6 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 public class ElementResistanceRegistry {
@@ -26,7 +25,7 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
 
         try {
-            for (ElementType elementType : ElementType.values()) {
+            for (ElementType elementType : ElementType.getAllElements()) {
                 String tagName = elementType.name().toLowerCase();
 
                 ElementResistanceManager.loadFromTag(
@@ -78,7 +77,7 @@ public class ElementResistanceRegistry {
     public static void registerMultiple(EntityType<?> entityType,
                                         Map<ElementType, ElementResistanceManager.Resistance> resistanceMap) {
         if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
-        ElementResistanceManager.registerResistance(entityType, new EnumMap<>(resistanceMap));
+        ElementResistanceManager.registerResistance(entityType, new java.util.HashMap<>(resistanceMap));
     }
 
     public static boolean hasResistances(EntityType<?> entityType) {
