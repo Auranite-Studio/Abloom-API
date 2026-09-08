@@ -488,7 +488,7 @@
             </ul>
 
             <div class="tip">
-                <strong>Tip:</strong> The resonance threshold is 100 points by default. Base accumulation is 1 point per hit, modified by weapon multipliers and status effects like Wetness (+100%).
+                <strong>Tip:</strong> The resonance threshold is 100 points by default. Base accumulation is 1 point per hit, modified by weapon multipliers and status effects like Wetness (+50% per level).
             </div>
         </section>
 
@@ -508,22 +508,22 @@
                     <tr>
                         <td><span class="element-physical">PHYSICAL</span></td>
                         <td>Physical resonance explosion, applies Rupture effect (target's defense reduced by 30%)</td>
-                        <td>6 seconds (120 ticks)</td>
+                        <td>12 seconds (240 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-fire">FIRE</span></td>
                         <td>Fire resonance explosion, applies Burning effect</td>
-                        <td>10 seconds (200 ticks)</td>
+                        <td>12 seconds (240 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-wind">WIND</span></td>
                         <td>Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and removes Windswept effect</td>
-                        <td>8 seconds (160 ticks)</td>
+                        <td>15 seconds (300 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-water">WATER</span></td>
-                        <td>Water resonance explosion, applies Wetness effect (increases target resonance accumulation by 100%)</td>
-                        <td>12 seconds (240 ticks)</td>
+                        <td>Water resonance explosion, applies Wetness effect (increases target resonance accumulation by 50%)</td>
+                        <td>15 seconds (300 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-earth">EARTH</span></td>
@@ -533,47 +533,47 @@
                     <tr>
                         <td><span class="element-ice">ICE</span></td>
                         <td>Ice resonance explosion, applies Freeze effect</td>
-                        <td>12 seconds (240 ticks)</td>
+                        <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-electric">ELECTRIC</span></td>
                         <td>Electric resonance explosion, applies Shock effect (target deals 20% less damage)</td>
-                        <td>10 seconds (200 ticks)</td>
+                        <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-energy">ENERGY</span></td>
                         <td>Energy resonance explosion, applies Overload effect (damage taken by target increased by 20%)</td>
-                        <td>10 seconds (200 ticks)</td>
+                        <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-natural">NATURAL</span></td>
                         <td>Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)</td>
-                        <td>8 seconds (160 ticks)</td>
+                        <td>12 seconds (240 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-quantum">QUANTUM</span></td>
                         <td>Quantum resonance explosion, applies Break effect (all damage to target ignores defense)</td>
-                        <td>6 seconds (120 ticks)</td>
+                        <td>10 seconds (200 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-ether">ETHER</span></td>
                         <td>Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)</td>
-                        <td>8 seconds (160 ticks)</td>
+                        <td>12 seconds (240 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-light">LIGHT</span></td>
                         <td>Light resonance explosion, applies Dispersion effect (damage taken by target increased by a certain amount %)</td>
-                        <td>10 seconds (200 ticks)</td>
+                        <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-shadow">SHADOW</span></td>
                         <td>Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50% reduction)</td>
-                        <td>10 seconds (200 ticks)</td>
+                        <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-prismatic">PRISMATIC</span></td>
-                        <td>Prismatic damage does NOT accumulate resonance points. When the target has the Prism effect, prism damage converts to the stored elemental damage type. If no Prism effect is active, hitting a target with any resonance effect applies Prism effect for 30 seconds, and converts subsequent prism damage to that elemental damage type.</td>
-                        <td>30 seconds (600 ticks)</td>
+                        <td>Prismatic damage does NOT accumulate resonance points. When the target has the Prism effect, prism damage converts to the stored elemental damage type. If no Prism effect is active, hitting a target with any resonance effect applies Prism effect for 40 seconds, and converts subsequent prism damage to that elemental damage type.</td>
+                        <td>40 seconds (800 ticks)</td>
                     </tr>
                 </tbody>
             </table>
@@ -656,7 +656,7 @@
                     <tr>
                         <td>Wetness</td>
                         <td><code>abloom:wetness</code></td>
-                        <td>Increases target resonance accumulation by 100%</td>
+                        <td>Increases target resonance accumulation by 50%</td>
                         <td style="color: #0080FF;">#0080FF</td>
                     </tr>
                     <tr>
