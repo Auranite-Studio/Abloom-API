@@ -5,7 +5,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 public class ElementalResistanceComponent {
@@ -85,7 +84,7 @@ public class ElementalResistanceComponent {
     }
 
     public static Map<ElementType, Float> getAllResistances(ItemStack stack) {
-        Map<ElementType, Float> result = new EnumMap<>(ElementType.class);
+        Map<ElementType, Float> result = new java.util.HashMap<>();
 
         if (stack == null || stack.isEmpty()) return result;
 
@@ -97,9 +96,19 @@ public class ElementalResistanceComponent {
 
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
 
+        // Check built-in elements
         for (ElementType type : ElementType.values()) {
             if (resistanceTag.contains(type.name())) {
                 result.put(type, resistanceTag.getFloat(type.name()));
+            }
+        }
+        
+        // Check custom elements by iterating through all keys in the tag
+        for (String key : resistanceTag.getAllKeys()) {
+            // Try to find if this key corresponds to a custom element
+            Optional<ElementType> customType = ElementType.fromDamageTypeId(key);
+            if (customType.isPresent() && !result.containsKey(customType.get())) {
+                result.put(customType.get(), resistanceTag.getFloat(key));
             }
         }
 
@@ -117,9 +126,21 @@ public class ElementalResistanceComponent {
 
         var resistanceTag = tag.getCompound(ELEMENT_RESISTANCE_KEY);
 
+        // Check built-in elements
         for (ElementType type : ElementType.values()) {
             if (resistanceTag.contains(type.name()) && resistanceTag.getFloat(type.name()) != 0.0f) {
                 return true;
+            }
+        }
+        
+        // Check custom elements by iterating through all keys in the tag
+        for (String key : resistanceTag.getAllKeys()) {
+            Optional<ElementType> customType = ElementType.fromDamageTypeId(key);
+            if (customType.isPresent()) {
+                float value = resistanceTag.getFloat(key);
+                if (value != 0.0f) {
+                    return true;
+                }
             }
         }
 

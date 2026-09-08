@@ -1,0 +1,16 @@
+{
+  "element_id": "VOID",
+  "damage_type": "abloom:void",
+  "color": 5242880,
+  "based_elemental_dmg": "FIRE",
+  "element_translation_key": "element.abloom.void",
+  "resonance_translation_key": "resonance_text.abloom.void",
+  "can_resonance_accumulation": true,
+  "effect": {
+    "type": "abloom:void_resonance_effect",
+    "config": {
+      "duration": 100,
+      "amplifier": 0
+    }
+  }
+}

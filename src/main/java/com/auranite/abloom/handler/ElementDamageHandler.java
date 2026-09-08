@@ -39,7 +39,6 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -174,7 +173,9 @@ public class ElementDamageHandler {
         return IS_PROCESSING_DAMAGE.get();
     }
 
-    private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
+    private static final Map<String, Integer> CUSTOM_DAMAGE_COLORS = new ConcurrentHashMap<>();
+    private static final Map<ElementType, Integer> DAMAGE_COLORS = new java.util.HashMap<>();
+    
     /**
      * Initializes damage colors for all element types.
      * Must be called during mod initialization before any displays are spawned.
@@ -195,9 +196,44 @@ public class ElementDamageHandler {
         DAMAGE_COLORS.put(ElementType.SHADOW, 0x4B0082);
         DAMAGE_COLORS.put(ElementType.PRISMATIC, 0xFFFFFF);
     }
+    
+    /**
+     * Register a custom damage color for a custom element type.
+     * Called automatically when custom elements are loaded from datapacks.
+     * @param elementId the custom element ID
+     * @param color the color value (0xRRGGBB format)
+     */
+    public static void registerCustomDamageColor(String elementId, int color) {
+        if (elementId != null && !elementId.isEmpty()) {
+            CUSTOM_DAMAGE_COLORS.put(elementId, color);
+            AbloomMod.LOGGER.debug("Registered custom damage color for {}: 0x{}", elementId, Integer.toHexString(color));
+        }
+    }
+    
+    /**
+     * Sync custom element colors from loaded datapack data.
+     * @param customElements map of custom element data
+     */
+    public static void syncCustomElementColors(Map<String, com.auranite.abloom.datapack.CustomElementData> customElements) {
+        CUSTOM_DAMAGE_COLORS.clear();
+        customElements.forEach((id, data) -> {
+            if (data != null && data.getColor() != 0) {
+                registerCustomDamageColor(id, data.getColor());
+            }
+        });
+    }
 
     public static int getDamageColor(ElementType type) {
         if (type == null) return 0xFFFFFF;
+        
+        // Check if it's a custom element
+        if (type.isCustom()) {
+            Optional<CustomElementData> customData = type.getCustomData();
+            if (customData.isPresent()) {
+                return customData.get().getColor();
+            }
+        }
+        
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
     }
 
@@ -665,9 +701,14 @@ public class ElementDamageHandler {
         }
         String msgId = source.type().msgId();
         if (msgId != null) {
-            for (ElementType type : ElementType.values()) {
+            // First check built-in element types
+            for (ElementType type : ElementType.getAllElements()) {
                 if (type.getDamageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) return type;
             }
+            // Then try to find custom element by damage type
+            ElementType customType = ElementType.fromVanillaDamageType(msgId);
+            if (customType != null) return customType;
+            // Fallback to vanilla mapping
             ElementType vanillaType = ElementType.fromVanillaDamageType(msgId);
             if (vanillaType != null) return vanillaType;
         }
@@ -691,7 +732,7 @@ public class ElementDamageHandler {
 
     private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
         synchronized (LAST_DAMAGE_LOCK) {
-            LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new EnumMap<>(ElementType.class)).put(type, entity.level().getGameTime());
+            LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new java.util.HashMap<>()).put(type, entity.level().getGameTime());
         }
     }
 
@@ -1053,7 +1094,7 @@ public class ElementDamageHandler {
     }
 
     public static void resetAllElementPoints(LivingEntity entity) {
-        for (ElementType type : ElementType.values()) AbloomModAttachments.resetPoints(entity, type);
+        for (ElementType type : ElementType.getAllElements()) AbloomModAttachments.resetPoints(entity, type);
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
         }

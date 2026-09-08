@@ -128,5 +128,13 @@
   "death.attack.prismatic_dmg.item": "%1$s was killed by %2$s using %3$s",
   "death.attack.prismatic_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.conversion": "КОНВЕРТАЦИЯ!",
-  "effect.abloom.suppression": "Подавление"
+  "effect.abloom.suppression": "Подавление",
+  "elemental.tooltip.void": "Void DMG",
+  "elemental.resistance.void": "Void DMG Res: ",
+  "death.attack.void": "%1$s died",
+  "death.attack.void.item": "%1$s was killed by %2$s using %3$s",
+  "death.attack.void.player": "%1$s died whilst trying to escape %2$s",
+  "element.abloom.void": "Void",
+  "resonance_text.abloom.void": "VOID!",
+  "effect.abloom.void_resonance_effect": "Void Resonance"
 }

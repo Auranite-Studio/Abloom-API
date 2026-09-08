@@ -1,0 +1,16 @@
+{
+  "element_id": "CUSTOM_ELEMENT",
+  "damage_type": "yourmod:custom_element",
+  "color": 2818124,
+  "based_elemental_dmg": "FIRE",
+  "element_translation_key": "element.yourmod.custom",
+  "resonance_translation_key": "resonance_text.yourmod.custom",
+  "can_resonance_accumulation": true,
+  "effect": {
+    "type": "yourmod:custom_resonance_effect",
+    "config": {
+      "duration": 100,
+      "amplifier": 0
+    }
+  }
+}
