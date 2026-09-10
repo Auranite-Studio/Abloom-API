@@ -17,10 +17,14 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DamageNumbersImpl implements DamageNumbersHandler {
    private final Deque<TextParticle> particles = new ArrayDeque<>();
    private final Map<ElementType, Integer> damageColors = new EnumMap<>(ElementType.class);
+   // Track vertical offset per entity for status texts to prevent overlapping
+   static final Map<Integer, Double> statusTextOffsets = new ConcurrentHashMap<>();
+   private static final double STATUS_TEXT_VERTICAL_SPACING = 0.3;
 
    public DamageNumbersImpl() {
       initDefaultColors();
@@ -230,11 +234,16 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
          return;
       }
       
-      // Create status text particle
+      // Calculate vertical offset to prevent overlapping status texts
+      double yOffset = DamageNumbersImpl.statusTextOffsets.getOrDefault(entityId, 0.0);
+      DamageNumbersImpl.statusTextOffsets.merge(entityId, STATUS_TEXT_VERTICAL_SPACING, Double::sum);
+      
+      // Create status text particle with offset position
       StatusTextParticle particle = new StatusTextParticle(
               world,
-              entity.position().add(0.0F, entity.getBbHeight() + 1.2F, 0.0F),
-              entity.getDeltaMovement()
+              entity.position().add(0.0F, entity.getBbHeight() + 1.2F + (float) yOffset, 0.0F),
+              entity.getDeltaMovement(),
+              yOffset
       );
       
       particle.setText(textComponent.getString());
@@ -274,6 +283,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
       private int originalColor = 0xFFFFFF;
       private int targetEntityId = -1;
       private double spawnX, spawnY, spawnZ;
+      private double verticalOffset = 0.0;
       private static final double STATUS_FLOAT_SPEED = 0.15;
       private static final double STATUS_FLOAT_AMPLITUDE = 0.02;
 
@@ -286,11 +296,20 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
          this.spawnZ = pos.z;
       }
 
+      public StatusTextParticle(ClientLevel world, Vec3 pos, Vec3 velocity, double verticalOffset) {
+         this(world, pos, velocity);
+         this.verticalOffset = verticalOffset;
+      }
+
       public void setStatusText(boolean status) {
          this.isStatusText = status;
          if (status) {
             this.originalColor = new Color(this.rCol, this.gCol, this.bCol, this.alpha).getValue();
          }
+      }
+
+      public void setVerticalOffset(double offset) {
+         this.verticalOffset = offset;
       }
 
       @Override
@@ -303,6 +322,10 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
          this.ticksAlive++;
          
          if (this.ticksAlive >= this.lifetime) {
+            // Reset vertical offset for this entity when particle expires
+            if (targetEntityId >= 0) {
+               DamageNumbersImpl.statusTextOffsets.remove(targetEntityId);
+            }
             this.remove();
             return;
          }
@@ -313,7 +336,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
             // Follow the target entity
             Entity target = this.level.getEntity(this.targetEntityId);
             if (target != null && target.isAlive()) {
-               double targetY = target.getY() + target.getBbHeight() + 1.2;
+               double targetY = target.getY() + target.getBbHeight() + 1.2 + verticalOffset;
                double targetX = target.getX();
                double targetZ = target.getZ();
                
