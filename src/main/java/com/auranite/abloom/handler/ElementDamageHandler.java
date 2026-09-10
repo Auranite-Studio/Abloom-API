@@ -77,6 +77,10 @@ public class ElementDamageHandler {
     private static final Map<Integer, Long> DAMAGE_COOLDOWNS = new ConcurrentHashMap<>();
     private static final int COOLDOWN_TICKS = 5;
 
+    // Erosion cooldown map: entityId -> last erosion trigger time (in ticks)
+    private static final Map<Integer, Long> EROSION_COOLDOWNS = new ConcurrentHashMap<>();
+    private static final int EROSION_COOLDOWN_TICKS = 100; // 5 seconds
+
     private static final Map<Integer, Map<ElementType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
     private static final Object LAST_DAMAGE_LOCK = new Object();
 
@@ -516,9 +520,19 @@ public class ElementDamageHandler {
         }
 
         if (erosionActive && type != ElementType.WIND) {
-            spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
-            pointsToAdd = 100;
-            target.removeEffect(AbloomModEffects.WINDSWEPT);
+            long currentTime = target.level().getGameTime();
+            long lastErosionTime = EROSION_COOLDOWNS.getOrDefault(target.getId(), 0L);
+
+            if (currentTime - lastErosionTime >= EROSION_COOLDOWN_TICKS) {
+                spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
+                pointsToAdd = 100;
+                EROSION_COOLDOWNS.put(target.getId(), currentTime);
+
+                // Clean up old erosion cooldowns for entities that no longer have WINDSWEPT
+                if (!target.hasEffect(AbloomModEffects.WINDSWEPT)) {
+                    EROSION_COOLDOWNS.remove(target.getId());
+                }
+            }
         }
 
         // Prism damage that is converted does NOT accumulate resonance points
@@ -551,7 +565,8 @@ public class ElementDamageHandler {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
                 AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
             }
-            finalDamage = applyThresholdEffect(target, type, finalDamage);
+            boolean isErosionTrigger = (erosionActive && type != ElementType.WIND);
+            finalDamage = applyThresholdEffect(target, type, finalDamage, isErosionTrigger);
             AbloomModAttachments.resetPoints(target, type);
         }
 
@@ -578,6 +593,7 @@ public class ElementDamageHandler {
         }
         
         DAMAGE_COOLDOWNS.remove(entity.getId());
+        EROSION_COOLDOWNS.remove(entity.getId());
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
         }
@@ -614,6 +630,7 @@ public class ElementDamageHandler {
         Entity entity = event.getEntity();
         if (entity instanceof LivingEntity) {
             DAMAGE_COOLDOWNS.remove(entity.getId());
+            EROSION_COOLDOWNS.remove(entity.getId());
             synchronized (LAST_DAMAGE_LOCK) {
                 LAST_DAMAGE_TIME.remove(entity.getId());
             }
@@ -854,69 +871,76 @@ public class ElementDamageHandler {
     }
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage) {
+        return applyThresholdEffect(target, type, originalDamage, false);
+    }
+
+    private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage, boolean isErosionTrigger) {
+        // Erosion triggers apply effects at half duration
+        int durationMultiplier = isErosionTrigger ? 10 : 20; // half of standard (20 ticks = 1 second)
+
         return switch (type) {
             case FIRE -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 12 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
                 yield originalDamage * 1.25f;
             }
             case PHYSICAL -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 12 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
                 yield originalDamage * 2.0f;
             }
             case WIND -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 15 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 15 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
                 yield originalDamage * 1.5f;
             }
             case WATER -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 15 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 15 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
                 yield originalDamage * 1.5f;
             }
             case EARTH -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 5 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 5 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
                 yield originalDamage * 1.5f;
             }
             case ICE -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 14 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
                 yield originalDamage * 1.25f;
             }
             case ELECTRIC -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 14 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
                 yield originalDamage * 1.5f;
             }
             case ENERGY -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 14 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
                 yield originalDamage * 1.5f;
             }
             case NATURAL -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 12 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
                 yield originalDamage * 1.25f;
             }
             case QUANTUM -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 10 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 10 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
                 yield originalDamage * 1.25f;
             }
             case ETHER -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 12 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
                 yield originalDamage * 1.25f;
             }
             case LIGHT -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 14 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
                 yield originalDamage * 1.5f;
             }
             case SHADOW -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 14 * 20, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.shadow_eclipse"), 0x4B0082);
                 yield originalDamage * 1.5f;
             }
