@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class DispersionEffect extends MobEffect {
     public DispersionEffect(int color) {
-        super(MobEffectCategory.BENEFICIAL, color);
+        super(MobEffectCategory.HARMFUL, color);
     }
 
     @Override
