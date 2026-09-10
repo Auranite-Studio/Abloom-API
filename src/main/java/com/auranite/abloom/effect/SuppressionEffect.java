@@ -11,7 +11,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 
 public class SuppressionEffect extends MobEffect {
     public SuppressionEffect(int color) {
-        super(MobEffectCategory.BENEFICIAL, color);
+        super(MobEffectCategory.HARMFUL, color);
         this.addAttributeModifier(AbloomModAttributes.CRIT_DMG, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.suppression_0"), -0.3, AttributeModifier.Operation.ADD_VALUE);
     }
 
