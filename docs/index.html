@@ -517,7 +517,7 @@
                     </tr>
                     <tr>
                         <td><span class="element-wind">WIND</span></td>
-                        <td>Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and removes Windswept effect</td>
+                        <td>Wind resonance explosion, applies Windswept effect. Applying any other elemental damage (except Wind) while this effect is active triggers the corresponding resonance explosion and can be triggered once every 5 seconds, and the duration of the resonance effect triggered by wind is half of its original value</td>
                         <td>15 seconds (300 ticks)</td>
                     </tr>
                     <tr>
@@ -553,7 +553,7 @@
                     <tr>
                         <td><span class="element-quantum">QUANTUM</span></td>
                         <td>Quantum resonance explosion, applies Break effect (all damage to target ignores defense)</td>
-                        <td>10 seconds (200 ticks)</td>
+                        <td>8 seconds (160 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-ether">ETHER</span></td>
@@ -562,12 +562,12 @@
                     </tr>
                     <tr>
                         <td><span class="element-light">LIGHT</span></td>
-                        <td>Light resonance explosion, applies Dispersion effect (damage taken by target increased by a certain amount %)</td>
+                        <td>Light resonance explosion, applies Dispersion effect that increases damage taken based on incoming damage element type: Physical +15%, Fire +15%, Wind +30%, Water +30%, Earth +15%, Ice +15%, Electric +30%, Energy +15%, Natural +15%, Quantum +15%, Ether +15%, Light +30%, Shadow +20%, Prismatic +30%</td>
                         <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
                         <td><span class="element-shadow">SHADOW</span></td>
-                        <td>Shadow resonance explosion, applies Eclipse effect (target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50% reduction)</td>
+                        <td>Shadow resonance explosion, applies Eclipse effect (target's defense reduced by 10% + 10% per additional negative effect, max 50% reduction)</td>
                         <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
@@ -722,13 +722,13 @@
                     <tr>
                         <td>Dispersion</td>
                         <td><code>abloom:dispersion</code></td>
-                        <td>Damage taken by target increased by a certain amount %</td>
+                        <td>Damage taken by target increases damage taken based on incoming damage element type: Physical +15%, Fire +15%, Wind +30%, Water +30%, Earth +15%, Ice +15%, Electric +30%, Energy +15%, Natural +15%, Quantum +15%, Ether +15%, Light +30%, Shadow +20%, Prismatic +30%</td>
                         <td style="color: #FFFFE0;">#FF1A5</td>
                     </tr>
                     <tr>
                         <td>Eclipse</td>
                         <td><code>abloom:eclipse</code></td>
-                        <td>Target's defense and damage dealt reduced by 10% + 10% per additional negative effect, max 50%</td>
+                        <td>Target's defense reduced by 10% + 10% per additional negative effect, max 50%</td>
                         <td style="color: #4B0082;">#4B0082</td>
                     </tr>
                     <tr>

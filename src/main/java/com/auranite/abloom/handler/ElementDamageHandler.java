@@ -925,7 +925,7 @@ public class ElementDamageHandler {
                 yield originalDamage * 1.25f;
             }
             case QUANTUM -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 10 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 8 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
                 yield originalDamage * 1.25f;
             }
@@ -956,18 +956,18 @@ public class ElementDamageHandler {
         return switch (type) {
             case PHYSICAL -> 0.15f;
             case FIRE -> 0.15f;
-            case WIND -> 0.10f;
-            case WATER -> 0.20f;
+            case WIND -> 0.30f;
+            case WATER -> 0.30f;
             case EARTH -> 0.15f;
             case ICE -> 0.15f;
-            case ELECTRIC -> 0.20f;
+            case ELECTRIC -> 0.30f;
             case ENERGY -> 0.15f;
-            case NATURAL -> 0.10f;
-            case QUANTUM -> 0.10f;
-            case ETHER -> 0.10f;
+            case NATURAL -> 0.15f;
+            case QUANTUM -> 0.15f;
+            case ETHER -> 0.15f;
             case LIGHT -> 0.30f;
             case SHADOW -> 0.20f;
-            case PRISMATIC -> 0.25f;
+            case PRISMATIC -> 0.30f;
             default -> 0.00f;
         };
     }
