@@ -1,1 +1,9 @@
-(docs/index_ru.html is a source/html file, not a build artifact or temporary file, so no ignores are needed)
+# Examples and Documentation
+docs/index_ru.html
+docs/index.html
+
+Wait, I need to reconsider this. The files being modified are documentation HTML files, which appear to be source content rather than build artifacts. These shouldn't be ignored since they seem to be part of the actual project content.
+
+Since the only changes are to documentation HTML files (no build artifacts, dependencies, or temporary files), the .gitignore should remain empty.
+
+(nothing)

@@ -444,22 +444,112 @@
                 font-size: 0.9em;
             }
         }
+    
+        /* Language visibility classes */
+        .lang-en { display: inline; }
+        .lang-ru { display: none; }
+        
+        body.lang-ru .lang-en { display: none; }
+        body.lang-ru .lang-ru { display: inline; }
+        
+        /* For block elements like p, h2, h3 */
+        p.lang-en, p.lang-ru,
+        h2.lang-en, h2.lang-ru,
+        h3.lang-en, h3.lang-ru,
+        strong.lang-en, strong.lang-ru {
+            display: none;
+        }
+        
+        body.lang-en p.lang-en,
+        body.lang-en h2.lang-en,
+        body.lang-en h3.lang-en,
+        body.lang-en strong.lang-en {
+            display: block;
+        }
+        
+        body.lang-ru p.lang-ru,
+        body.lang-ru h2.lang-ru,
+        body.lang-ru h3.lang-ru,
+        body.lang-ru strong.lang-ru {
+            display: block;
+        }
+        
+        /* For inline elements inside other elements */
+        span.lang-en, span.lang-ru {
+            display: inline;
+        }
+        
+        body.lang-en span.lang-en { display: inline; }
+        body.lang-en span.lang-ru { display: none; }
+        body.lang-ru span.lang-en { display: none; }
+        body.lang-ru span.lang-ru { display: inline; }
+        
+        /* For list items */
+        li strong.lang-en, li strong.lang-ru {
+            display: inline;
+            font-weight: bold;
+        }
+        
+        body.lang-en li strong.lang-en { display: inline; }
+        body.lang-en li strong.lang-ru { display: none; }
+        body.lang-ru li strong.lang-en { display: none; }
+        body.lang-ru li strong.lang-ru { display: inline; }
+        
+        /* Language toggle button styles */
+        .lang-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 100px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: none;
+            background: var(--section-bg);
+            color: var(--text-color);
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lang-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .lang-toggle {
+                bottom: 15px;
+                right: 75px;
+                width: 48px;
+                height: 48px;
+                font-size: 1em;
+            }
+        }
+
     </style>
 </head>
 <body>
+    <button class="lang-toggle" id="langToggle" title="Switch language">RU</button>
     <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
 
     <div class="container">
         <header>
             <h1>🌸 Abloom API Mod</h1>
-            <p>Elemental Combat System for Minecraft</p>
+            <p class="lang-en">Elemental Combat System for Minecraft</p>
+            <p class="lang-ru">Система элементального боя для Minecraft</p>
         </header>
 
         <nav>
             <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation menu">☰</button>
             <ul id="navMenu">
-                <li><a href="#overview">Overview</a></li>
-                <li><a href="#mechanics">Mechanics</a></li>
+                <li><a href="#overview"><span class="lang-en">Overview</span><span class="lang-ru">Обзор</span></a></li>
+                <li><a href="#mechanics"><span class="lang-en">Mechanics</span><span class="lang-ru">Механика</span></a></li>
                 <li><a href="#effects">Status Effects</a></li>
                 <li><a href="#weapons">Weapon System</a></li>
                 <li><a href="#combat">Combat API</a></li>
@@ -468,23 +558,24 @@
             </ul>
         </nav>
 
-        <section id="overview">
-            <h2>Overview</h2>
-            <p>Abloom is a comprehensive combat modification that introduces an elemental resonance system with 14 unique elements. Each element has its own accumulation mechanics, special status effects, and strategic applications.</p>
+<section id="overview">
+            <h2><span class="lang-en">Overview</span><span class="lang-ru">Обзор</span></h2>
+            <p class="lang-en">Abloom is a comprehensive combat modification that introduces an elemental resonance system with 14 unique elements. Each element has its own accumulation mechanics, special status effects, and strategic applications.</p>
+            <p class="lang-ru">Abloom — это комплексная боевая модификация, которая вводит систему элементального резонанса с 14 уникальными элементами. Каждый элемент имеет свою механику накопления, специальные статусные эффекты и стратегическое применение.</p>
 
-            <h3>Key Features:</h3>
+            <h3><span class="lang-en">Key Features:</span><span class="lang-ru">Ключевые особенности:</span></h3>
             <ul>
-                <li><strong>14 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW, PRISMATIC</li>
-                <li><strong>Resonance System:</strong> Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
-                <li><strong>18 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Fluorescence, Suppression</li>
-                <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 4 attack stages with different elements and accumulation multipliers</li>
-                <li><strong>Critical Hit System:</strong> Custom CRIT_CHANCE and CRIT_DMG attributes with weapon-specific bonuses</li>
-                <li><strong>Armor Resistances:</strong> Armor pieces can provide resistance or weakness to specific elements (-0.99 to 0.99)</li>
-                <li><strong>Elemental Projectiles:</strong> Arrows and projectiles can inherit element from shooter's weapon or be forced to specific element</li>
-                <li><strong>Damage Priority System:</strong> Resolve conflicts with other mods using priority-based damage modification (HIGHEST=300, HIGH=200, NORMAL=0, LOW=-100, LOWEST=-300)</li>
-                <li><strong>Damage Number Display:</strong> Visual feedback with configurable damage numbers and status texts</li>
-                <li><strong>Datapack Support:</strong> Configure weapons, armor, and mob properties without code</li>
-                <li><strong>Developer API:</strong> Comprehensive Java API for mod integration</li>
+                <li><strong class="lang-en">14 Element Types</strong><strong class="lang-ru">14 типов элементов</strong>: FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW, PRISMATIC</li>
+                <li><strong class="lang-en">Resonance System</strong><strong class="lang-ru">Система резонанса</strong>: Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
+                <li><strong class="lang-en">18 Status Effects</strong><strong class="lang-ru">18 статусных эффектов</strong>: Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Fluorescence, Suppression</li>
+                <li><strong class="lang-en">Multi-Stage Weapons</strong><strong class="lang-ru">Многоступенчатое оружие</strong>: Weapons can have up to 4 attack stages with different elements and accumulation multipliers</li>
+                <li><strong class="lang-en">Critical Hit System</strong><strong class="lang-ru">Система критических ударов</strong>: Custom CRIT_CHANCE and CRIT_DMG attributes with weapon-specific bonuses</li>
+                <li><strong class="lang-en">Armor Resistances</strong><strong class="lang-ru">Сопротивления брони</strong>: Armor pieces can provide resistance or weakness to specific elements (-0.99 to 0.99)</li>
+                <li><strong class="lang-en">Elemental Projectiles</strong><strong class="lang-ru">Элементальные снаряды</strong>: Arrows and projectiles can inherit element from shooter's weapon or be forced to specific element</li>
+                <li><strong class="lang-en">Damage Priority System</strong><strong class="lang-ru">Система приоритетов урона</strong>: Resolve conflicts with other mods using priority-based damage modification (HIGHEST=300, HIGH=200, NORMAL=0, LOW=-100, LOWEST=-300)</li>
+                <li><strong class="lang-en">Damage Number Display</strong><strong class="lang-ru">Отображение чисел урона</strong>: Visual feedback with configurable damage numbers and status texts</li>
+                <li><strong class="lang-en">Datapack Support</strong><strong class="lang-ru">Поддержка датапаков</strong>: Configure weapons, armor, and mob properties without code</li>
+                <li><strong class="lang-en">Developer API</strong><strong class="lang-ru">Developer API</strong>: Comprehensive Java API for mod integration</li>
             </ul>
 
             <div class="tip">
@@ -492,10 +583,10 @@
             </div>
         </section>
 
-        <section id="mechanics">
-            <h2>Mechanics</h2>
+<section id="mechanics">
+            <h2><span class="lang-en">Mechanics</span><span class="lang-ru">Механика</span></h2>
 
-            <h3>Element Types & Resonance Effects</h3>
+            <h3><span class="lang-en">Element Types & Resonance Effects</span><span class="lang-ru">Типы элементов и эффекты резонанса</span></h3>
             <table>
                 <thead>
                     <tr>
@@ -582,7 +673,7 @@
                 <strong>Note:</strong> Since prismatic damage does not accumulate resonance points, the <code>accumulation_multiplier</code> field will not affect it.
             </div>
 
-            <h3>Damage Priority System</h3>
+            <h3><span class="lang-en">Damage Priority System</span><span class="lang-ru">Система приоритетов урона</span></h3>
             <p>The damage priority system resolves conflicts when multiple mods modify damage simultaneously. Modifiers are sorted by priority (highest to lowest) and called in registration order (FIFO) for equal priorities.</p>
 
             <table>
@@ -633,9 +724,10 @@
             </div>
         </section>
 
-        <section id="effects">
-            <h2>Status Effects</h2>
-            <p>Abloom adds 16 custom status effects that can be applied through elemental resonance or other means:</p>
+<section id="effects">
+            <h2><span class="lang-en">Status Effects</span><span class="lang-ru">Статусные эффекты</span></h2>
+            <p class="lang-en">Abloom adds 16 custom status effects that can be applied through elemental resonance or other means:</p>
+            <p class="lang-ru">Abloom добавляет 16 пользовательских статусных эффектов, которые могут применяться через элементальный резонанс или другими способами:</p>
 
             <table>
                 <thead>
@@ -759,10 +851,10 @@
             </table>
         </section>
 
-        <section id="weapons">
-            <h2>Weapon System</h2>
+<section id="weapons">
+            <h2><span class="lang-en">Weapon System</span><span class="lang-ru">Система оружия</span></h2>
 
-            <h3>Weapons Registration</h3>
+            <h3><span class="lang-en">Weapons Registration</span><span class="lang-ru">Регистрация оружия</span></h3>
             <p>Weapons can be registered with elemental properties. Multi-stage weapons can have up to 4 attack stages, each with its own element type and accumulation multiplier. Stages reset after cooldown based on attack speed.</p>
 
             <h4>Multi-Stage Registration Example:</h4>
@@ -802,7 +894,7 @@ ElementalWeaponRegistry.registerBuiltinWeapon(
     0.75f                           // crit damage
 );</code></pre>
 
-            <h3>Critical Hit System</h3>
+            <h3><span class="lang-en">Critical Hit System</span><span class="lang-ru">Система критических ударов</span></h3>
             <p>Abloom adds two custom attributes for critical hits:</p>
             <ul>
                 <li><strong>CRIT_CHANCE</strong> (<code>abloom:crit_chance</code>): -2 to 2 (-200% to 200%). Maximum is clamped to 2.0 (200%) to enable multi-crit.</li>
@@ -833,10 +925,10 @@ ElementalWeaponRegistry.registerWeapon(
 );</code></pre>
         </section>
 
-        <section id="combat">
-            <h2>Combat API</h2>
+<section id="combat">
+            <h2><span class="lang-en">Combat API</span><span class="lang-ru">Combat API</span></h2>
 
-            <h3>Dealing Elemental Damage</h3>
+            <h3><span class="lang-en">Dealing Elemental Damage</span><span class="lang-ru">Нанесение элементального урона</span></h3>
             <pre><code>// Deal elemental damage
 ElementDamageHandler.dealElementDamage(target, ElementType.FIRE, 10.0f);
 
@@ -849,7 +941,7 @@ ElementDamageHandler.dealElementDamage(target, ElementType.FIRE, 10.0f, 50);
 // Instant damage (bypasses some modifiers)
 ElementDamageHandler.applyElementalDamageInstant(target, source, ElementType.FIRE, 10.0f, 1.0f);</code></pre>
 
-            <h3>Managing Accumulation Points</h3>
+            <h3><span class="lang-en">Managing Accumulation Points</span><span class="lang-ru">Управление очками накопления</span></h3>
             <pre><code>// Add accumulation points
 ElementDamageHandler.addElementPoints(entity, ElementType.FIRE, 25);
 
@@ -865,7 +957,7 @@ ElementDamageHandler.resetAllElementPoints(entity);
 // Get progress (0-100%)
 int progress = ElementDamageHandler.getAccumulationProgress(entity, ElementType.FIRE);</code></pre>
 
-            <h3>Elemental Projectiles</h3>
+            <h3><span class="lang-en">Elemental Projectiles</span><span class="lang-ru">Элементальные снаряды</span></h3>
             <pre><code>// Register projectile by entity type
 ElementalProjectileRegistry.registerProjectile(EntityType.ARROW, ElementType.FIRE, 1.5f);
 
@@ -904,7 +996,7 @@ Arrow projectile = ElementalProjectileRegistry.createElementalProjectileWithOver
 // Enable/disable inheriting element from shooter (default: true)
 ElementalProjectileRegistry.setInheritElementFromShooter(true);</code></pre>
 
-            <h3>Armor Resistances</h3>
+            <h3><span class="lang-en">Armor Resistances</span><span class="lang-ru">Сопротивления брони</span></h3>
             <pre><code>// Register armor with single resistance
 ArmorResistanceRegistry.registerArmor(myArmor, ElementType.FIRE, 0.3f);
 
@@ -929,7 +1021,7 @@ float fireRes = ElementalResistanceComponent.getResistance(stack, ElementType.FI
 // Get all resistances
 Map&lt;ElementType, Float&gt; allResistances = ElementalResistanceComponent.getAllResistances(stack);</code></pre>
 
-            <h3>Checking Resistances</h3>
+            <h3><span class="lang-en">Checking Resistances</span><span class="lang-ru">Проверка сопротивлений</span></h3>
             <pre><code>// Get entity resistance
 ElementResistanceManager.Resistance resistance =
     ElementResistanceManager.getResistance(entity, ElementType.FIRE);
@@ -957,7 +1049,7 @@ int points = ElementResistanceManager.calculateAccumulationPoints(
     10
 );</code></pre>
 
-            <h3>Damage Display</h3>
+            <h3><span class="lang-en">Damage Display</span><span class="lang-ru">Отображение урона</span></h3>
             <pre><code>// Check if damage numbers enabled
 boolean enabled = AbloomConfig.areDamageNumbersEnabled();
 
@@ -976,10 +1068,10 @@ displayManager.spawnStatusText(
 );</code></pre>
         </section>
 
-        <section id="integration">
-            <h2>Mod Integration</h2>
+<section id="integration">
+            <h2><span class="lang-en">Mod Integration</span><span class="lang-ru">Интеграция с модами</span></h2>
 
-            <h3>Damage Modification System</h3>
+            <h3><span class="lang-en">Damage Modification System</span><span class="lang-ru">Система модификации урона</span></h3>
             <p>Register damage modifiers with priorities to integrate with Abloom's damage pipeline:</p>
 
             <pre><code>// Register modifier with explicit priority
@@ -1005,7 +1097,7 @@ float lowPriorityDamage = DamageModificationManager.processLowPriorityDamage(
 // Debug: get registered modifier count
 int count = DamageModificationManager.getRegisteredModifierCount();</code></pre>
 
-            <h3>Entity Resistance Tags</h3>
+            <h3><span class="lang-en">Entity Resistance Tags</span><span class="lang-ru">Теги сопротивлений сущностей</span></h3>
             <p>Use predefined tags to register mob resistances in datapacks:</p>
             <pre><code>// Available tag keys
 Tags.FIRE_RESISTANCE      Tags.FIRE_WEAKNESS
@@ -1021,7 +1113,7 @@ Tags.ETHER_RESISTANCE     Tags.ETHER_WEAKNESS
 Tags.LIGHT_RESISTANCE     Tags.LIGHT_WEAKNESS
 Tags.SHADOW_RESISTANCE    Tags.SHADOW_WEAKNESS</code></pre>
 
-            <h3>Complete Integration Example</h3>
+            <h3><span class="lang-en">Complete Integration Example</span><span class="lang-ru">Полный пример интеграции</span></h3>
             <pre><code>package com.example.mymod;
 
 import com.auranite.abloom.*;
@@ -1100,10 +1192,10 @@ public class MyModElements {
 
         </section>
 
-        <section id="configuration">
-            <h2>Datapack Configuration</h2>
+<section id="configuration">
+            <h2><span class="lang-en">Datapack Configuration</span><span class="lang-ru">Настройка датапаков</span></h2>
 
-            <h3>Directory Structure</h3>
+            <h3><span class="lang-en">Directory Structure</span><span class="lang-ru">Структура директорий</span></h3>
             <pre>your_datapack.zip
 └── data
     └── abloom
@@ -1118,7 +1210,7 @@ public class MyModElements {
                     │   └── weakness.json
                     └── [other elements]/</pre>
 
-            <h3>Elemental Weapons Configuration</h3>
+            <h3><span class="lang-en">Elemental Weapons Configuration</span><span class="lang-ru">Конфигурация элементального оружия</span></h3>
             <p>Weapons can be configured with or without attack stages. Multi-stage weapons deal different element types and accumulation values per hit, while single-element weapons maintain consistent behavior.</p>
 
             <h4>Multi-Stage Weapon Example</h4>
@@ -1195,7 +1287,7 @@ public class MyModElements {
                 <strong>Note:</strong> If <code>stages</code> is present, the <code>accumulation_multiplier</code> field at the root level is ignored. Use stages for complex weapons with evolving damage patterns, or omit stages for consistent single-element weapons.
             </div>
 
-            <h3>Armor Resistances Configuration</h3>
+            <h3><span class="lang-en">Armor Resistances Configuration</span><span class="lang-ru">Конфигурация сопротивлений брони</span></h3>
             <pre><code>{
   "item": "minecraft:leather_helmet",
   "resistances": {
@@ -1204,7 +1296,7 @@ public class MyModElements {
   }
 }</code></pre>
 
-            <h3>Mob Elemental Properties</h3>
+            <h3><span class="lang-en">Mob Elemental Properties</span><span class="lang-ru">Свойства элементальных мобов</span></h3>
             <pre><code>// data/abloom/tags/entity_type/element_resistance/fire/resistance.json
 {
   "replace": false,
@@ -1227,7 +1319,7 @@ public class MyModElements {
   ]
 }</code></pre>
 
-            <h3>Loading Datapacks</h3>
+            <h3><span class="lang-en">Loading Datapacks</span><span class="lang-ru">Загрузка датапаков</span></h3>
             <ol>
                 <li>Place your datapack in <code>.minecraft/saves/[worldname]/datapacks/</code></li>
                 <li>Reload with <code>/reload</code> command</li>
@@ -1250,13 +1342,37 @@ public class MyModElements {
             </div>
         </section>
 
-        <footer>
+<footer>
             <p>Abloom Mod Documentation | Generated for GitHub Pages</p>
             <p>For more information, visit the <a href="https://github.com/your-repo/abloom" style="color: white;">GitHub Repository</a></p>
         </footer>
     </div>
 
     <script>
+        
+            // Language toggle functionality
+            const langToggle = document.getElementById('langToggle');
+            if (langToggle) {
+                const savedLang = localStorage.getItem('language') || 'en';
+                if (savedLang === 'ru') {
+                    document.body.classList.add('lang-ru');
+                    langToggle.textContent = 'EN';
+                    langToggle.title = 'Switch to English';
+                    document.documentElement.lang = 'ru';
+                    document.title = 'Abloom Mod - Документация';
+                }
+                
+                langToggle.addEventListener('click', function() {
+                    document.body.classList.toggle('lang-ru');
+                    const isRu = document.body.classList.contains('lang-ru');
+                    this.textContent = isRu ? 'EN' : 'RU';
+                    this.title = isRu ? 'Switch to English' : 'Переключить на русский';
+                    document.documentElement.lang = isRu ? 'ru' : 'en';
+                    document.title = isRu ? 'Abloom Mod - Документация' : 'Abloom Mod - Documentation';
+                    localStorage.setItem('language', isRu ? 'ru' : 'en');
+                });
+            }
+
         (function() {
             const themeToggle = document.getElementById('themeToggle');
             const savedTheme = localStorage.getItem('theme');
