@@ -128,5 +128,7 @@
   "death.attack.prismatic_dmg.item": "%1$s was killed by %2$s using %3$s",
   "death.attack.prismatic_dmg.player": "%1$s died whilst trying to escape %2$s",
   "elemental.tooltip.conversion": "КОНВЕРТАЦИЯ!",
+  "elemental.tooltip.reaction": "РЕЗОНАНС!",
+  "elemental.tooltip.resonance_reaction": "Резонансная реакция",
   "effect.abloom.suppression": "Подавление"
 }

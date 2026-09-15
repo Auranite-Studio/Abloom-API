@@ -36,6 +36,7 @@ public class ElementalWeaponData {
     private final float accumulationMultiplier; // total accumulation for tooltip display
     private final float critChance;
     private final float critDamage;
+    private final boolean resonanceReaction;
 
     private final List<WeaponStage> stages;
 
@@ -77,15 +78,20 @@ public class ElementalWeaponData {
     }
 
     public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage) {
-        this(item, baseElement, accumulationMultiplier, critChance, critDamage, Collections.emptyList());
+        this(item, baseElement, accumulationMultiplier, critChance, critDamage, false, Collections.emptyList());
     }
 
-    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, List<WeaponStage> stages) {
+    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, boolean resonanceReaction) {
+        this(item, baseElement, accumulationMultiplier, critChance, critDamage, resonanceReaction, Collections.emptyList());
+    }
+
+    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, boolean resonanceReaction, List<WeaponStage> stages) {
         this.item = item;
         this.baseElement = baseElement;
         this.accumulationMultiplier = accumulationMultiplier;
         this.critChance = critChance;
         this.critDamage = critDamage;
+        this.resonanceReaction = resonanceReaction;
         this.stages = stages;
     }
 
@@ -115,6 +121,10 @@ public class ElementalWeaponData {
 
     public float getCritDamage() {
         return critDamage;
+    }
+
+    public boolean hasResonanceReaction() {
+        return resonanceReaction;
     }
 
     public Optional<ResourceLocation> getItemResourceLocation() {
@@ -209,6 +219,7 @@ public class ElementalWeaponData {
                 GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f),
                 critChance,
                 critDamage,
+                GsonHelper.getAsBoolean(json, "resonance_reaction", false),
                 stages);
     }
 

@@ -39,6 +39,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
@@ -83,6 +84,24 @@ public class ElementDamageHandler {
 
     private static final Map<Integer, Map<ElementType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
     private static final Object LAST_DAMAGE_LOCK = new Object();
+
+    // Resonance reaction damage multipliers (as percentage of base damage)
+    private static final Map<ElementType, Float> RESONANCE_REACTION_MULTIPLIERS = new EnumMap<>(ElementType.class);
+    static {
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.PHYSICAL, 2.00f);   // 200%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.FIRE, 1.75f);      // 175%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.WIND, 1.15f);      // 115%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.WATER, 1.50f);     // 150%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.EARTH, 2.00f);     // 200%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.ICE, 1.75f);       // 175%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.ELECTRIC, 2.25f);  // 225%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.ENERGY, 2.25f);    // 225%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.NATURAL, 1.75f);   // 175%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.QUANTUM, 1.75f);   // 175%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.ETHER, 1.75f);     // 175%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.LIGHT, 2.25f);     // 225%
+        RESONANCE_REACTION_MULTIPLIERS.put(ElementType.SHADOW, 2.25f);    // 225%
+    }
 
     private static MinecraftServer currentServer = null;
     private static int serverTickCounter = 0;
@@ -176,6 +195,98 @@ public class ElementDamageHandler {
      */
     public static boolean isProcessingDamage() {
         return IS_PROCESSING_DAMAGE.get();
+    }
+
+    /**
+     * Gets a list of all element types that have active resonance effects on the target.
+     * @param target the living entity to check
+     * @return list of element types with active resonance effects
+     */
+    private static List<ElementType> getActiveResonanceElements(LivingEntity target) {
+        List<ElementType> activeElements = new ArrayList<>();
+
+        if (target.hasEffect(AbloomModEffects.BURN)) activeElements.add(ElementType.FIRE);
+        if (target.hasEffect(AbloomModEffects.RUPTURE)) activeElements.add(ElementType.PHYSICAL);
+        if (target.hasEffect(AbloomModEffects.WINDSWEPT)) activeElements.add(ElementType.WIND);
+        if (target.hasEffect(AbloomModEffects.WETNESS)) activeElements.add(ElementType.WATER);
+        if (target.hasEffect(AbloomModEffects.STUN)) activeElements.add(ElementType.EARTH);
+        if (target.hasEffect(AbloomModEffects.FREEZE)) activeElements.add(ElementType.ICE);
+        if (target.hasEffect(AbloomModEffects.SHOCK)) activeElements.add(ElementType.ELECTRIC);
+        if (target.hasEffect(AbloomModEffects.OVERLOAD)) activeElements.add(ElementType.ENERGY);
+        if (target.hasEffect(AbloomModEffects.BLOOM)) activeElements.add(ElementType.NATURAL);
+        if (target.hasEffect(AbloomModEffects.BREAK)) activeElements.add(ElementType.QUANTUM);
+        if (target.hasEffect(AbloomModEffects.CORRUPTION)) activeElements.add(ElementType.ETHER);
+        if (target.hasEffect(AbloomModEffects.DISPERSION)) activeElements.add(ElementType.LIGHT);
+        if (target.hasEffect(AbloomModEffects.ECLIPSE)) activeElements.add(ElementType.SHADOW);
+
+        return activeElements;
+    }
+
+    /**
+     * Checks if the attacker's weapon has resonance_reaction enabled.
+     * @param attacker the attacking entity
+     * @return true if weapon has resonance_reaction
+     */
+    private static boolean hasResonanceReactionWeapon(LivingEntity attacker) {
+        if (attacker == null) return false;
+        ItemStack weapon = attacker.getMainHandItem();
+
+        // Check component first
+        if (ElementalWeaponComponent.hasResonanceReaction(weapon)) return true;
+
+        // Check registry
+        if (ElementalWeaponRegistry.getResonanceReaction(weapon)) return true;
+
+        return false;
+    }
+
+    /**
+     * Processes resonance reaction damage when a weapon with resonance_reaction
+     * hits a target that already has active resonance effects.
+     * @param target the target entity
+     * @param baseDamage the base damage amount
+     * @param attacker the attacking entity
+     */
+    private static void processResonanceReaction(LivingEntity target, float baseDamage, LivingEntity attacker) {
+        // Get active resonance elements on target
+        List<ElementType> activeElements = getActiveResonanceElements(target);
+        if (activeElements.isEmpty()) return;
+
+        // Check if attacker's weapon has resonance_reaction
+        if (!hasResonanceReactionWeapon(attacker)) return;
+
+        // Calculate and deal reaction damage for each active element
+        List<ElementType> reactionElements = new ArrayList<>();
+        float totalReactionDamage = 0f;
+
+        for (ElementType elementType : activeElements) {
+            Float multiplier = RESONANCE_REACTION_MULTIPLIERS.get(elementType);
+            if (multiplier == null) continue;
+
+            float reactionDamage = baseDamage * multiplier;
+            totalReactionDamage += reactionDamage;
+            reactionElements.add(elementType);
+
+            // Apply resistance and deal reaction damage
+            reactionDamage = ElementResistanceManager.calculateReducedDamage(target, elementType, reactionDamage);
+            float armorBonus = getArmorResistanceBonus(target, elementType);
+            reactionDamage = applyArmorResistance(reactionDamage, armorBonus);
+
+            // Spawn damage number for this element
+            spawnDamageNumber(target, reactionDamage, elementType, false, false);
+        }
+
+        if (!reactionElements.isEmpty()) {
+            // Spawn "Reaction!" text with combined colors
+            int combinedColor = 0xFFFFFF;
+            for (ElementType elementType : reactionElements) {
+                combinedColor |= getDamageColor(elementType);
+            }
+            // Use the first element's color as primary
+            combinedColor = getDamageColor(reactionElements.get(0));
+
+            spawnStatusText(target, Component.translatable("elemental.tooltip.reaction"), combinedColor);
+        }
     }
 
     private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
@@ -560,6 +671,11 @@ public class ElementDamageHandler {
         finalDamage = critResult.damage();
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
+
+        // Process resonance reaction before threshold effects
+        if (attacker != null) {
+            processResonanceReaction(target, finalDamage, attacker);
+        }
 
         if (thresholdReached) {
             if (AbloomMod.LOGGER.isDebugEnabled()) {

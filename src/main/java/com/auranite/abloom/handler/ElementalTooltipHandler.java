@@ -1,6 +1,7 @@
 package com.auranite.abloom.handler;
 
 import com.auranite.abloom.*;
+import com.auranite.abloom.component.ElementalWeaponComponent;
 import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
@@ -43,6 +44,7 @@ public class ElementalTooltipHandler {
 
     private static final String KEY_ATTACK_STAGES = "elemental.tooltip.attack_stages";
     private static final String KEY_ATTACK_STAGES_COUNT = "elemental.tooltip.attack_stages_count";
+    private static final String KEY_RESONANCE_REACTION = "elemental.tooltip.resonance_reaction";
     private static final String KEY_RESISTANCE_HEADER = "elemental.resistance.header";
     private static final String KEY_RESISTANCE_FIRE = "elemental.resistance.fire";
     private static final String KEY_RESISTANCE_PHYSICAL = "elemental.resistance.physical";
@@ -163,6 +165,15 @@ public class ElementalTooltipHandler {
             );
             accumText.setStyle(accumText.getStyle().withColor(0x00AA00));
             event.getToolTip().add(Component.literal(" ").append(accumText));
+        }
+
+        // Show resonance_reaction flag
+        boolean resonanceReaction = ElementalWeaponComponent.hasResonanceReaction(stack)
+                || ElementalWeaponRegistry.getResonanceReaction(stack);
+        if (resonanceReaction) {
+            MutableComponent resonanceText = Component.translatable(KEY_RESONANCE_REACTION);
+            resonanceText.setStyle(resonanceText.getStyle().withColor(0xFFAA00));
+            event.getToolTip().add(Component.literal(" ").append(resonanceText));
         }
     }
 
