@@ -4,7 +4,7 @@ license="GNU General Public License version 3 (GPLv3)"
 
 [[mods]]
 modId="abloom"
-version="1.0.0-beta.27+26.2.0-neoforge"
+version="1.0.0-beta.27+26.3.0-neoforge"
 displayName="Abloom API"
 displayURL=""
 bannerFile=""
@@ -15,14 +15,14 @@ description="Abloom API is a library mod for NeoForge that adds an elemental dam
 [[dependencies.abloom]]
 modId="neoforge"
 type="required"
-versionRange="[26.2.0.53-beta,)"
+versionRange="[26.3.0.1-beta,)"
 ordering="AFTER"
 side="BOTH"
 
 [[dependencies.abloom]]
 modId="minecraft"
 type="required"
-versionRange="[26.2.0]"
+versionRange="[26.3.0]"
 ordering="AFTER"
 side="BOTH"
 

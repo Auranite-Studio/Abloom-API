@@ -1,15 +1,15 @@
 plugins {
     id 'eclipse'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.147'
 }
 
-version = '1.0.0-beta.27+26.2.0-neoforge'
+version = '1.0.0-beta.27+26.3.0-neoforge'
 base.archivesName = "Abloom-API"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
-    version = "26.2.0.53-beta"
+    version = "26.3.0.1-beta"
 
     runs {
         client {
