@@ -704,7 +704,6 @@ public class ElementDamageDisplayManager {
         display.setLineWidth(200);
         display.setBillboardConstraints(BillboardConstraints.CENTER);
         display.setNoGravity(true);
-        display.setInvulnerable(true);
         display.setSilent(true);
         display.setViewRange(16.0f);
 
