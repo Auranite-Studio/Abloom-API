@@ -21,8 +21,8 @@ public class TextParticle extends Particle {
    private boolean isBreak = false;
    private int ticksAlive = 0;
    private int originalColor = 0xFFFFFF;
-   private static final double BREAK_SHIMMER_SPEED = 0.3;
-   private static final float BREAK_SHIMMER_INTENSITY = 0.6f;
+   private static final double BREAK_SHIMMER_SPEED = 0.6;
+   private static final float BREAK_SHIMMER_INTENSITY = 1.0f;
 
    public TextParticle(ClientLevel world, Vec3 pos, Vec3 velocity) {
       super(world, pos.x, pos.y, pos.z, velocity.x, velocity.y, velocity.z);
