@@ -80,6 +80,7 @@ public class AbloomMod {
         AbloomModAttributes.REGISTRY.register(modEventBus);
 
         ElementDamageHandler.initDamageColors();
+        NeoForge.EVENT_BUS.register(com.auranite.abloom.handler.ElementDamageHandler.class);
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(this::onClientSetup);

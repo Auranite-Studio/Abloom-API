@@ -2,6 +2,7 @@ package com.auranite.abloom.client;
 
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
+import com.auranite.abloom.network.ClientResonanceAccumulationStorage;
 import com.auranite.abloom.util.EffectRenderUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -32,7 +33,7 @@ public class ClientEventHandler {
         var camPos = camera.getPosition();
 
         for (Entity entity : level.entitiesForRendering()) {
-            if (entity instanceof LivingEntity livingEntity && ClientEntityEffectsStorage.hasEntityEffects(entity.getId())) {
+            if (entity instanceof LivingEntity livingEntity) {
                 boolean isPlayerSelf = entity instanceof Player && mc.player != null && entity.getId() == mc.player.getId();
                 boolean isOtherPlayer = entity instanceof Player && !isPlayerSelf;
                 boolean shouldRender = !(entity instanceof Player) ||
@@ -58,16 +59,31 @@ public class ClientEventHandler {
                     if (!livingEntity.hasLineOfSight(camera.getEntity())) continue;
                 }
 
-                var effects = ClientEntityEffectsStorage.getEntityEffects(entity.getId());
-                if (effects == null || effects.isEmpty()) {
-                    ClientEntityEffectsStorage.removeEntityEffects(entity.getId());
-                    continue;
-                }
-
                 var dispatcher = mc.getEntityRenderDispatcher();
                 var entityRenderer = dispatcher.getRenderer(entity);
-                EffectRenderUtil.renderAllMobEffects(entity, poseStack, buffers, camera, entityRenderer, partialTick,
-                        x - camPos.x, y - camPos.y, z - camPos.z, effects, false);
+
+                boolean hasEffects = ClientEntityEffectsStorage.hasEntityEffects(entity.getId());
+                boolean hasResonance = ClientResonanceAccumulationStorage.hasEntityAccumulation(entity.getId());
+
+                if (!hasEffects && !hasResonance) continue;
+
+                if (hasEffects) {
+                    var effects = ClientEntityEffectsStorage.getEntityEffects(entity.getId());
+                    if (effects != null && !effects.isEmpty()) {
+                        var resonancePoints = hasResonance
+                                ? ClientResonanceAccumulationStorage.getEntityAccumulation(entity.getId())
+                                : null;
+
+                        EffectRenderUtil.renderAllMobEffects(entity, poseStack, buffers, camera, entityRenderer, partialTick,
+                                x - camPos.x, y - camPos.y, z - camPos.z, effects, false, resonancePoints);
+                    }
+                }
+
+                if (hasResonance && !hasEffects) {
+                    var resonancePoints = ClientResonanceAccumulationStorage.getEntityAccumulation(entity.getId());
+                    EffectRenderUtil.renderAllMobEffects(entity, poseStack, buffers, camera, entityRenderer, partialTick,
+                            x - camPos.x, y - camPos.y, z - camPos.z, new java.util.ArrayList<>(), false, resonancePoints);
+                }
             }
         }
     }

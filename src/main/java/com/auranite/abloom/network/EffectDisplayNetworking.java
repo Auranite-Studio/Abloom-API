@@ -1,6 +1,7 @@
 package com.auranite.abloom.network;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -15,6 +16,7 @@ public class EffectDisplayNetworking {
     public static void register(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playBidirectional(SyncEntityEffectsMessage.TYPE, SyncEntityEffectsMessage.STREAM_CODEC, SyncEntityEffectsMessage::handle);
+        registrar.playBidirectional(SyncResonanceAccumulationMessage.TYPE, SyncResonanceAccumulationMessage.STREAM_CODEC, SyncResonanceAccumulationMessage::handle);
     }
 
     @SubscribeEvent
@@ -22,6 +24,7 @@ public class EffectDisplayNetworking {
         LivingEntity entity = event.getEntity();
         if (!entity.level().isClientSide) {
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new SyncEntityEffectsMessage(entity.getId(), new ArrayList<>()));
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new SyncResonanceAccumulationMessage(entity.getId(), new EnumMap<>(com.auranite.abloom.util.ElementType.class)));
         }
 
     }

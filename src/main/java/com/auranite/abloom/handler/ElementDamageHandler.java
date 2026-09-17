@@ -5,6 +5,7 @@ import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.component.ElementalWeaponComponent;
 import com.auranite.abloom.network.SpawnDamageNumberPacket;
 import com.auranite.abloom.network.SpawnStatusTextPacket;
+import com.auranite.abloom.network.SyncResonanceAccumulationMessage;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
@@ -39,6 +40,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.EnumMap;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
@@ -89,6 +91,7 @@ public class ElementDamageHandler {
     private static final int CLEANUP_INTERVAL = 20;
 
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
+    private static int cleanupTickCounter = 0;
 
     /**
      * Process damage with priority handling to avoid conflicts with other mods.
@@ -222,6 +225,21 @@ public class ElementDamageHandler {
      * and add appropriate accumulation points. Abloom will NOT overwrite damage that was modified
      * by other mods.
      */
+    @SubscribeEvent
+    public static void onServerStarted(net.neoforged.neoforge.event.server.ServerStartedEvent event) {
+        currentServer = event.getServer();
+    }
+
+    @SubscribeEvent
+    public static void onServerTick(ServerTickEvent.Post event) {
+        if (currentServer == null) return;
+        cleanupTickCounter++;
+        if (cleanupTickCounter >= CLEANUP_INTERVAL) {
+            cleanupTickCounter = 0;
+            checkAndResetInactivePoints();
+        }
+    }
+
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHurt(LivingDamageEvent.Pre event) {
         if (IS_PROCESSING_DAMAGE.get()) return;
@@ -539,6 +557,11 @@ public class ElementDamageHandler {
         // Also, pure prism damage without conversion doesn't accumulate
         if (!isConvertedPrism && originalType != ElementType.PRISMATIC) {
             AbloomModAttachments.addPoints(target, type, pointsToAdd);
+            // Sync only if below threshold (threshold sync happens after reset)
+            int currentPoints = AbloomModAttachments.getPoints(target, type);
+            if (currentPoints > 0 && currentPoints < THRESHOLD) {
+                syncAccumulationToClients(target);
+            }
         } else if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
         }
@@ -568,6 +591,7 @@ public class ElementDamageHandler {
             boolean isErosionTrigger = (erosionActive && type != ElementType.WIND);
             finalDamage = applyThresholdEffect(target, type, finalDamage, isErosionTrigger);
             AbloomModAttachments.resetPoints(target, type);
+            syncAccumulationToClients(target);
         }
 
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit, isMultiCrit);
@@ -742,6 +766,7 @@ public class ElementDamageHandler {
                     Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
                     if (typeEntry.getValue() <= expiryTime) {
                         AbloomModAttachments.resetPoints(livingEntity, typeEntry.getKey());
+                        syncAccumulationToClients(livingEntity);
                         typeIterator.remove();
                     }
                 }
@@ -1035,10 +1060,16 @@ public class ElementDamageHandler {
 
         if (pointsToAdd > 0) {
             AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
+            // Sync only if below threshold (threshold sync happens after reset)
+            int currentPoints = AbloomModAttachments.getPoints(livingTarget, type);
+            if (currentPoints > 0 && currentPoints < THRESHOLD) {
+                syncAccumulationToClients(livingTarget);
+            }
             boolean thresholdReached = AbloomModAttachments.getPoints(livingTarget, type) >= THRESHOLD;
             if (thresholdReached) {
                 finalDamage = applyThresholdEffect(livingTarget, type, finalDamage);
                 AbloomModAttachments.resetPoints(livingTarget, type);
+                syncAccumulationToClients(livingTarget);
             }
             if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
         } else {
@@ -1060,6 +1091,7 @@ public class ElementDamageHandler {
     public static void addElementPoints(LivingEntity entity, ElementType type, int points) {
         AbloomModAttachments.addPoints(entity, type, ElementResistanceManager.calculateAccumulationPoints(entity, type, points));
         updateLastDamageTime(entity, type);
+        syncAccumulationToClients(entity);
     }
 
     public static int getElementPoints(LivingEntity entity, ElementType type) {
@@ -1074,6 +1106,7 @@ public class ElementDamageHandler {
                 return map.isEmpty() ? null : map;
             });
         }
+        syncAccumulationToClients(entity);
     }
 
     public static void resetAllElementPoints(LivingEntity entity) {
@@ -1081,6 +1114,28 @@ public class ElementDamageHandler {
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
         }
+        syncAccumulationToClients(entity);
+    }
+
+    /**
+     * Syncs resonance accumulation data for an entity to all tracking players.
+     * Only sends elements with points > 0.
+     */
+    public static void syncAccumulationToClients(LivingEntity entity) {
+        if (entity.level().isClientSide) return;
+
+        Map<ElementType, Integer> accumulator = AbloomModAttachments.getAccumulator(entity);
+        Map<ElementType, Integer> nonZeroPoints = new EnumMap<>(ElementType.class);
+        for (Map.Entry<ElementType, Integer> entry : accumulator.entrySet()) {
+            if (entry.getValue() > 0) {
+                nonZeroPoints.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+                entity,
+                new SyncResonanceAccumulationMessage(entity.getId(), nonZeroPoints)
+        );
     }
 
     public static int getAccumulationProgress(LivingEntity entity, ElementType type) {

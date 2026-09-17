@@ -7,7 +7,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -33,10 +35,15 @@ public class EffectRenderUtil {
     private static final float ICON_SPACING = 2.0F;
     private static final float SCALE_FACTOR = 0.0267F;
     private static final float BACKGROUND_OPACITY = 0.25F;
-    private static final float DURATION_TEXT_SCALE = 0.5F;
+    private static final float TEXT_SCALE = 0.5F;
     private static final int WARNING_THRESHOLD_SECONDS = 5;
+    private static final int THRESHOLD = 100;
 
     public static void renderAllMobEffects(Entity entity, PoseStack poseStack, MultiBufferSource buffers, Camera camera, EntityRenderer<? super Entity> entityRenderer, float partialTicks, double x, double y, double z, List<MobEffectInstance> effects, boolean isGuiEnvironment) {
+        renderAllMobEffects(entity, poseStack, buffers, camera, entityRenderer, partialTicks, x, y, z, effects, isGuiEnvironment, null);
+    }
+
+    public static void renderAllMobEffects(Entity entity, PoseStack poseStack, MultiBufferSource buffers, Camera camera, EntityRenderer<? super Entity> entityRenderer, float partialTicks, double x, double y, double z, List<MobEffectInstance> effects, boolean isGuiEnvironment, Map<ElementType, Integer> resonancePoints) {
         int entityId = entity.getId();
         Vec3 renderOffset = entityRenderer.getRenderOffset(entity, partialTicks);
 
@@ -57,50 +64,74 @@ public class EffectRenderUtil {
         float iconHeight = ICON_BASE_SIZE * scale;
         int maxIconsPerRow = Math.max(1, (int) Math.floor((entity.getBbWidth() / SCALE_FACTOR * 3.0F + ICON_SPACING) / (iconWidth + ICON_SPACING)));
 
-        int totalRows = (int) Math.ceil((double) effects.size() / maxIconsPerRow);
+        // Build map: ElementType -> icon data (effect or points)
+        Map<ElementType, IconData> iconMap = buildIconMap(effects, resonancePoints);
+
+        List<ElementType> sortedTypes = new ArrayList<>(iconMap.keySet());
+        int totalRows = (int) Math.ceil((double) sortedTypes.size() / maxIconsPerRow);
         for (int row = 0; row < totalRows; ++row) {
-            renderRow(effects, row, maxIconsPerRow, iconWidth, iconHeight, entityId, font, buffers, minecraft, poseStack);
+            renderRow(sortedTypes, row, maxIconsPerRow, iconWidth, iconHeight, entityId, font, buffers, minecraft, poseStack, iconMap, resonancePoints);
         }
 
         poseStack.popPose();
     }
 
-    private static void renderRow(List<MobEffectInstance> effects, int row, int maxIconsPerRow, float iconWidth, float iconHeight, int entityId, Font font, MultiBufferSource buffers, Minecraft minecraft, PoseStack basePoseStack) {
-        int startIndex = row * maxIconsPerRow;
-        int endIndex = Math.min(startIndex + maxIconsPerRow, effects.size());
+    private static Map<ElementType, IconData> buildIconMap(List<MobEffectInstance> effects, Map<ElementType, Integer> resonancePoints) {
+        java.util.Map<ElementType, IconData> map = new java.util.LinkedHashMap<>();
 
-        // Count visible icons to calculate row width
-        int visibleIcons = 0;
-        for (int i = startIndex; i < endIndex; ++i) {
-            if (isDisplayEffect(effects.get(i).getEffect())) visibleIcons++;
+        // Active effects
+        for (MobEffectInstance effect : effects) {
+            ElementType type = getElementTypeForEffect(effect.getEffect());
+            if (type != null && isDisplayEffect(effect.getEffect())) {
+                map.put(type, new IconData(effect, null));
+            }
         }
-        if (visibleIcons == 0) return;
 
-        float rowWidth = visibleIcons * iconWidth + (visibleIcons - 1) * ICON_SPACING;
+        // Resonance only (no active effect)
+        if (resonancePoints != null && !resonancePoints.isEmpty()) {
+            for (ElementType type : ElementType.values()) {
+                if (!map.containsKey(type)) {
+                    int points = resonancePoints.getOrDefault(type, 0);
+                    if (points > 0) {
+                        map.put(type, new IconData(null, points));
+                    }
+                }
+            }
+        }
+
+        return map;
+    }
+
+    private static void renderRow(List<ElementType> types, int row, int maxIconsPerRow, float iconWidth, float iconHeight, int entityId, Font font, MultiBufferSource buffers, Minecraft minecraft, PoseStack basePoseStack, Map<ElementType, IconData> iconMap, Map<ElementType, Integer> resonancePoints) {
+        int startIndex = row * maxIconsPerRow;
+        int endIndex = Math.min(startIndex + maxIconsPerRow, types.size());
+
+        float rowWidth = (endIndex - startIndex) * iconWidth + Math.max(0, (endIndex - startIndex - 1)) * ICON_SPACING;
         float startX = -rowWidth / 2.0F + iconWidth / 2.0F;
         float rowY = -(float) row * (iconHeight + ICON_SPACING);
-        int visibleIndex = 0;
 
-        for (int i = startIndex; i < endIndex; ++i) {
-            MobEffectInstance effectInstance = effects.get(i);
-            if (!isDisplayEffect(effectInstance.getEffect())) continue;
-
-            TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectInstance.getEffect());
+        for (int i = startIndex; i < endIndex; i++) {
+            ElementType type = types.get(i);
+            IconData data = iconMap.get(type);
             float halfSize = iconWidth / 2.0F;
-            float iconX = startX + visibleIndex * (iconWidth + ICON_SPACING);
+            float iconX = startX + (i - startIndex) * (iconWidth + ICON_SPACING);
 
-            PoseStack iconPoseStack = new PoseStack();
-            iconPoseStack.mulPose(basePoseStack.last().pose());
-            iconPoseStack.translate(iconX, rowY, 0.0F);
+            PoseStack iconPose = new PoseStack();
+            iconPose.mulPose(basePoseStack.last().pose());
+            iconPose.translate(iconX, rowY, 0.0F);
 
-            drawBackground(iconPoseStack, font, buffers);
-            try {
-                drawSprite(iconPoseStack, sprite, halfSize, buffers);
-            } catch (Exception e) {
-                drawFallbackText(iconPoseStack, font, buffers, effectInstance.getDescriptionId());
+            drawBackground(iconPose, font, buffers);
+            drawElementIcon(iconPose, type, halfSize, buffers, minecraft);
+
+            if (data.effect != null) {
+                // Active effect: percentage above, duration below
+                int points = resonancePoints != null ? resonancePoints.getOrDefault(type, 0) : 0;
+                drawResonanceAbove(iconPose, halfSize, points, font, buffers);
+                drawDurationBelow(iconPose, halfSize, entityId, data.effect, font, buffers);
+            } else {
+                // No effect: percentage below
+                drawResonanceBelow(iconPose, halfSize, data.points, font, buffers);
             }
-            drawDuration(iconPoseStack, halfSize, entityId, effectInstance, font, buffers);
-            visibleIndex++;
         }
     }
 
@@ -137,7 +168,23 @@ public class EffectRenderUtil {
         font.drawInBatch(text, -width / 2.0F, 0.0F, 0xFF0000, false, poseStack.last().pose(), buffers, DisplayMode.SEE_THROUGH, 0, 15728880);
     }
 
-    private static void drawDuration(PoseStack poseStack, float halfSize, int entityId, MobEffectInstance effectInstance, Font font, MultiBufferSource buffers) {
+    private static void drawResonanceAbove(PoseStack poseStack, float halfSize, int points, Font font, MultiBufferSource buffers) {
+        if (points <= 0) return;
+        int percentage = THRESHOLD > 0 ? (points * 100) / THRESHOLD : 0;
+        String text = percentage + "";
+
+        PoseStack textPose = new PoseStack();
+        textPose.mulPose(poseStack.last().pose());
+        textPose.scale(TEXT_SCALE, TEXT_SCALE, 1.0F);
+
+        float tw = font.width(text) * TEXT_SCALE;
+        float th = 9.0F * TEXT_SCALE;
+        float offsetY = -(halfSize + th);
+        float offsetX = halfSize - tw + 2.0F;
+        font.drawInBatch(text, offsetX, offsetY, 0xFFFFFFFF, false, textPose.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
+    }
+
+    private static void drawDurationBelow(PoseStack poseStack, float halfSize, int entityId, MobEffectInstance effectInstance, Font font, MultiBufferSource buffers) {
         int realDuration = ClientEntityEffectsStorage.getRemainingTicks(
                 entityId,
                 effectInstance.getEffect(),
@@ -148,11 +195,96 @@ public class EffectRenderUtil {
 
         PoseStack textPose = new PoseStack();
         textPose.mulPose(poseStack.last().pose());
-        textPose.scale(DURATION_TEXT_SCALE, DURATION_TEXT_SCALE, 1.0F);
+        textPose.scale(TEXT_SCALE, TEXT_SCALE, 1.0F);
 
-        float tw = font.width(text) * DURATION_TEXT_SCALE;
-        float th = 9.0F * DURATION_TEXT_SCALE;
-        font.drawInBatch(text, halfSize - tw, halfSize - th, color, false, textPose.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
+        float tw = font.width(text) * TEXT_SCALE;
+        float th = 9.0F * TEXT_SCALE;
+        font.drawInBatch(text, halfSize - tw + 2.0F, halfSize - th, color, false, textPose.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
+    }
+
+    private static void drawElementIcon(PoseStack poseStack, ElementType type, float halfSize, MultiBufferSource buffers, Minecraft minecraft) {
+        Holder<MobEffect> effectHolder = getEffectHolderForElementType(type);
+        if (effectHolder != null) {
+            TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
+            if (sprite != null) {
+                try {
+                    drawSprite(poseStack, sprite, halfSize, buffers);
+                    return;
+                } catch (Exception e) {
+                    // Fall through to colored square
+                }
+            }
+        }
+        int color = com.auranite.abloom.handler.ElementDamageHandler.getDamageColor(type);
+        float r = ((color >> 16) & 0xFF) / 255.0F;
+        float g = ((color >> 8) & 0xFF) / 255.0F;
+        float b = (color & 0xFF) / 255.0F;
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(r, g, b, 1.0F);
+        VertexConsumer buffer = buffers.getBuffer(RenderType.gui());
+        Matrix4f matrix = poseStack.last().pose();
+        buffer.addVertex(matrix, -halfSize, -halfSize, 0.0F).setColor(r, g, b, 1.0F);
+        buffer.addVertex(matrix, -halfSize, halfSize, 0.0F).setColor(r, g, b, 1.0F);
+        buffer.addVertex(matrix, halfSize, halfSize, 0.0F).setColor(r, g, b, 1.0F);
+        buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(r, g, b, 1.0F);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static void drawResonanceBelow(PoseStack poseStack, float halfSize, int points, Font font, MultiBufferSource buffers) {
+        if (points <= 0) return;
+        int percentage = THRESHOLD > 0 ? (points * 100) / THRESHOLD : 0;
+        String text = percentage + "";
+
+        PoseStack textPose = new PoseStack();
+        textPose.mulPose(poseStack.last().pose());
+        textPose.scale(TEXT_SCALE, TEXT_SCALE, 1.0F);
+
+        float tw = font.width(text) * TEXT_SCALE;
+        float th = 9.0F * TEXT_SCALE;
+        font.drawInBatch(text, halfSize - tw + 2.0F, halfSize - th, 0xFFFFFFFF, false, textPose.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
+    }
+
+    private static ElementType getElementTypeForEffect(Holder<MobEffect> effectHolder) {
+        String effectName = effectHolder.unwrap().left()
+                .map(key -> key.location().getPath())
+                .orElse("");
+
+        return switch (effectName) {
+            case "burn" -> ElementType.FIRE;
+            case "freeze" -> ElementType.ICE;
+            case "shock" -> ElementType.ELECTRIC;
+            case "bloom" -> ElementType.NATURAL;
+            case "overload" -> ElementType.ENERGY;
+            case "wetness" -> ElementType.WATER;
+            case "stun" -> ElementType.EARTH;
+            case "rupture" -> ElementType.PHYSICAL;
+            case "break" -> ElementType.QUANTUM;
+            case "windswept" -> ElementType.WIND;
+            case "corruption" -> ElementType.ETHER;
+            case "dispersion" -> ElementType.LIGHT;
+            case "eclipse" -> ElementType.SHADOW;
+            default -> null;
+        };
+    }
+
+    private static Holder<MobEffect> getEffectHolderForElementType(ElementType type) {
+        net.minecraft.world.effect.MobEffect effect = switch (type) {
+            case FIRE -> com.auranite.abloom.init.AbloomModEffects.BURN.value();
+            case ICE -> com.auranite.abloom.init.AbloomModEffects.FREEZE.value();
+            case ELECTRIC -> com.auranite.abloom.init.AbloomModEffects.SHOCK.value();
+            case NATURAL -> com.auranite.abloom.init.AbloomModEffects.BLOOM.value();
+            case ENERGY -> com.auranite.abloom.init.AbloomModEffects.OVERLOAD.value();
+            case WATER -> com.auranite.abloom.init.AbloomModEffects.WETNESS.value();
+            case EARTH -> com.auranite.abloom.init.AbloomModEffects.STUN.value();
+            case QUANTUM -> com.auranite.abloom.init.AbloomModEffects.BREAK.value();
+            case ETHER -> com.auranite.abloom.init.AbloomModEffects.CORRUPTION.value();
+            case LIGHT -> com.auranite.abloom.init.AbloomModEffects.DISPERSION.value();
+            case SHADOW -> com.auranite.abloom.init.AbloomModEffects.ECLIPSE.value();
+            case WIND -> com.auranite.abloom.init.AbloomModEffects.WINDSWEPT.value();
+            case PHYSICAL -> com.auranite.abloom.init.AbloomModEffects.RUPTURE.value();
+            case PRISMATIC -> null;
+        };
+        if (effect == null) return null;
+        return net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
     }
 
     public static float getVerticalOffset(Entity entity, PoseStack poseStack) {
@@ -163,5 +295,15 @@ public class EffectRenderUtil {
         return effectHolder.unwrap().left()
                 .map(key -> AbloomConfig.DISPLAY_EFFECTS.contains(key.location().getPath()))
                 .orElse(false);
+    }
+
+    private static class IconData {
+        final MobEffectInstance effect;
+        final int points;
+
+        IconData(MobEffectInstance effect, Integer points) {
+            this.effect = effect;
+            this.points = points != null ? points : 0;
+        }
     }
 }
