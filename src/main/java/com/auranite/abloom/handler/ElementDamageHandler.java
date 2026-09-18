@@ -594,42 +594,22 @@ public class ElementDamageHandler {
 
         float damage = currentDamage * damageMultiplier;
 
-        // Use stage multiplier if weapon has stages, otherwise use normal logic
-        float effectiveAccumMultiplier;
-        if (currentAccumMultiplier > 1.0f) {
-            // Multi-stage weapon: use stage's accumulation multiplier
-            effectiveAccumMultiplier = currentAccumMultiplier;
-        } else {
-            // Normal weapon: use existing logic
-            effectiveAccumMultiplier = 1.0f;
-            if (source.getDirectEntity() != null) {
-                Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
-                if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
-            }
-            if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
-                ItemStack weapon = attackerEntity.getMainHandItem();
-                // Check if weapon has elemental type (not default PHYSICAL from empty hand)
-                // Also check for enchantment override (e.g., Fire Aspect)
-                boolean hasEnchantmentOverride = getOverrideFromStack(weapon) != null;
-                boolean isElementalWeapon = ElementalWeaponComponent.hasElement(weapon) || 
-                    (ElementalWeaponRegistry.getWeaponData(weapon) != null && 
-                     ElementalWeaponRegistry.getWeaponData(weapon).type() != ElementType.PHYSICAL);
-                if (isElementalWeapon) {
-                    float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
-                    float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
-                    if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
-                    else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
-                } else if (hasEnchantmentOverride) {
-                    // Weapon has elemental enchantment override - use weapon/component accum if available
-                    float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
-                    float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
-                    if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
-                    else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
-                    // If neither component nor registry has accum, keep default 1.0f
-                } else {
-                    // Empty hand or non-elemental weapon: no accumulation
-                    effectiveAccumMultiplier = 0.0f;
-                }
+        float effectiveAccumMultiplier = 0.0f;
+        if (source.getDirectEntity() != null) {
+            Optional<Float> projectileAccum = ElementalProjectileRegistry.getAccumulationMultiplierForEntity(source.getDirectEntity());
+            if (projectileAccum.isPresent()) effectiveAccumMultiplier = projectileAccum.get();
+        }
+        if (effectiveAccumMultiplier == 0.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
+            ItemStack weapon = attackerEntity.getMainHandItem();
+            if (currentAccumMultiplier > 1.0f) {
+                // Multi-stage weapon: use stage accumulation
+                effectiveAccumMultiplier = currentAccumMultiplier;
+            } else if (ElementalWeaponComponent.hasElement(weapon)) {
+                // Elemental weapon with component: use component accumulation
+                effectiveAccumMultiplier = ElementalWeaponComponent.getAccumMultiplier(weapon);
+            } else if (ElementalWeaponRegistry.getWeaponData(weapon) != null) {
+                // Elemental weapon registered via registry: use registry accumulation
+                effectiveAccumMultiplier = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
             }
         }
 
@@ -640,6 +620,16 @@ public class ElementDamageHandler {
         if (target.hasEffect(AbloomModEffects.WETNESS)) {
             int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
             effectiveAccumMultiplier *= 1.0f + (amplifier + 1) * 0.5f;
+        }
+
+        // Apply Resonance Accumulation Buildup attribute
+        if (attacker != null) {
+            ResourceKey<Attribute> buildupKey = AbloomModAttributes.RESONANCE_ACCUMULATION_BUILDUP.getKey();
+            AttributeInstance buildupAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(buildupKey));
+            if (buildupAttr != null) {
+                double buildupValue = buildupAttr.getValue();
+                effectiveAccumMultiplier *= (1.0f + (float) buildupValue);
+            }
         }
 
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
