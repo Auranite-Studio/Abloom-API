@@ -26,6 +26,7 @@ public class AbloomModElementalProjectiles {
         ElementalProjectileRegistry.registerProjectile(EntityType.BREEZE_WIND_CHARGE, ElementType.WIND, 0f, false);
         ElementalProjectileRegistry.registerProjectile(EntityType.WIND_CHARGE, ElementType.WIND, 0f, false);
         ElementalProjectileRegistry.registerProjectile(EntityType.TRIDENT, ElementType.WATER, 12f, true);
+        ElementalProjectileRegistry.registerProjectile(EntityType.SNOWBALL, ElementType.ICE, 0f, true);
         registerCustomProjectiles();
 
         AbloomMod.LOGGER.info("Registered {} elemental projectile types",

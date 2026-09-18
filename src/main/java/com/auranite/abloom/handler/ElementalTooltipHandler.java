@@ -2,6 +2,7 @@ package com.auranite.abloom.handler;
 
 import com.auranite.abloom.*;
 import com.auranite.abloom.component.ElementalResistanceComponent;
+import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
 import com.auranite.abloom.util.ElementType;
@@ -104,7 +105,7 @@ public class ElementalTooltipHandler {
 
         }
 
-        ElementType type = ElementalWeaponUtils.getElementType(stack);
+        ElementType type = ElementDamageHandler.getEffectiveElementType(stack);
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
         float weaponCritChance = ElementalWeaponUtils.getCritChance(stack);
         float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);

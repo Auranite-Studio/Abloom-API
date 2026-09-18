@@ -28,6 +28,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -40,7 +43,6 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.EnumMap;
 import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.List;
@@ -92,6 +94,9 @@ public class ElementDamageHandler {
 
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
     private static int cleanupTickCounter = 0;
+
+    // Enchantment to ElementType mapping for elemental override
+    private static final Map<ResourceLocation, ElementType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
 
     /**
      * Process damage with priority handling to avoid conflicts with other mods.
@@ -201,11 +206,95 @@ public class ElementDamageHandler {
         DAMAGE_COLORS.put(ElementType.LIGHT, 0xFFF1A5);
         DAMAGE_COLORS.put(ElementType.SHADOW, 0x4B0082);
         DAMAGE_COLORS.put(ElementType.PRISMATIC, 0xFFFFFF);
+
+        // Initialize enchantment to element mapping
+        initEnchantmentElementMapping();
+    }
+
+    /**
+     * Initializes the mapping between enchantments and element types.
+     * Enchantments in this map will override the weapon's natural element with the mapped element.
+     */
+    private static void initEnchantmentElementMapping() {
+        // Fire Aspect → FIRE (vanilla enchantment)
+        ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.withDefaultNamespace("fire_aspect"), ElementType.FIRE);
+        ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.withDefaultNamespace("flame"), ElementType.FIRE);
+        // Add more elemental enchantments here as they are created:
+        // ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.fromNamespaceAndPath("abloom", "ice_aspect"), ElementType.ICE);
+        // ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.fromNamespaceAndPath("abloom", "electric_aspect"), ElementType.ELECTRIC);
     }
 
     public static int getDamageColor(ElementType type) {
         if (type == null) return 0xFFFFFF;
         return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
+    }
+
+    /**
+     * Gets the effective elemental type for a weapon stack, considering enchantment overrides.
+     * This method is safe to call from both client and server side.
+     *
+     * @param stack the weapon ItemStack
+     * @return the effective ElementType (enchantment override if present, otherwise original element)
+     */
+    public static ElementType getEffectiveElementType(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return null;
+
+        // Check enchantment override first (works on both client and server)
+        ElementType enchantmentOverride = getOverrideFromStack(stack);
+        if (enchantmentOverride != null) {
+            return enchantmentOverride;
+        }
+
+        // Fall back to original element from weapon
+        return ElementalWeaponUtils.getElementType(stack);
+    }
+
+    /**
+     * Checks the attacker's weapons (main hand and offhand) for enchantments that override
+     * the elemental damage type. If an enchantment in the mapping is found, returns the
+     * corresponding ElementType.
+     * <p>
+     * This override has the HIGHEST priority - it is checked before any other element
+     * determination logic (datapack, components, stages, etc.).
+     */
+    private static ElementType getOverrideElementTypeFromEnchantments(LivingEntity attacker) {
+        if (attacker == null) return null;
+
+        ItemStack mainHand = attacker.getMainHandItem();
+        ItemStack offHand = attacker.getOffhandItem();
+
+        // Check main hand weapon
+        ElementType override = getOverrideFromStack(mainHand);
+        if (override != null) return override;
+
+        // Check offhand weapon
+        return getOverrideFromStack(offHand);
+    }
+
+    /**
+     * Helper method to check a single ItemStack for elemental enchantment overrides.
+     */
+    private static ElementType getOverrideFromStack(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return null;
+
+        // getEnchantments() returns Object2IntMap<Holder<Enchantment>>
+        for (var entry : stack.getEnchantments().entrySet()) {
+            Holder<net.minecraft.world.item.enchantment.Enchantment> holder = entry.getKey();
+            int level = entry.getIntValue();
+            ResourceLocation enchantId = holder.unwrapKey()
+                    .map(key -> key.location())
+                    .orElse(null);
+            if (enchantId != null) {
+                ElementType elementType = ENCHANTMENT_ELEMENT_MAP.get(enchantId);
+                if (elementType != null) {
+                    AbloomMod.LOGGER.debug("Enchantment override: {} (level {}) on {} -> {}",
+                            enchantId, level, stack.getHoverName(), elementType);
+                    return elementType;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -325,14 +414,23 @@ public class ElementDamageHandler {
         ElementType type = getElementTypeFromSource(source);
         float currentAccumMultiplier = 1.0f;
 
+        // Check if element was overridden by enchantments (skip stage progression for these)
+        boolean elementOverriddenByEnchantment = false;
+        if (type != null && attacker != null) {
+            ElementType enchantmentType = getOverrideElementTypeFromEnchantments(attacker);
+            if (enchantmentType != null && enchantmentType == type) {
+                elementOverriddenByEnchantment = true;
+            }
+        }
+
         // Check if the element came from a projectile (not from the attacker's weapon directly)
         Entity directEntity = source.getDirectEntity();
         boolean projectileDriven = directEntity != null && ElementalProjectileRegistry.isElementalProjectile(directEntity);
 
         // Check for multi-stage weapon: FIRST update the stage progression, THEN use it
-        // Only apply stage elements if the damage is NOT projectile-driven
+        // Only apply stage elements if the damage is NOT projectile-driven and NOT enchantment-overridden
         // (projectiles with allowOverride=true should keep their attached element priority)
-        if (attacker != null && source.getEntity() == attacker) {
+        if (attacker != null && source.getEntity() == attacker && !elementOverriddenByEnchantment) {
             ItemStack weapon = attacker.getMainHandItem();
             ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
             if (ElementalWeaponRegistry.hasStages(weaponId)) {
@@ -389,7 +487,8 @@ public class ElementDamageHandler {
         }
 
         // Now use the stage for damage calculation (after progression is updated)
-        if (attacker != null && type != null && !projectileDriven) {
+        // Skip stage override if element was overridden by enchantments
+        if (attacker != null && type != null && !projectileDriven && !elementOverriddenByEnchantment) {
             ItemStack weapon = attacker.getMainHandItem();
             ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
 
@@ -675,13 +774,23 @@ public class ElementDamageHandler {
     }
 
     private static ElementType getElementTypeFromSource(DamageSource source) {
+        // === Enchantment override has HIGHEST priority ===
+        Entity causingEntity = source.getEntity();
+        if (causingEntity instanceof LivingEntity attacker) {
+            ElementType enchantmentOverride = getOverrideElementTypeFromEnchantments(attacker);
+            if (enchantmentOverride != null) {
+                return enchantmentOverride;
+            }
+        }
+        // ================================================
+
         Entity directEntity = source.getDirectEntity();
         if (directEntity != null) {
             // ElementalProjectileRegistry now handles attachment priority internally
             Optional<ElementType> element = ElementalProjectileRegistry.getElementForEntity(directEntity);
             if (element.isPresent()) return element.get();
         }
-        Entity causingEntity = source.getEntity();
+        causingEntity = source.getEntity();
         if (causingEntity instanceof LivingEntity attacker) {
             ItemStack weapon = attacker.getMainHandItem();
             ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
