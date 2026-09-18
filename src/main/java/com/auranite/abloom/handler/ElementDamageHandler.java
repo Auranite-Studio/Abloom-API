@@ -608,10 +608,28 @@ public class ElementDamageHandler {
             }
             if (effectiveAccumMultiplier == 1.0f && source.getEntity() instanceof LivingEntity attackerEntity) {
                 ItemStack weapon = attackerEntity.getMainHandItem();
-                float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
-                float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
-                if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
-                else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+                // Check if weapon has elemental type (not default PHYSICAL from empty hand)
+                // Also check for enchantment override (e.g., Fire Aspect)
+                boolean hasEnchantmentOverride = getOverrideFromStack(weapon) != null;
+                boolean isElementalWeapon = ElementalWeaponComponent.hasElement(weapon) || 
+                    (ElementalWeaponRegistry.getWeaponData(weapon) != null && 
+                     ElementalWeaponRegistry.getWeaponData(weapon).type() != ElementType.PHYSICAL);
+                if (isElementalWeapon) {
+                    float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
+                    float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
+                    if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
+                    else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+                } else if (hasEnchantmentOverride) {
+                    // Weapon has elemental enchantment override - use weapon/component accum if available
+                    float weaponAccum = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
+                    float componentAccum = ElementalWeaponComponent.getAccumMultiplier(weapon);
+                    if (componentAccum != 1.0f) effectiveAccumMultiplier = componentAccum;
+                    else if (weaponAccum != 1.0f) effectiveAccumMultiplier = weaponAccum;
+                    // If neither component nor registry has accum, keep default 1.0f
+                } else {
+                    // Empty hand or non-elemental weapon: no accumulation
+                    effectiveAccumMultiplier = 0.0f;
+                }
             }
         }
 
