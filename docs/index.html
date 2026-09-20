@@ -462,6 +462,7 @@
                 <li><a href="#mechanics">Mechanics</a></li>
                 <li><a href="#effects">Status Effects</a></li>
                 <li><a href="#weapons">Weapon System</a></li>
+                <li><a href="#attributes">Attributes</a></li>
                 <li><a href="#combat">Combat API</a></li>
                 <li><a href="#integration">Mod Integration</a></li>
                 <li><a href="#configuration">Datapacks</a></li>
@@ -804,10 +805,34 @@ ElementalWeaponRegistry.registerBuiltinWeapon(
 
             <h3>Critical Hit System</h3>
             <p>Abloom adds two custom attributes for critical hits:</p>
-            <ul>
-                <li><strong>CRIT_CHANCE</strong> (<code>abloom:crit_chance</code>): -2 to 2 (-200% to 200%). Maximum is clamped to 2.0 (200%) to enable multi-crit.</li>
-                <li><strong>CRIT_DMG</strong> (<code>abloom:crit_dmg</code>): -10 to 10 (-1000% to 1000%). Applied additively from entity attributes and weapon values.</li>
-            </ul>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CRIT_CHANCE</strong></td>
+                        <td><code>abloom:crit_chance</code></td>
+                        <td>-2 to 2</td>
+                        <td>0</td>
+                        <td>Critical hit chance (-200% to 200%). Maximum is clamped to 2.0 (200%) to enable multi-crit.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CRIT_DMG</strong></td>
+                        <td><code>abloom:crit_dmg</code></td>
+                        <td>-10 to 10</td>
+                        <td>0</td>
+                        <td>Critical hit damage multiplier (-1000% to 1000%). Applied additively from entity attributes and weapon values.</td>
+                    </tr>
+                </tbody>
+            </table>
 
             <h4>Multi-Crit System</h4>
             <p>Abloom supports multi-critical hits, which deal double critical damage. The total crit chance (entity attributes + weapon values, summed additively) is clamped to a maximum of 2.0 (200%). When total crit chance exceeds 100% (1.0), any excess above 1.0 gives a chance to trigger a multi-crit, which multiplies the resulting critical damage by 2x.</p>
@@ -816,7 +841,7 @@ ElementalWeaponRegistry.registerBuiltinWeapon(
                 <strong>How it works:</strong> If you have 150% crit chance (1.5), you're guaranteed at least one crit. The remaining 0.5 (50%) gives you a 50% chance to trigger a multi-crit, dealing double critical damage. Multi-crits are displayed with <code>!!!</code> in damage numbers, while normal crits show <code>!!</code>.
             </div>
 
-            <h4>Weapon Crit Values:
+            <h4>Weapon Crit Values</h4>
             <pre><code>// Get crit chance from weapon stack
 float critChance = ElementalWeaponUtils.getCritChance(stack);
 
@@ -830,7 +855,202 @@ ElementalWeaponRegistry.registerWeapon(
     2.0f,       // accumulation
     0.25f,      // 25% crit chance
     0.75f       // 75% crit damage
-);</code></pre>
+);
+
+// Get effective element type (checks enchantment override first)
+ElementType element = ElementDamageHandler.getEffectiveElementType(stack);
+if (element == ElementType.FIRE) {
+    // Weapon has fire_aspect or flame enchantment
+}</code></pre>
+
+            <h3>Resonance Accumulation Buildup Attribute</h3>
+            <p>Abloom introduces a third custom attribute that controls how quickly elemental resonance accumulates:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>RESONANCE_ACCUMULATION_BUILDUP</strong></td>
+                        <td><code>abloom:resonance_accumulation_buildup</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td>Multiples the accumulation multiplier. At 0: no effect (1.0x). At 1: doubles accumulation (2.0x). At -1: disables resonance buildup (0.0x).</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>How It Works</h4>
+            <p>The attribute value is applied as a multiplier to the effective accumulation multiplier during damage processing. The formula is:</p>
+            <pre><code>effectiveAccumMultiplier *= (1.0f + buildupAttributeValue);</code></pre>
+
+            <h4>Examples</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute Value</th>
+                        <th>Multiplier</th>
+                        <th>Effect</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>0.0</code> (default)</td>
+                        <td>1.0x</td>
+                        <td>No change to accumulation</td>
+                    </tr>
+                    <tr>
+                        <td><code>0.5</code></td>
+                        <td>1.5x</td>
+                        <td>+50% to accumulation speed</td>
+                    </tr>
+                    <tr>
+                        <td><code>1.0</code> (max)</td>
+                        <td>2.0x</td>
+                        <td>Doubles accumulation speed</td>
+                    </tr>
+                    <tr>
+                        <td><code>-0.5</code></td>
+                        <td>0.5x</td>
+                        <td>-50% to accumulation speed</td>
+                    </tr>
+                    <tr>
+                        <td><code>-1.0</code> (min)</td>
+                        <td>0.0x</td>
+                        <td>Completely disables resonance buildup</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Setting the Attribute</h4>
+            <pre><code>import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import com.auranite.abloom.init.AbloomModAttributes;
+
+// On entity creation or modification
+Entity entity = ...;
+AttributeInstance buildupAttr = entity.getAttribute(
+    AbloomModAttributes.RESONANCE_ACCUMULATION_BUILDUP
+);
+if (buildupAttr != null) {
+    // Set absolute value
+    buildupAttr.setBaseValue(0.5);  // +50% accumulation
+
+    // Or add a modifier
+    buildupAttr.addPermanentModifier(
+        new java.util.UUID(123456, 789012),
+        "mymod.buff.resonance_boost",
+        0.3,
+        java.util.UUID.randomUUID()
+    );
+}</code></pre>
+
+            <div class="tip">
+                <strong>Use Case:</strong> This attribute is useful for buffs, temporary power-ups, or mob-specific traits. For example, a boss mob might have <code>RESONANCE_ACCUMULATION_BUILDUP = 0.5</code> to build resonance faster, while a cursed player debuff might set it to <code>-0.5</code> to slow down resonance buildup.
+            </div>
+
+            <h3>Enchantment-Based Damage Type Override</h3>
+            <p>Abloom supports overriding a weapon's elemental damage type through enchantments. This allows weapons to deal different elements based on enchantments like <code>fire_aspect</code> or <code>flame</code>, without requiring custom enchantment classes.</p>
+
+            <h4>How It Works</h4>
+            <p>The damage handler checks all enchantments on the attacker's main hand and offhand weapons before checking weapon registration or datapack configs. If a matching enchantment is found, its mapped <code>ElementType</code> overrides the weapon's default element.</p>
+
+            <h4>Priority in Element Resolution Chain</h4>
+            <ol>
+                <li><strong>Enchantment override</strong> (highest priority) — checked first</li>
+                <li>Elemental projectile element</li>
+                <li>Multi-stage weapon element</li>
+                <li><code>ElementalWeaponComponent</code> (item component)</li>
+                <li><code>ElementalWeaponRegistry</code> lookup</li>
+                <li>Vanilla damage type msgId matching</li>
+                <li><code>ElementType.fromVanillaDamageType()</code> fallback</li>
+            </ol>
+
+            <h4>Built-in Mappings</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Enchantment ID</th>
+                        <th>Mapped Element</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>minecraft:fire_aspect</code></td>
+                        <td><span class="element-fire">FIRE</span></td>
+                        <td>Vanilla enchantment</td>
+                    </tr>
+                    <tr>
+                        <td><code>minecraft:flame</code></td>
+                        <td><span class="element-fire">FIRE</span></td>
+                        <td>Vanilla enchantment (bow)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Registering Custom Enchantments (For Other Mods)</h4>
+            <p>Other mods can register their custom enchantments to map to Abloom elements by adding entries to the enchantment-element mapping. Currently, this requires using reflection or waiting for a public API, as the mapping is stored in a private static map in <code>ElementDamageHandler</code>.</p>
+
+            <pre><code>package com.example.mymod;
+
+import com.auranite.abloom.handler.ElementDamageHandler;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+import java.lang.reflect.Field;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class MyModEnchantments {
+
+    // Register your custom enchantment normally
+    public static final DeferredRegister<Enchantment> ENCHANTMENTS =
+        DeferredRegister.create(ForgeRegistries.ENCHANTMENTS, "mymod");
+
+    public static final RegistryObject<Enchantment> ICE_ASPECT =
+        ENCHANTMENTS.register("ice_aspect", () -> new IceAspectEnchantment());
+
+    public static final RegistryObject<Enchantment> ELECTRIC_ASPECT =
+        ENCHANTMENTS.register("electric_aspect", () -> new ElectricAspectEnchantment());
+
+    /**
+     * Called during mod initialization to register enchantment-to-element mappings.
+     * Uses reflection to access Abloom's private ENCHANTMENT_ELEMENT_MAP.
+     */
+    public static void registerEnchantmentMappings() {
+        try {
+            Field mapField = ElementDamageHandler.class.getDeclaredField("ENCHANTMENT_ELEMENT_MAP");
+            mapField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            ConcurrentHashMap&lt;ResourceLocation, com.auranite.abloom.util.ElementType> map =
+                (ConcurrentHashMap&lt;ResourceLocation, com.auranite.abloom.util.ElementType>) mapField.get(null);
+
+            // Map custom enchantments to element types
+            ResourceLocation iceAspectId = ResourceLocation.fromNamespaceAndPath("mymod", "ice_aspect");
+            map.put(iceAspectId, com.auranite.abloom.util.ElementType.ICE);
+
+            ResourceLocation electricAspectId = ResourceLocation.fromNamespaceAndPath("mymod", "electric_aspect");
+            map.put(electricAspectId, com.auranite.abloom.util.ElementType.ELECTRIC);
+
+            // Example: Map a thunder enchantment to ELECTRIC
+            ResourceLocation thunderId = ResourceLocation.fromNamespaceAndPath("mymod", "thunder_strike");
+            map.put(thunderId, com.auranite.abloom.util.ElementType.ELECTRIC);
+
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            System.err.println("[MyMod] Failed to register enchantment-element mappings: " + e.getMessage());
+        }
+    }
+}</code></pre>
         </section>
 
         <section id="combat">
