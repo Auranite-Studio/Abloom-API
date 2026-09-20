@@ -74,6 +74,7 @@ public enum ElementType {
                  "sweep_attack",
                  "fireball",
                  "thrown",
+                 "generic",
                  "end_crystal" -> PHYSICAL;
 
             case "in_fire",
@@ -87,11 +88,11 @@ public enum ElementType {
             case "drown",
                  "wet" -> WATER;
 
-            case "generic",
-                 "explosion",
+            case "explosion",
                  "explosion_player",
                  "wind_charge",
-                 "generic_knockback" -> WIND;
+                 "generic_knockback",
+                 "sonic_boom" -> WIND;
 
             case "stalagmite",
                  "falling_stalactite",
@@ -103,10 +104,7 @@ public enum ElementType {
             case "freeze",
                  "frostbite" -> ICE;
 
-            case "indirect_magic",
-                 "magic",
-                 "sonic_boom",
-                 "thorns",
+            case "thorns",
                  "guardian",
                  "evocation_fangs",
                  "wither_effect" -> ENERGY;
@@ -122,10 +120,8 @@ public enum ElementType {
                  "void",
                  "outside_border" -> QUANTUM;
 
-//            case "ether",
-//                 "aether",
-//                 "magic_ether",
-//                 "arcane" -> ETHER;
+            case "indirect_magic",
+                 "magic" -> ETHER;
 
             default -> {
                 AbloomMod.LOGGER.debug("Unknown DamageType '{}', defaulting to PHYSICAL", id);
