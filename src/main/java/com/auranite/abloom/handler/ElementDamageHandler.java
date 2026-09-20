@@ -51,17 +51,18 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.auranite.abloom.init.AbloomModAttachments.setPrismConversionType;
-/** Record for critical hit result containing modified damage and crit flag. */
-record CritResult(float damage, boolean isCrit, boolean isMultiCrit) {}
 
 /**
- * Handles elemental damage calculations, accumulation tracking, and threshold effects.
- * This class manages the core mechanics of the Abloom API including:
+ * Main handler for elemental damage events.
+ * This class coordinates damage processing by delegating to specialized manager classes:
  * <ul>
- *   <li>Resonance accumulation tracking</li>
- *   <li>Threshold-based effect activation</li>
- *   <li>Damage calculation with elemental modifiers</li>
- *   <li>Display number and status text management</li>
+ *   <li>{@link ElementTypeResolver} - determines element type from damage source</li>
+ *   <li>{@link StageProgressionManager} - handles multi-stage weapon progression</li>
+ *   <li>{@link PrismConversionHandler} - manages prism damage conversion</li>
+ *   <li>{@link DamageCalculator} - calculates damage modifiers and final damage</li>
+ *   <li>{@link AccumulationManager} - tracks resonance accumulation points</li>
+ *   <li>{@link ThresholdEffectHandler} - applies threshold effects</li>
+ *   <li>{@link DamageDisplayManager} - spawns damage numbers and status text</li>
  * </ul>
  *
  * <p>This mod uses a priority-based system for damage event handling to avoid conflicts
@@ -74,27 +75,9 @@ record CritResult(float damage, boolean isCrit, boolean isMultiCrit) {}
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public class ElementDamageHandler {
 
-    private static float baseAccumulation = 0f;
-    private static final int THRESHOLD = 100;
-    private static final int RESET_DELAY_TICKS = 300;
-
-    private static final Map<Integer, Long> DAMAGE_COOLDOWNS = new ConcurrentHashMap<>();
-    private static final int COOLDOWN_TICKS = 5;
-
-    // Erosion cooldown map: entityId -> last erosion trigger time (in ticks)
-    private static final Map<Integer, Long> EROSION_COOLDOWNS = new ConcurrentHashMap<>();
-    private static final int EROSION_COOLDOWN_TICKS = 100; // 5 seconds
-
-    private static final Map<Integer, Map<ElementType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
-    private static final Object LAST_DAMAGE_LOCK = new Object();
-
     private static MinecraftServer currentServer = null;
-    private static int serverTickCounter = 0;
-    private static final int CLEANUP_INTERVAL = 20;
-
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
-    private static int cleanupTickCounter = 0;
-
+    
     // Enchantment to ElementType mapping for elemental override
     public static final Map<ResourceLocation, ElementType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
 
