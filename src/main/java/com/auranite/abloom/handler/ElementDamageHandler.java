@@ -96,7 +96,7 @@ public class ElementDamageHandler {
     private static int cleanupTickCounter = 0;
 
     // Enchantment to ElementType mapping for elemental override
-    private static final Map<ResourceLocation, ElementType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
+    public static final Map<ResourceLocation, ElementType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
 
     /**
      * Process damage with priority handling to avoid conflicts with other mods.
@@ -215,7 +215,7 @@ public class ElementDamageHandler {
      * Initializes the mapping between enchantments and element types.
      * Enchantments in this map will override the weapon's natural element with the mapped element.
      */
-    private static void initEnchantmentElementMapping() {
+    public static void initEnchantmentElementMapping() {
         // Fire Aspect → FIRE (vanilla enchantment)
         ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.withDefaultNamespace("fire_aspect"), ElementType.FIRE);
         ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.withDefaultNamespace("flame"), ElementType.FIRE);
@@ -256,8 +256,11 @@ public class ElementDamageHandler {
      * <p>
      * This override has the HIGHEST priority - it is checked before any other element
      * determination logic (datapack, components, stages, etc.).
+     *
+     * @param attacker the attacking entity
+     * @return the overridden ElementType if an enchantment override is found, null otherwise
      */
-    private static ElementType getOverrideElementTypeFromEnchantments(LivingEntity attacker) {
+    public static ElementType getOverrideElementTypeFromEnchantments(LivingEntity attacker) {
         if (attacker == null) return null;
 
         ItemStack mainHand = attacker.getMainHandItem();
@@ -273,8 +276,11 @@ public class ElementDamageHandler {
 
     /**
      * Helper method to check a single ItemStack for elemental enchantment overrides.
+     *
+     * @param stack the ItemStack to check
+     * @return the overridden ElementType if an enchantment override is found, null otherwise
      */
-    private static ElementType getOverrideFromStack(ItemStack stack) {
+    public static ElementType getOverrideFromStack(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
 
         // getEnchantments() returns Object2IntMap<Holder<Enchantment>>
