@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Handles visual feedback for damage including damage numbers and status text.
@@ -42,7 +43,7 @@ public class DamageDisplayManager {
             
             for (ServerPlayer player : serverLevel.players()) {
                 if (canPlayerSeeEntity(player, entity)) {
-                    packet.send(player);
+                    PacketDistributor.sendToPlayer(player, packet);
                 }
             }
         }

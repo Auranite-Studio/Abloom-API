@@ -1,8 +1,8 @@
 package com.auranite.abloom.handler;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.datapack.ElementalProjectileRegistry;
-import com.auranite.abloom.datapack.ElementalWeaponRegistry;
+import com.auranite.abloom.registries.ElementalProjectileRegistry;
+import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.component.ElementalWeaponComponent;
 import com.auranite.abloom.init.AbloomModAttributes;
 import com.auranite.abloom.init.AbloomModEffects;
