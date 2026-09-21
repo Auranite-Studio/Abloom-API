@@ -548,7 +548,7 @@
                     </tr>
                     <tr>
                         <td><span class="element-natural">NATURAL</span></td>
-                        <td>Natural resonance explosion, applies Bloom effect (target takes 1 damage per second and receives 20% universal vulnerability)</td>
+                        <td>Natural resonance explosion, applies Bloom effect (reduces target's NATURAL resistance by 35% and PHYSICAL resistance by 15% and deals NATURAL damage over time)</td>
                         <td>12 seconds (240 ticks)</td>
                     </tr>
                     <tr>
@@ -558,7 +558,7 @@
                     </tr>
                     <tr>
                         <td><span class="element-ether">ETHER</span></td>
-                        <td>Ether resonance explosion, applies Corruption effect (target's resistance to all damage types reduced by 20% and takes periodic damage)</td>
+                        <td>Ether resonance explosion, applies Corruption effect (reduces target's resistance to all damage types by 20% and deals ETHER damage over time)</td>
                         <td>12 seconds (240 ticks)</td>
                     </tr>
                     <tr>
@@ -632,6 +632,20 @@
             <div class="note">
                 <strong>Note:</strong> Abloom API uses priority LOW (-100) for damage processing. Mods with priority > 0 are called BEFORE Abloom, while mods with priority <= 0 are called AFTER Abloom.
             </div>
+
+            <div class="note">
+                <strong>Damage Formula:</strong><br>
+                <code>finalDamage = currentDamage × M_effect × (1 − effectiveResist) × (1 + B_element) × C_crit × M_threshold</code><br><br>
+                <strong>Where:</strong><br>
+                <code>M_effect</code> = SHOCK × OVERLOAD × BLOOM × DISPERSION &nbsp;|&nbsp; <code>effectiveResist</code> = (R_resist + R_mod + R_armor) − P_shred<br>
+                <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD (−1 to 1)<br>
+                <code>B_element</code> = {ELEMENT}_DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED (0 to 1)<br>
+                <code>R_armor</code> = sum of armor resistance components (−0.99 to 0.99) &nbsp;|&nbsp; <code>C_crit</code> = 1.0 or (1.0 + totalCritDamage) × 2.0 (multi-crit)<br>
+                <code>M_threshold</code> = 1.0 / 1.25 / 1.5 / 2.0 (when triggered resonance explosion)<br><br>
+                <strong>Resonance Points:</strong> <code>pointsToAdd = round((baseAccum + effectiveAccumMultiplier) × (1 − effectiveResist))</code><br>
+                <code>effectiveAccumMultiplier = weaponAccum × (1 + buildup) × (1 + wetnessBonus)</code><br>
+                <code>effectiveResist</code> is the same for both damage and accumulation — all resistance sources are combined<br>
+            </div>
         </section>
 
         <section id="effects">
@@ -693,7 +707,7 @@
                     <tr>
                         <td>Bloom</td>
                         <td><code>abloom:bloom</code></td>
-                        <td>Target takes 1 damage per second and receives 20% universal vulnerability</td>
+                        <td>Reduces NATURAL resistance by 35% and PHYSICAL resistance by 15% and deals NATURAL damage over time</td>
                         <td style="color: #32CD32;">#32CD32</td>
                     </tr>
                     <tr>
@@ -711,7 +725,7 @@
                     <tr>
                         <td>Corruption</td>
                         <td><code>abloom:corruption</code></td>
-                        <td>Target's resistance to all damage types reduced by 20% and takes periodic damage</td>
+                        <td>Reduces resistance to all damage types by 20% and deals ETHER damage over time</td>
                         <td style="color: #24B3A7;">#24B3A7</td>
                     </tr>
                     <tr>
@@ -954,6 +968,441 @@ if (buildupAttr != null) {
 
             <div class="tip">
                 <strong>Use Case:</strong> This attribute is useful for buffs, temporary power-ups, or mob-specific traits. For example, a boss mob might have <code>RESONANCE_ACCUMULATION_BUILDUP = 0.5</code> to build resonance faster, while a cursed player debuff might set it to <code>-0.5</code> to slow down resonance buildup.
+            </div>
+
+            <h3>Elemental Damage Bonus Attributes</h3>
+            <p>Abloom adds 14 new attributes that directly modify damage for each element type. Each attribute has a range of -1.0 to 1.0, representing -100% to +100% damage modifier.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Element</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>FIRE_DMG_BONUS</strong></td>
+                        <td><code>abloom:fire_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-fire">FIRE</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PHYSICAL_DMG_BONUS</strong></td>
+                        <td><code>abloom:physical_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-physical">PHYSICAL</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WIND_DMG_BONUS</strong></td>
+                        <td><code>abloom:wind_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-wind">WIND</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>EARTH_DMG_BONUS</strong></td>
+                        <td><code>abloom:earth_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-earth">EARTH</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WATER_DMG_BONUS</strong></td>
+                        <td><code>abloom:water_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-water">WATER</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ICE_DMG_BONUS</strong></td>
+                        <td><code>abloom:ice_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-ice">ICE</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ELECTRIC_DMG_BONUS</strong></td>
+                        <td><code>abloom:electric_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-electric">ELECTRIC</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ENERGY_DMG_BONUS</strong></td>
+                        <td><code>abloom:energy_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-energy">ENERGY</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>NATURAL_DMG_BONUS</strong></td>
+                        <td><code>abloom:natural_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-natural">NATURAL</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>QUANTUM_DMG_BONUS</strong></td>
+                        <td><code>abloom:quantum_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-quantum">QUANTUM</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ETHER_DMG_BONUS</strong></td>
+                        <td><code>abloom:ether_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-ether">ETHER</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>LIGHT_DMG_BONUS</strong></td>
+                        <td><code>abloom:light_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-light">LIGHT</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SHADOW_DMG_BONUS</strong></td>
+                        <td><code>abloom:shadow_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-shadow">SHADOW</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PRISMATIC_DMG_BONUS</strong></td>
+                        <td><code>abloom:prismatic_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-prismatic">PRISMATIC</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>How It Works</h4>
+            <p>Each attribute value is applied as a multiplier to the final damage for that specific element. The formula is:</p>
+            <pre><code>finalDamage *= (1.0f + elementDmgBonusValue);
+// Example: fire_dmg_bonus = 0.3 → finalDamage *= 1.3 (+30% fire damage)
+// Example: ice_dmg_bonus = -0.5 → finalDamage *= 0.5 (-50% ice damage)</code></pre>
+
+            <h4>Setting the Attribute</h4>
+            <pre><code>import com.auranite.abloom.init.AbloomModAttributes;
+
+// Set fire damage bonus on an entity
+Entity entity = ...;
+AttributeInstance fireBonus = entity.getAttribute(
+    AbloomModAttributes.FIRE_DMG_BONUS
+);
+if (fireBonus != null) {
+    fireBonus.setBaseValue(0.5);  // +50% fire damage
+}
+
+// Set multiple element bonuses
+AttributeInstance iceBonus = entity.getAttribute(
+    AbloomModAttributes.ICE_DMG_BONUS
+);
+if (iceBonus != null) {
+    iceBonus.setBaseValue(-0.3);  // -30% ice damage (vulnerability)
+}</code></pre>
+
+            <div class="tip">
+                <strong>Use Case:</strong> These attributes are perfect for element-specific buffs/debuffs. For example, a fire potion could grant <code>FIRE_DMG_BONUS = 0.25</code> for 60 seconds, while a cursed armor set could apply <code>ICE_DMG_BONUS = -0.2</code> to reduce ice damage taken.
+            </div>
+
+            <h3>Elemental Resistance Modifier Attributes</h3>
+            <p>Abloom adds 14 new attributes that directly modify elemental resistance for each element type. Each attribute has a range of -1.0 to 1.0, representing ±100% resistance modifier.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Element</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>FIRE_RESIST_MOD</strong></td>
+                        <td><code>abloom:fire_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-fire">FIRE</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PHYSICAL_RESIST_MOD</strong></td>
+                        <td><code>abloom:physical_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-physical">PHYSICAL</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WIND_RESIST_MOD</strong></td>
+                        <td><code>abloom:wind_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-wind">WIND</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>EARTH_RESIST_MOD</strong></td>
+                        <td><code>abloom:earth_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-earth">EARTH</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WATER_RESIST_MOD</strong></td>
+                        <td><code>abloom:water_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-water">WATER</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ICE_RESIST_MOD</strong></td>
+                        <td><code>abloom:ice_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-ice">ICE</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ELECTRIC_RESIST_MOD</strong></td>
+                        <td><code>abloom:electric_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-electric">ELECTRIC</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ENERGY_RESIST_MOD</strong></td>
+                        <td><code>abloom:energy_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-energy">ENERGY</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>NATURAL_RESIST_MOD</strong></td>
+                        <td><code>abloom:natural_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-natural">NATURAL</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>QUANTUM_RESIST_MOD</strong></td>
+                        <td><code>abloom:quantum_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-quantum">QUANTUM</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ETHER_RESIST_MOD</strong></td>
+                        <td><code>abloom:ether_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-ether">ETHER</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>LIGHT_RESIST_MOD</strong></td>
+                        <td><code>abloom:light_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-light">LIGHT</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SHADOW_RESIST_MOD</strong></td>
+                        <td><code>abloom:shadow_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-shadow">SHADOW</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PRISMATIC_RESIST_MOD</strong></td>
+                        <td><code>abloom:prismatic_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-prismatic">PRISMATIC</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>How It Works</h4>
+            <p>Each attribute value is added to the base resistance value from the target's elemental tags. The formula is:</p>
+            <pre><code>effectiveResist = baseResist + resistModValue;
+damageMultiplier = 1.0 - effectiveResist;
+// Example: baseResist = 0.5 (50% resist), resistMod = -0.3 → effectiveResist = 0.2 → multiplier = 0.8 (+60% damage taken)
+// Example: baseResist = 0.0, resistMod = 0.4 → effectiveResist = 0.4 → multiplier = 0.6 (+40% resistance)</code></pre>
+
+            <h4>Setting the Attribute</h4>
+            <pre><code>import com.auranite.abloom.init.AbloomModAttributes;
+
+// Set fire resistance modifier on an entity
+Entity entity = ...;
+AttributeInstance fireResist = entity.getAttribute(
+    AbloomModAttributes.FIRE_RESIST_MOD
+);
+if (fireResist != null) {
+    fireResist.setBaseValue(0.3);  // +30% fire resistance
+}
+
+// Reduce ice resistance (make entity more vulnerable)
+AttributeInstance iceResist = entity.getAttribute(
+    AbloomModAttributes.ICE_RESIST_MOD
+);
+if (iceResist != null) {
+    iceResist.setBaseValue(-0.2);  // -20% ice resistance
+}</code></pre>
+
+            <div class="tip">
+                <strong>Use Case:</strong> These attributes modify how much damage the target takes from a specific element. A positive value increases resistance (less damage), while a negative value decreases resistance (more damage). Useful for debuffs that weaken a target's defenses or buffs that enhance their elemental protection.
+            </div>
+
+            <h3>Elemental Resistance Shred Attributes</h3>
+            <p>Abloom adds 14 new attributes that shred (reduce) the target's effective resistance. Each attribute has a range of 0 to 1, representing 0% to 100% resistance shred.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Element</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>FIRE_RES_SHRED</strong></td>
+                        <td><code>abloom:fire_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-fire">FIRE</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PHYSICAL_RES_SHRED</strong></td>
+                        <td><code>abloom:physical_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-physical">PHYSICAL</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WIND_RES_SHRED</strong></td>
+                        <td><code>abloom:wind_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-wind">WIND</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>EARTH_RES_SHRED</strong></td>
+                        <td><code>abloom:earth_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-earth">EARTH</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WATER_RES_SHRED</strong></td>
+                        <td><code>abloom:water_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-water">WATER</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ICE_RES_SHRED</strong></td>
+                        <td><code>abloom:ice_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-ice">ICE</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ELECTRIC_RES_SHRED</strong></td>
+                        <td><code>abloom:electric_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-electric">ELECTRIC</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ENERGY_RES_SHRED</strong></td>
+                        <td><code>abloom:energy_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-energy">ENERGY</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>NATURAL_RES_SHRED</strong></td>
+                        <td><code>abloom:natural_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-natural">NATURAL</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>QUANTUM_RES_SHRED</strong></td>
+                        <td><code>abloom:quantum_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-quantum">QUANTUM</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ETHER_RES_SHRED</strong></td>
+                        <td><code>abloom:ether_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-ether">ETHER</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>LIGHT_RES_SHRED</strong></td>
+                        <td><code>abloom:light_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-light">LIGHT</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SHADOW_RES_SHRED</strong></td>
+                        <td><code>abloom:shadow_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-shadow">SHADOW</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>PRISMATIC_RES_SHRED</strong></td>
+                        <td><code>abloom:prismatic_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td><span class="element-prismatic">PRISMATIC</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>How It Works</h4>
+            <p>Each attribute value is subtracted from the effective resistance, reducing it directly. The formula is:</p>
+            <pre><code>effectiveResist = (R_resist + R_mod + R_armor) − resShredValue;
+// Example: effectiveResist = 0.5 − 0.3 = 0.2 (20% resist instead of 50% → 80% damage taken)</code></pre>
+
+            <h4>Setting the Attribute</h4>
+            <pre><code>import com.auranite.abloom.init.AbloomModAttributes;
+
+// Set fire resistance shred on an attacker
+Entity attacker = ...;
+AttributeInstance fireShred = attacker.getAttribute(
+    AbloomModAttributes.FIRE_RES_SHRED
+);
+if (fireShred != null) {
+    fireShred.setBaseValue(0.3);  // 30% fire resistance shred
+}
+
+// Reduce target's ice resistance by 50%
+AttributeInstance iceShred = attacker.getAttribute(
+    AbloomModAttributes.ICE_RES_SHRED
+);
+if (iceShred != null) {
+    iceShred.setBaseValue(0.5);  // 50% ice resistance shred
+}</code></pre>
+
+            <div class="tip">
+                <strong>Use Case:</strong> These attributes reduce the target's effective resistance by a flat amount. Unlike RESIST_MOD (which adds to base resistance), RES_SHRED directly subtracts from the final effective resistance. For example, a fire arrow with <code>FIRE_RES_SHRED = 0.3</code> reduces any fire resistance the target has by 0.3.
             </div>
 
             <h3>Enchantment-Based Damage Type Override</h3>
