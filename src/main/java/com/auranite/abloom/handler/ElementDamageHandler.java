@@ -640,12 +640,21 @@ public class ElementDamageHandler {
 
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
+        // Apply effective resistance (base + attribute modifier + armor)
+        float effectiveResist = ElementResistanceManager.getResistance(target, type).resistance();
+        if (target != null) {
+            effectiveResist += getElementResistMod(target, type);
+        }
+        effectiveResist += armorResistanceBonus;
+        effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
+
         int basePoints = (int) baseAccumulation;
         int pointsToAdd = Math.round(basePoints + effectiveAccumMultiplier);
         if (AbloomMod.LOGGER.isDebugEnabled()) {
-            AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {})", pointsToAdd, basePoints, effectiveAccumMultiplier);
+            AbloomMod.LOGGER.debug("Base accumulation points: {} (base: {}, multiplier: {}, effectiveResist: {})", pointsToAdd, basePoints, effectiveAccumMultiplier, effectiveResist);
         }
-        pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, pointsToAdd);
+        // Apply effective resistance (including armor) to accumulation points
+        pointsToAdd = Math.round(pointsToAdd * Math.max(0.001f, 1.0f - effectiveResist));
         if (AbloomMod.LOGGER.isDebugEnabled()) {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
         }
@@ -688,14 +697,14 @@ public class ElementDamageHandler {
         }
 
         float finalDamage = damage;
-        finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
+
+        // Apply effective resistance (already calculated above, includes armor)
+        finalDamage = Math.max(0.001f, finalDamage * (1.0f - effectiveResist));
 
         // Apply elemental damage bonus attributes
         if (attacker != null) {
             finalDamage = applyElementalDamageBonus(attacker, type, finalDamage);
         }
-
-        finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 
         CritResult critResult = applyCriticalHit(attacker, finalDamage);
         finalDamage = critResult.damage();
@@ -1017,6 +1026,77 @@ public class ElementDamageHandler {
     }
 
     /**
+     * Applies elemental resistance modifier attributes from the attacker.
+     * Each element has a dedicated attribute with range [-1, 1], representing ±100% resistance modifier.
+     * Positive = more resistance (less damage), Negative = less resistance (more damage).
+     *
+     * @param attacker the attacking entity
+     * @param type the elemental type
+     * @return the resistance modifier value
+     */
+    private static double getElementResistMod(LivingEntity attacker, ElementType type) {
+        return switch (type) {
+            case FIRE -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case PHYSICAL -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PHYSICAL_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case WIND -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.WIND_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case EARTH -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.EARTH_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case WATER -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.WATER_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ICE -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ICE_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ELECTRIC -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELECTRIC_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ENERGY -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ENERGY_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case NATURAL -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.NATURAL_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case QUANTUM -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.QUANTUM_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ETHER -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ETHER_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case LIGHT -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.LIGHT_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case SHADOW -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.SHADOW_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case PRISMATIC -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PRISMATIC_RESIST_MOD.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            default -> 0.0;
+        };
+    }
+
+    /**
      * Applies elemental damage bonus attributes from the attacker.
      * Each element has a dedicated attribute with range [-1, 1], representing ±100% damage modifier.
      *
@@ -1256,6 +1336,14 @@ public class ElementDamageHandler {
 
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
 
+        // Apply effective resistance (base + attribute modifier + armor)
+        float effectiveResist = ElementResistanceManager.getResistance(livingTarget, type).resistance();
+        effectiveResist += getElementResistMod(livingTarget, type);
+        float armorResistanceBonus = getArmorResistanceBonus(livingTarget, type);
+        effectiveResist += armorResistanceBonus;
+        effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
+        finalDamage = Math.max(0.001f, finalDamage * (1.0f - effectiveResist));
+
         // Apply elemental damage bonus attributes (same as doProcessLivingHurt)
         if (attacker instanceof LivingEntity livingAttacker) {
             finalDamage = applyElementalDamageBonus(livingAttacker, type, finalDamage);
@@ -1263,7 +1351,8 @@ public class ElementDamageHandler {
 
         int basePoints = (int) baseAccumulation;
         int pointsToAdd = Math.round((basePoints + accumMultiplier) * accumBonus);
-        pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, pointsToAdd);
+        // Apply effective resistance to accumulation points (same effectiveResist as above)
+        pointsToAdd = Math.round(pointsToAdd * Math.max(0.001f, 1.0f - effectiveResist));
 
         if (pointsToAdd > 0) {
             AbloomModAttachments.addPoints(livingTarget, type, pointsToAdd);
