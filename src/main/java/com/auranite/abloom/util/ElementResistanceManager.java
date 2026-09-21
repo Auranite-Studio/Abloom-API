@@ -165,13 +165,6 @@ public class ElementResistanceManager {
 	public static float calculateReducedDamage(Entity entity, ElementType type, float baseDamage) {
 		Resistance resistance = getResistance(entity, type);
 		float multiplier = 1f - resistance.resistance();
-		
-		if (entity instanceof LivingEntity livingEntity &&
-				livingEntity.hasEffect(AbloomModEffects.CORRUPTION)) {
-			float newResistance = resistance.resistance() * 0.8f;
-			multiplier = 1f - newResistance;
-		}
-		
 		return Math.max(0.001f, baseDamage * multiplier);
 	}
 

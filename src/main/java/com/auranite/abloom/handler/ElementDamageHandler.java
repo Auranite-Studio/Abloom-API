@@ -586,10 +586,6 @@ public class ElementDamageHandler {
             int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
             damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
         }
-        if (target.hasEffect(AbloomModEffects.BLOOM)) {
-            int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
-        }
         if (target.hasEffect(AbloomModEffects.DISPERSION)) {
             float dispersionBonus = getDispersionBonus(type);
             if (AbloomMod.LOGGER.isDebugEnabled()) {
@@ -617,11 +613,6 @@ public class ElementDamageHandler {
                 // Elemental weapon registered via registry: use registry accumulation
                 effectiveAccumMultiplier = ElementalWeaponRegistry.getAccumulationMultiplier(weapon);
             }
-        }
-
-        if (target.hasEffect(AbloomModEffects.BLOOM)) {
-            int amplifier = target.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-            effectiveAccumMultiplier *= 1.20f * (amplifier + 1);
         }
         if (target.hasEffect(AbloomModEffects.WETNESS)) {
             int amplifier = target.getEffect(AbloomModEffects.WETNESS).getAmplifier();
@@ -1388,11 +1379,6 @@ public class ElementDamageHandler {
             damageMultiplier *= Math.max(0.1f, reduction);
         }
 
-        if (livingTarget.hasEffect(AbloomModEffects.BLOOM)) {
-            int amplifier = livingTarget.getEffect(AbloomModEffects.BLOOM).getAmplifier();
-            damageMultiplier *= 1.20f * (amplifier + 1);
-            accumBonus *= 1.20f * (amplifier + 1);
-        }
         if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
             damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
