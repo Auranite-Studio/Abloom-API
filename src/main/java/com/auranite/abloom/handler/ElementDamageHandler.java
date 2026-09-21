@@ -690,6 +690,11 @@ public class ElementDamageHandler {
         float finalDamage = damage;
         finalDamage = ElementResistanceManager.calculateReducedDamage(target, type, finalDamage);
 
+        // Apply elemental damage bonus attributes
+        if (attacker != null) {
+            finalDamage = applyElementalDamageBonus(attacker, type, finalDamage);
+        }
+
         finalDamage = applyArmorResistance(finalDamage, armorResistanceBonus);
 
         CritResult critResult = applyCriticalHit(attacker, finalDamage);
@@ -1011,6 +1016,80 @@ public class ElementDamageHandler {
         return Math.max(-0.99f, Math.min(totalResistance, 0.99f));
     }
 
+    /**
+     * Applies elemental damage bonus attributes from the attacker.
+     * Each element has a dedicated attribute with range [-1, 1], representing ±100% damage modifier.
+     *
+     * @param attacker the attacking entity
+     * @param type the elemental type
+     * @param baseDamage the damage before applying elemental bonus
+     * @return the damage with elemental bonus applied
+     */
+    private static float applyElementalDamageBonus(LivingEntity attacker, ElementType type, float baseDamage) {
+        double bonusValue = switch (type) {
+            case FIRE -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case PHYSICAL -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PHYSICAL_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case WIND -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.WIND_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case EARTH -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.EARTH_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case WATER -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.WATER_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ICE -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ICE_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ELECTRIC -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELECTRIC_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ENERGY -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ENERGY_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case NATURAL -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.NATURAL_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case QUANTUM -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.QUANTUM_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ETHER -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ETHER_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case LIGHT -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.LIGHT_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case SHADOW -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.SHADOW_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case PRISMATIC -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PRISMATIC_DMG_BONUS.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            default -> 0.0;
+        };
+
+        if (bonusValue == 0.0) return baseDamage;
+        return Math.max(0.0f, baseDamage * (1.0f + (float) bonusValue));
+    }
+
     private static float applyArmorResistance(float damage, float resistanceBonus) {
         float multiplier = 1.0f - resistanceBonus;
         // multiplier > 1.0 when resistanceBonus < 0 (penetration increases damage)
@@ -1177,6 +1256,11 @@ public class ElementDamageHandler {
 
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
 
+        // Apply elemental damage bonus attributes (same as doProcessLivingHurt)
+        if (attacker instanceof LivingEntity livingAttacker) {
+            finalDamage = applyElementalDamageBonus(livingAttacker, type, finalDamage);
+        }
+
         int basePoints = (int) baseAccumulation;
         int pointsToAdd = Math.round((basePoints + accumMultiplier) * accumBonus);
         pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(livingTarget, type, pointsToAdd);
@@ -1194,10 +1278,15 @@ public class ElementDamageHandler {
                 AbloomModAttachments.resetPoints(livingTarget, type);
                 syncAccumulationToClients(livingTarget);
             }
-            if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
-        } else {
-            if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type);
         }
+
+        // Apply critical hit (same as doProcessLivingHurt)
+        CritResult critResult = applyCriticalHit(attacker instanceof LivingEntity le ? le : null, finalDamage);
+        finalDamage = critResult.damage();
+        boolean isCrit = critResult.isCrit();
+        boolean isMultiCrit = critResult.isMultiCrit();
+
+        if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type, isCrit, isMultiCrit);
 
         if (target.level() instanceof ServerLevel serverLevel) {
             var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
