@@ -738,7 +738,7 @@
                         <td>Dispersion</td>
                         <td><code>abloom:dispersion</code></td>
                         <td>Damage taken by target increases damage taken based on incoming damage element type: Physical +15%, Fire +15%, Wind +30%, Water +30%, Earth +15%, Ice +15%, Electric +30%, Energy +15%, Natural +15%, Quantum +15%, Ether +15%, Light +30%, Shadow +20%, Prismatic +30%</td>
-                        <td style="color: #FFFFE0;">#FF1A5</td>
+                        <td style="color: #FFF1A5;">#FFF1A5</td>
                     </tr>
                     <tr>
                         <td>Eclipse</td>
@@ -1409,18 +1409,7 @@ if (iceShred != null) {
             <p>Abloom supports overriding a weapon's elemental damage type through enchantments. This allows weapons to deal different elements based on enchantments like <code>fire_aspect</code> or <code>flame</code>, without requiring custom enchantment classes.</p>
 
             <h4>How It Works</h4>
-            <p>The damage handler checks all enchantments on the attacker's main hand and offhand weapons before checking weapon registration or datapack configs. If a matching enchantment is found, its mapped <code>ElementType</code> overrides the weapon's default element.</p>
-
-            <h4>Priority in Element Resolution Chain</h4>
-            <ol>
-                <li><strong>Enchantment override</strong> (highest priority) — checked first</li>
-                <li>Elemental projectile element</li>
-                <li>Multi-stage weapon element</li>
-                <li><code>ElementalWeaponComponent</code> (item component)</li>
-                <li><code>ElementalWeaponRegistry</code> lookup</li>
-                <li>Vanilla damage type msgId matching</li>
-                <li><code>ElementType.fromVanillaDamageType()</code> fallback</li>
-            </ol>
+            <p>The damage handler checks all enchantments on the attacker's main hand and offhand weapons before checking weapon registration or datapack configs. If a matching enchantment is found, its mapped <code>ElementType</code> overrides the weapon's default element. The mapping is stored in a <code>public static final ConcurrentHashMap</code> in <code>ElementDamageHandler</code>, making it directly accessible for other mods to extend.</p>
 
             <h4>Built-in Mappings</h4>
             <table>
@@ -1435,7 +1424,7 @@ if (iceShred != null) {
                     <tr>
                         <td><code>minecraft:fire_aspect</code></td>
                         <td><span class="element-fire">FIRE</span></td>
-                        <td>Vanilla enchantment</td>
+                        <td>Vanilla enchantment (sword)</td>
                     </tr>
                     <tr>
                         <td><code>minecraft:flame</code></td>
@@ -1446,7 +1435,7 @@ if (iceShred != null) {
             </table>
 
             <h4>Registering Custom Enchantments (For Other Mods)</h4>
-            <p>Other mods can register their custom enchantments to map to Abloom elements by adding entries to the enchantment-element mapping. Currently, this requires using reflection or waiting for a public API, as the mapping is stored in a private static map in <code>ElementDamageHandler</code>.</p>
+            <p>Other mods can register their custom enchantments to map to Abloom elements by directly adding entries to the public <code>ENCHANTMENT_ELEMENT_MAP</code> in <code>ElementDamageHandler</code>. Since the map is a <code>public static final ConcurrentHashMap</code>, no reflection is needed.</p>
 
             <pre><code>package com.example.mymod;
 
@@ -1456,9 +1445,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
-
-import java.lang.reflect.Field;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class MyModEnchantments {
 
@@ -1474,30 +1460,28 @@ public class MyModEnchantments {
 
     /**
      * Called during mod initialization to register enchantment-to-element mappings.
-     * Uses reflection to access Abloom's private ENCHANTMENT_ELEMENT_MAP.
+     * Directly accesses Abloom's public ENCHANTMENT_ELEMENT_MAP (ConcurrentHashMap).
      */
     public static void registerEnchantmentMappings() {
-        try {
-            Field mapField = ElementDamageHandler.class.getDeclaredField("ENCHANTMENT_ELEMENT_MAP");
-            mapField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            ConcurrentHashMap&lt;ResourceLocation, com.auranite.abloom.util.ElementType> map =
-                (ConcurrentHashMap&lt;ResourceLocation, com.auranite.abloom.util.ElementType>) mapField.get(null);
+        // Map custom enchantments to element types
+        ResourceLocation iceAspectId = ResourceLocation.fromNamespaceAndPath("mymod", "ice_aspect");
+        ElementDamageHandler.ENCHANTMENT_ELEMENT_MAP.put(
+            iceAspectId,
+            com.auranite.abloom.util.ElementType.ICE
+        );
 
-            // Map custom enchantments to element types
-            ResourceLocation iceAspectId = ResourceLocation.fromNamespaceAndPath("mymod", "ice_aspect");
-            map.put(iceAspectId, com.auranite.abloom.util.ElementType.ICE);
+        ResourceLocation electricAspectId = ResourceLocation.fromNamespaceAndPath("mymod", "electric_aspect");
+        ElementDamageHandler.ENCHANTMENT_ELEMENT_MAP.put(
+            electricAspectId,
+            com.auranite.abloom.util.ElementType.ELECTRIC
+        );
 
-            ResourceLocation electricAspectId = ResourceLocation.fromNamespaceAndPath("mymod", "electric_aspect");
-            map.put(electricAspectId, com.auranite.abloom.util.ElementType.ELECTRIC);
-
-            // Example: Map a thunder enchantment to ELECTRIC
-            ResourceLocation thunderId = ResourceLocation.fromNamespaceAndPath("mymod", "thunder_strike");
-            map.put(thunderId, com.auranite.abloom.util.ElementType.ELECTRIC);
-
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            System.err.println("[MyMod] Failed to register enchantment-element mappings: " + e.getMessage());
-        }
+        // Example: Map a thunder enchantment to ELECTRIC
+        ResourceLocation thunderId = ResourceLocation.fromNamespaceAndPath("mymod", "thunder_strike");
+        ElementDamageHandler.ENCHANTMENT_ELEMENT_MAP.put(
+            thunderId,
+            com.auranite.abloom.util.ElementType.ELECTRIC
+        );
     }
 }</code></pre>
         </section>
