@@ -54,6 +54,23 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> SHADOW_RESIST_MOD = REGISTRY.register("shadow_resist_mod", () -> new RangedAttribute("attribute.power.shadow_resist_mod", 0, -1, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> PRISMATIC_RESIST_MOD = REGISTRY.register("prismatic_resist_mod", () -> new RangedAttribute("attribute.power.prismatic_resist_mod", 0, -1, 1).setSyncable(true));
 
+    // Elemental resistance shred attributes: range 0 to 1 (0-100% resistance shred)
+    // Positive = shreds target resistance (reduces effectiveResist)
+    public static final DeferredHolder<Attribute, Attribute> FIRE_RES_SHRED = REGISTRY.register("fire_res_shred", () -> new RangedAttribute("attribute.power.fire_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> PHYSICAL_RES_SHRED = REGISTRY.register("physical_res_shred", () -> new RangedAttribute("attribute.power.physical_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> WIND_RES_SHRED = REGISTRY.register("wind_res_shred", () -> new RangedAttribute("attribute.power.wind_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> EARTH_RES_SHRED = REGISTRY.register("earth_res_shred", () -> new RangedAttribute("attribute.power.earth_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> WATER_RES_SHRED = REGISTRY.register("water_res_shred", () -> new RangedAttribute("attribute.power.water_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> ICE_RES_SHRED = REGISTRY.register("ice_res_shred", () -> new RangedAttribute("attribute.power.ice_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> ELECTRIC_RES_SHRED = REGISTRY.register("electric_res_shred", () -> new RangedAttribute("attribute.power.electric_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> ENERGY_RES_SHRED = REGISTRY.register("energy_res_shred", () -> new RangedAttribute("attribute.power.energy_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> NATURAL_RES_SHRED = REGISTRY.register("natural_res_shred", () -> new RangedAttribute("attribute.power.natural_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> QUANTUM_RES_SHRED = REGISTRY.register("quantum_res_shred", () -> new RangedAttribute("attribute.power.quantum_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> ETHER_RES_SHRED = REGISTRY.register("ether_res_shred", () -> new RangedAttribute("attribute.power.ether_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> LIGHT_RES_SHRED = REGISTRY.register("light_res_shred", () -> new RangedAttribute("attribute.power.light_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> SHADOW_RES_SHRED = REGISTRY.register("shadow_res_shred", () -> new RangedAttribute("attribute.power.shadow_res_shred", 0, 0, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> PRISMATIC_RES_SHRED = REGISTRY.register("prismatic_res_shred", () -> new RangedAttribute("attribute.power.prismatic_res_shred", 0, 0, 1).setSyncable(true));
+
     @SubscribeEvent
     public static void addAttributes(EntityAttributeModificationEvent event) {
         event.getTypes().forEach(entity -> event.add(entity, CRIT_DMG));
@@ -87,5 +104,19 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, LIGHT_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, PRISMATIC_RESIST_MOD));
+        event.getTypes().forEach(entity -> event.add(entity, FIRE_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, PHYSICAL_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, WIND_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, EARTH_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, WATER_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, ICE_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, ELECTRIC_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, ENERGY_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, NATURAL_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, QUANTUM_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, ETHER_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, LIGHT_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, SHADOW_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, PRISMATIC_RES_SHRED));
     }
 }

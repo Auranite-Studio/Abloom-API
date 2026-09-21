@@ -646,6 +646,9 @@ public class ElementDamageHandler {
             effectiveResist += getElementResistMod(target, type);
         }
         effectiveResist += armorResistanceBonus;
+        if (attacker != null) {
+            effectiveResist -= getElementResShred(attacker, type);
+        }
         effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
 
         int basePoints = (int) baseAccumulation;
@@ -1097,6 +1100,76 @@ public class ElementDamageHandler {
     }
 
     /**
+     * Applies elemental resistance shred attributes from the attacker.
+     * Each element has a dedicated attribute with range [0, 1], representing 0-100% resistance shred.
+     *
+     * @param attacker the attacking entity
+     * @param type the elemental type
+     * @return the resistance shred value
+     */
+    private static double getElementResShred(LivingEntity attacker, ElementType type) {
+        return switch (type) {
+            case FIRE -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case PHYSICAL -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PHYSICAL_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case WIND -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.WIND_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case EARTH -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.EARTH_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case WATER -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.WATER_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ICE -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ICE_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ELECTRIC -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELECTRIC_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ENERGY -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ENERGY_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case NATURAL -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.NATURAL_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case QUANTUM -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.QUANTUM_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case ETHER -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ETHER_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case LIGHT -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.LIGHT_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case SHADOW -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.SHADOW_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            case PRISMATIC -> {
+                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PRISMATIC_RES_SHRED.getKey()));
+                yield attr != null ? attr.getValue() : 0.0;
+            }
+            default -> 0.0;
+        };
+    }
+
+    /**
      * Applies elemental damage bonus attributes from the attacker.
      * Each element has a dedicated attribute with range [-1, 1], representing ±100% damage modifier.
      *
@@ -1341,6 +1414,9 @@ public class ElementDamageHandler {
         effectiveResist += getElementResistMod(livingTarget, type);
         float armorResistanceBonus = getArmorResistanceBonus(livingTarget, type);
         effectiveResist += armorResistanceBonus;
+        if (attacker instanceof LivingEntity livingAttacker) {
+            effectiveResist *= (1.0f - (float) getElementResShred(livingAttacker, type));
+        }
         effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
         finalDamage = Math.max(0.001f, finalDamage * (1.0f - effectiveResist));
 
