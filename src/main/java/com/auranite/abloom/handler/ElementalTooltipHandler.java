@@ -41,6 +41,7 @@ public class ElementalTooltipHandler {
     private static final String KEY_ACCUM_POINTS = "elemental.tooltip.accum_points";
     private static final String KEY_CRIT_CHANCE = "elemental.tooltip.crit_chance";
     private static final String KEY_CRIT_DAMAGE = "elemental.tooltip.crit_damage";
+    private static final String KEY_RESONANCE_FREQUENCY = "elemental.tooltip.resonance_frequency";
 
     private static final String KEY_ATTACK_STAGES = "elemental.tooltip.attack_stages";
     private static final String KEY_ATTACK_STAGES_COUNT = "elemental.tooltip.attack_stages_count";
@@ -155,6 +156,17 @@ public class ElementalTooltipHandler {
                 critDamageText.setStyle(critDamageText.getStyle().withColor(0x00AA00));
                 event.getToolTip().add(Component.literal(" ").append(critDamageText));
             }
+        }
+
+        // Show resonance frequency if present
+        float resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(stack);
+        if (resonanceFrequency > 0.0f) {
+            MutableComponent resonanceText = Component.translatable(
+                    KEY_RESONANCE_FREQUENCY,
+                    Math.round(resonanceFrequency)
+            );
+            resonanceText.setStyle(resonanceText.getStyle().withColor(0x00AA00));
+            event.getToolTip().add(Component.literal(" ").append(resonanceText));
         }
 
         if (accumPoints > 1.0f && type != ElementType.PRISMATIC ) {

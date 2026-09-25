@@ -128,7 +128,8 @@ public class ElementalWeaponProvider {
                             stageElement,
                             stage.getAccumulationMultiplier(),
                             weaponData.getCritChance(),
-                            weaponData.getCritDamage()
+                            weaponData.getCritDamage(),
+                            weaponData.getResonanceFrequency()
                     );
                 }
 
@@ -144,13 +145,14 @@ public class ElementalWeaponProvider {
                         elementType,
                         weaponData.getAccumulationMultiplier(),
                         weaponData.getCritChance(),
-                        weaponData.getCritDamage()
+                        weaponData.getCritDamage(),
+                        weaponData.getResonanceFrequency()
                 );
 
                 loadedCount.getAndIncrement();
-                AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {}, crit: {:.0f}%/{:.0f}%) from mod {}",
+                AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {}, crit: {:.0f}%/{:.0f}%, rf: {}) from mod {}",
                         location, elementType, weaponData.getAccumulationMultiplier(),
-                        weaponData.getCritChance() * 100, weaponData.getCritDamage() * 100, modId);
+                        weaponData.getCritChance() * 100, weaponData.getCritDamage() * 100, weaponData.getResonanceFrequency(), modId);
             }
         } catch (Exception e) {
             AbloomMod.LOGGER.error("Failed to load elemental weapon from {} (from mod {})", sourcePath, modId, e);

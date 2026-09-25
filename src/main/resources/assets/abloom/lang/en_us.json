@@ -106,6 +106,7 @@
   "item.abloom.shadow_stick": "Shadow Stick",
   "elemental.tooltip.crit_chance": "Crit Chance: %s",
   "elemental.tooltip.crit_damage": "Crit DMG: %s",
+  "elemental.tooltip.resonance_frequency": "Resonance Freq: %d",
   "elemental.tooltip.attack_stages_count": "Attack stages: %d",
   "elemental.tooltip.prismatic": "Prismatic DMG",
   "elemental.resistance.prismatic": "Prismatic DMG Res: ",

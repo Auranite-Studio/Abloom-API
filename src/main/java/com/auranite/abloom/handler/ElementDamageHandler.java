@@ -705,12 +705,25 @@ public class ElementDamageHandler {
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
 
+        // Get resonance frequency from attacker's weapon for threshold damage calculation
+        float resonanceFrequency = 0.0f;
+        if (attacker != null) {
+            ItemStack weapon = attacker.getMainHandItem();
+            resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(weapon);
+            // Apply resonance_frequency_bonus attribute
+            ResourceKey<Attribute> rfBonusKey = AbloomModAttributes.RESONANCE_FREQUENCY_BONUS.getKey();
+            AttributeInstance rfBonusAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(rfBonusKey));
+            if (rfBonusAttr != null) {
+                resonanceFrequency += (float) rfBonusAttr.getValue();
+            }
+        }
+
         if (thresholdReached) {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
                 AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
             }
             boolean isErosionTrigger = (erosionActive && type != ElementType.WIND);
-            finalDamage = applyThresholdEffect(target, type, finalDamage, isErosionTrigger);
+            finalDamage = applyThresholdEffect(target, type, finalDamage, isErosionTrigger, resonanceFrequency);
             AbloomModAttachments.resetPoints(target, type);
             syncAccumulationToClients(target);
         }
@@ -1242,78 +1255,85 @@ public class ElementDamageHandler {
     }
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage) {
-        return applyThresholdEffect(target, type, originalDamage, false);
+        return applyThresholdEffect(target, type, originalDamage, false, 0.0f);
     }
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage, boolean isErosionTrigger) {
+        return applyThresholdEffect(target, type, originalDamage, isErosionTrigger, 0.0f);
+    }
+
+    private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency) {
         // Erosion triggers apply effects at half duration
         int durationMultiplier = isErosionTrigger ? 10 : 20; // half of standard (20 ticks = 1 second)
+
+        // Calculate total threshold damage multiplier: Rdm = Rem + Rf
+        float totalMultiplier = getThresholdResonanceMultiplier(type, resonanceFrequency);
 
         return switch (type) {
             case FIRE -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
-                yield originalDamage * 1.25f;
+                yield originalDamage * totalMultiplier;
             }
             case PHYSICAL -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
-                yield originalDamage * 2.0f;
+                yield originalDamage * totalMultiplier;
             }
             case WIND -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 15 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             case WATER -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 15 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             case EARTH -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 5 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             case ICE -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
-                yield originalDamage * 1.25f;
+                yield originalDamage * totalMultiplier;
             }
             case ELECTRIC -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             case ENERGY -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             case NATURAL -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
-                yield originalDamage * 1.25f;
+                yield originalDamage * totalMultiplier;
             }
             case QUANTUM -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 8 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
-                yield originalDamage * 1.25f;
+                yield originalDamage * totalMultiplier;
             }
             case ETHER -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
-                yield originalDamage * 1.25f;
+                yield originalDamage * totalMultiplier;
             }
             case LIGHT -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             case SHADOW -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 14 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.shadow_eclipse"), 0x4B0082);
-                yield originalDamage * 1.5f;
+                yield originalDamage * totalMultiplier;
             }
             default -> originalDamage;
         };
@@ -1341,6 +1361,48 @@ public class ElementDamageHandler {
             case PRISMATIC -> 0.30f;
             default -> 0.00f;
         };
+    }
+
+    /**
+     * Base threshold damage multipliers per element (Rem).
+     * These are the base multipliers before resonance frequency is applied.
+     */
+    private static float getBaseThresholdMultiplier(ElementType type) {
+        return switch (type) {
+            case FIRE -> 1.25f;
+            case PHYSICAL -> 2.0f;
+            case WIND -> 1.5f;
+            case WATER -> 1.5f;
+            case EARTH -> 1.5f;
+            case ICE -> 1.25f;
+            case ELECTRIC -> 1.5f;
+            case ENERGY -> 1.5f;
+            case NATURAL -> 1.25f;
+            case QUANTUM -> 1.25f;
+            case ETHER -> 1.25f;
+            case LIGHT -> 1.5f;
+            case SHADOW -> 1.5f;
+            case PRISMATIC -> 1.5f;
+            default -> 1.0f;
+        };
+    }
+
+    /**
+     * Calculates the threshold resonance damage multiplier using the formula:
+     * Rdm = Rem + Rf
+     * where:
+     * - Rem = base element resonance multiplier (e.g., LIGHT = 1.5 = 150%)
+     * - Rf = resonance frequency * 0.01 (e.g., 125 -> 1.25 = 125%)
+     * - Rdm = final damage multiplier (e.g., 1.5 + 1.25 = 2.75 = 275%)
+     *
+     * @param type the elemental type
+     * @param resonanceFrequency the weapon's resonance frequency value
+     * @return the total threshold damage multiplier
+     */
+    private static float getThresholdResonanceMultiplier(ElementType type, float resonanceFrequency) {
+        float baseMultiplier = getBaseThresholdMultiplier(type);
+        float frequencyBonus = resonanceFrequency * 0.01f; // 1 unit = 0.01 multiplier
+        return baseMultiplier + frequencyBonus;
     }
 
     public static float getBaseAccumulation() {
@@ -1425,7 +1487,19 @@ public class ElementDamageHandler {
             }
             boolean thresholdReached = AbloomModAttachments.getPoints(livingTarget, type) >= THRESHOLD;
             if (thresholdReached) {
-                finalDamage = applyThresholdEffect(livingTarget, type, finalDamage);
+                // Get resonance frequency from attacker's weapon for threshold damage calculation
+                float resonanceFrequency = 0.0f;
+                if (attacker instanceof LivingEntity livingAttacker) {
+                    ItemStack weapon = livingAttacker.getMainHandItem();
+                    resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(weapon);
+                    // Apply resonance_frequency_bonus attribute
+                    ResourceKey<Attribute> rfBonusKey = AbloomModAttributes.RESONANCE_FREQUENCY_BONUS.getKey();
+                    AttributeInstance rfBonusAttr = livingAttacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(rfBonusKey));
+                    if (rfBonusAttr != null) {
+                        resonanceFrequency += (float) rfBonusAttr.getValue();
+                    }
+                }
+                finalDamage = applyThresholdEffect(livingTarget, type, finalDamage, false, resonanceFrequency);
                 AbloomModAttachments.resetPoints(livingTarget, type);
                 syncAccumulationToClients(livingTarget);
             }

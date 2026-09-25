@@ -20,6 +20,7 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> CRIT_DMG = REGISTRY.register("crit_dmg", () -> new RangedAttribute("attribute.power.crit_dmg", 0, -10, 10).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> CRIT_CHANCE = REGISTRY.register("crit_chance", () -> new RangedAttribute("attribute.power.crit_chance", 0, -2, 2).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> RESONANCE_ACCUMULATION_BUILDUP = REGISTRY.register("resonance_accumulation_buildup", () -> new RangedAttribute("attribute.power.resonance_accumulation_buildup", 0, -1, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> RESONANCE_FREQUENCY_BONUS = REGISTRY.register("resonance_frequency_bonus", () -> new RangedAttribute("attribute.power.resonance_frequency_bonus", 0, -500, 500).setSyncable(true));
 
     // Elemental damage bonus attributes: range -1 to 1 (±100% damage modifier)
     public static final DeferredHolder<Attribute, Attribute> FIRE_DMG_BONUS = REGISTRY.register("fire_dmg_bonus", () -> new RangedAttribute("attribute.power.fire_dmg_bonus", 0, -1, 1).setSyncable(true));
@@ -76,6 +77,7 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, CRIT_DMG));
         event.getTypes().forEach(entity -> event.add(entity, CRIT_CHANCE));
         event.getTypes().forEach(entity -> event.add(entity, RESONANCE_ACCUMULATION_BUILDUP));
+        event.getTypes().forEach(entity -> event.add(entity, RESONANCE_FREQUENCY_BONUS));
         event.getTypes().forEach(entity -> event.add(entity, FIRE_DMG_BONUS));
         event.getTypes().forEach(entity -> event.add(entity, PHYSICAL_DMG_BONUS));
         event.getTypes().forEach(entity -> event.add(entity, WIND_DMG_BONUS));

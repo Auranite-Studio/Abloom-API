@@ -36,6 +36,7 @@ public class ElementalWeaponData {
     private final float accumulationMultiplier; // total accumulation for tooltip display
     private final float critChance;
     private final float critDamage;
+    private final float resonanceFrequency; // resonance frequency that adds to threshold damage multiplier
 
     private final List<WeaponStage> stages;
 
@@ -77,15 +78,24 @@ public class ElementalWeaponData {
     }
 
     public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage) {
-        this(item, baseElement, accumulationMultiplier, critChance, critDamage, Collections.emptyList());
+        this(item, baseElement, accumulationMultiplier, critChance, critDamage, 0.0f);
+    }
+
+    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
+        this(item, baseElement, accumulationMultiplier, critChance, critDamage, resonanceFrequency, Collections.emptyList());
     }
 
     public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, List<WeaponStage> stages) {
+        this(item, baseElement, accumulationMultiplier, critChance, critDamage, 0.0f, stages);
+    }
+
+    public ElementalWeaponData(String item, String baseElement, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency, List<WeaponStage> stages) {
         this.item = item;
         this.baseElement = baseElement;
         this.accumulationMultiplier = accumulationMultiplier;
         this.critChance = critChance;
         this.critDamage = critDamage;
+        this.resonanceFrequency = resonanceFrequency;
         this.stages = stages;
     }
 
@@ -115,6 +125,10 @@ public class ElementalWeaponData {
 
     public float getCritDamage() {
         return critDamage;
+    }
+
+    public float getResonanceFrequency() {
+        return resonanceFrequency;
     }
 
     public Optional<ResourceLocation> getItemResourceLocation() {
@@ -209,6 +223,7 @@ public class ElementalWeaponData {
                 GsonHelper.getAsFloat(json, "accumulation_multiplier", 1.0f),
                 critChance,
                 critDamage,
+                GsonHelper.getAsFloat(json, "resonance_frequency", 0.0f),
                 stages);
     }
 

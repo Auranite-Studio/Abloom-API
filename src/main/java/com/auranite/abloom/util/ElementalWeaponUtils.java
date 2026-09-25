@@ -198,6 +198,17 @@ public class ElementalWeaponUtils {
     }
 
     /**
+     * Gets the resonance frequency of an item stack (sum of component and registry values).
+     * Resonance frequency adds to the threshold damage multiplier (1 unit = 0.01 multiplier).
+     * @param stack the item stack
+     * @return the total resonance frequency (0.0f if none)
+     */
+    public static float getResonanceFrequency(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0.0f;
+        return ElementalWeaponRegistry.getResonanceFrequency(stack) + ElementalWeaponComponent.getResonanceFrequency(stack);
+    }
+
+    /**
      * Adds elemental type to an item stack with default accumulation multiplier.
      * @param stack the item stack
      * @param type the elemental type

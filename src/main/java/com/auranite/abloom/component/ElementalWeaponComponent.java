@@ -13,6 +13,7 @@ public class ElementalWeaponComponent {
     public static final String ACCUM_POINTS_KEY = "accum_points";
     public static final String CRIT_CHANCE_KEY = "crit_chance";
     public static final String CRIT_DAMAGE_KEY = "crit_damage";
+    public static final String RESONANCE_FREQUENCY_KEY = "resonance_frequency";
 
     private static final CustomData EMPTY_DATA = CustomData.EMPTY;
 
@@ -25,6 +26,10 @@ public class ElementalWeaponComponent {
     }
 
     public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints, float critChance, float critDamage) {
+        return withElementAndAccum(stack, type, accumPoints, critChance, critDamage, 0.0f);
+    }
+
+    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints, float critChance, float critDamage, float resonanceFrequency) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, EMPTY_DATA);
@@ -33,6 +38,7 @@ public class ElementalWeaponComponent {
             tag.putFloat(ACCUM_POINTS_KEY, accumPoints);
             tag.putFloat(CRIT_CHANCE_KEY, critChance);
             tag.putFloat(CRIT_DAMAGE_KEY, critDamage);
+            tag.putFloat(RESONANCE_FREQUENCY_KEY, resonanceFrequency);
         });
         stack.set(DataComponents.CUSTOM_DATA, customData);
 
@@ -76,6 +82,15 @@ public class ElementalWeaponComponent {
         return customData.copyTag().getFloat(CRIT_DAMAGE_KEY);
     }
 
+    public static float getResonanceFrequency(ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return 0.0f;
+
+        CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+        if (customData == null) return 0.0f;
+
+        return customData.copyTag().getFloat(RESONANCE_FREQUENCY_KEY);
+    }
+
     public static boolean hasElement(ItemStack stack) {
         return getElement(stack).isPresent();
     }
@@ -90,6 +105,7 @@ public class ElementalWeaponComponent {
                 tag.remove(ACCUM_POINTS_KEY);
                 tag.remove(CRIT_CHANCE_KEY);
                 tag.remove(CRIT_DAMAGE_KEY);
+                tag.remove(RESONANCE_FREQUENCY_KEY);
             });
             stack.set(DataComponents.CUSTOM_DATA, customData);
         }

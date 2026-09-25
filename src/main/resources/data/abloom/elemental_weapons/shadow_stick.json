@@ -3,5 +3,6 @@
   "base_element": "SHADOW",
   "crit_chance": 0.5,
   "crit_damage": 1.0,
-  "accumulation_multiplier": 50.0
+  "accumulation_multiplier": 50.0,
+  "resonance_frequency": 150
 }
