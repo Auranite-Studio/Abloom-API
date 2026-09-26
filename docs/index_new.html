@@ -970,6 +970,122 @@ if (buildupAttr != null) {
                 <strong>Use Case:</strong> This attribute is useful for buffs, temporary power-ups, or mob-specific traits. For example, a boss mob might have <code>RESONANCE_ACCUMULATION_BUILDUP = 0.5</code> to build resonance faster, while a cursed player debuff might set it to <code>-0.5</code> to slow down resonance buildup.
             </div>
 
+            <h3>Resonance Frequency (Weapon Property)</h3>
+            <p>Weapons can have a <code>resonance_frequency</code> property that increases the damage multiplier when a resonance explosion is triggered. This property is configured in the weapon's datapack JSON.</p>
+
+            <h4>Base Multipliers by Element</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Element</th>
+                        <th>Base Resonance DMG Multiplier</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="element-fire">FIRE</span></td>
+                        <td>125%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-ice">ICE</span></td>
+                        <td>125%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-natural">NATURAL</span></td>
+                        <td>125%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-quantum">QUANTUM</span></td>
+                        <td>125%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-ether">ETHER</span></td>
+                        <td>125%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-wind">WIND</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-water">WATER</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-earth">EARTH</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-electric">ELECTRIC</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-energy">ENERGY</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-light">LIGHT</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-shadow">SHADOW</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-prismatic">PRISMATIC</span></td>
+                        <td>150%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-physical">PHYSICAL</span></td>
+                        <td>150%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Resonance Frequency Bonus Attribute</h3>
+            <p>Abloom introduces the <code>RESONANCE_FREQUENCY_BONUS</code> attribute that modifies the resonance frequency on the entity. This allows buffs, debuffs, or equipment to increase or decrease the resonance explosion damage.</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>RESONANCE_FREQUENCY_BONUS</strong></td>
+                        <td><code>abloom:resonance_frequency_bonus</code></td>
+                        <td>-500 to 500</td>
+                        <td>0</td>
+                        <td>Adds to the weapon's resonance_frequency. Each point = 0.01 to the final multiplier (1 unit = 1% additional resonance explosion damage).</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Setting the Attribute</h4>
+            <pre><code>import com.auranite.abloom.init.AbloomModAttributes;
+
+// Add +50 resonance frequency bonus to attacker
+Entity attacker = ...;
+AttributeInstance rfBonus = attacker.getAttribute(
+    AbloomModAttributes.RESONANCE_FREQUENCY_BONUS
+);
+if (rfBonus != null) {
+    rfBonus.setBaseValue(50);  // +50 resonance frequency
+}
+
+// Remove resonance frequency bonus
+if (rfBonus != null) {
+    rfBonus.setBaseValue(0);
+}</code></pre>
+
+            <div class="tip">
+                <strong>Use Case:</strong> This attribute is useful for temporary buffs (potions, abilities), equipment bonuses, or mob-specific traits. For example, a "Resonance Amplifier" potion could grant <code>RESONANCE_FREQUENCY_BONUS = +100</code> for 30 seconds, boosting LIGHT resonance from 275% to 375% damage. A debuff could set it to <code>-50</code> to weaken resonance explosions.
+            </div>
+
             <h3>Elemental Damage Bonus Attributes</h3>
             <p>Abloom adds 14 new attributes that directly modify damage for each element type. Each attribute has a range of -1.0 to 1.0, representing -100% to +100% damage modifier.</p>
 
@@ -1798,7 +1914,8 @@ public class MyModElements {
   },
   "base_element": "FIRE",
   "crit_chance": 0.5,
-  "crit_damage": 1.0
+  "crit_damage": 1.0,
+  "resonance_frequency": 125
 }</code></pre>
 
             <p><strong>Fields:</strong></p>
@@ -1814,6 +1931,7 @@ public class MyModElements {
                 <li><code>base_element</code>: Default element type of the weapon</li>
                 <li><code>crit_chance</code>: Critical hit chance (0.0 to 1.0)</li>
                 <li><code>crit_damage</code>: Critical hit damage multiplier (1.0 = 100% extra damage)</li>
+                <li><code>resonance_frequency</code>: Resonance frequency that increases resonance explosion damage multiplier (1 unit = 0.01 multiplier, e.g. 125 → +125% resonance explosion damage)</li>
             </ul>
 
             <p><strong>Example Breakdown:</strong> The <code>fire_stick</code> example shows a 4-stage weapon:</p>
@@ -1823,25 +1941,28 @@ public class MyModElements {
                 <li>Stage 4: FIRE damage with high accumulation (35.0)</li>
                 <li>50% crit chance with 100% extra crit damage</li>
                 <li>Base element is FIRE for resistance calculations</li>
+                <li>resonance_frequency: 125 (adds +125% to FIRE resonance explosion damage multiplier, FIRE: 1.25 + 1.25 = 2.5 = 250%)</li>
             </ul>
 
             <h4>Single-Element Weapon Example (No Stages)</h4>
             <p>For simpler weapons that always deal the same element type without stage progression:</p>
             <pre><code>{
   "item": "abloom:water_blade",
-  "basic_element": "WATER",
+  "base_element": "WATER",
   "accumulation_multiplier": 12.0,
   "crit_chance": 0.3,
-  "crit_damage": 0.8
+  "crit_damage": 0.8,
+  "resonance_frequency": 150
 }</code></pre>
 
             <p><strong>Fields for Single-Element Weapons:</strong></p>
             <ul>
                 <li><code>item</code>: Item ID (namespace:item_id)</li>
-                <li><code>element</code>: Element type for all attacks (required)</li>
+                <li><code>base_element</code>: Element type for all attacks (required)</li>
                 <li><code>accumulation_multiplier</code>: Resonance points added per hit (required when no stages)</li>
                 <li><code>crit_chance</code>: Critical hit chance (optional, defaults to 0.0)</li>
                 <li><code>crit_damage</code>: Critical hit damage multiplier (optional, defaults to 0.0)</li>
+                <li><code>resonance_frequency</code>: Resonance frequency that increases resonance explosion damage multiplier (1 unit = 0.01 multiplier, e.g. 150 → +150% resonance explosion damage)</li>
             </ul>
 
             <div class="info">

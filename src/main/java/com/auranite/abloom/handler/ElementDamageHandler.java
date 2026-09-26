@@ -1370,7 +1370,7 @@ public class ElementDamageHandler {
     private static float getBaseThresholdMultiplier(ElementType type) {
         return switch (type) {
             case FIRE -> 1.25f;
-            case PHYSICAL -> 2.0f;
+            case PHYSICAL -> 1.5f;
             case WIND -> 1.5f;
             case WATER -> 1.5f;
             case EARTH -> 1.5f;
