@@ -1373,20 +1373,19 @@ public class ElementDamageHandler {
      */
     private static float getBaseThresholdMultiplier(ElementType type) {
         return switch (type) {
-            case FIRE -> 1.25f;
-            case PHYSICAL -> 1.5f;
-            case WIND -> 1.5f;
-            case WATER -> 1.5f;
-            case EARTH -> 1.5f;
-            case ICE -> 1.25f;
-            case ELECTRIC -> 1.5f;
-            case ENERGY -> 1.5f;
-            case NATURAL -> 1.25f;
-            case QUANTUM -> 1.25f;
-            case ETHER -> 1.25f;
-            case LIGHT -> 1.5f;
-            case SHADOW -> 1.5f;
-            case PRISMATIC -> 1.5f;
+            case FIRE -> 2.0f;
+            case PHYSICAL -> 2.25f;
+            case WIND -> 2.5f;
+            case WATER -> 2.5f;
+            case EARTH -> 2.0f;
+            case ICE -> 2.0f;
+            case ELECTRIC -> 2.25f;
+            case ENERGY -> 2.25f;
+            case NATURAL -> 2.25f;
+            case QUANTUM -> 2.0f;
+            case ETHER -> 2.0f;
+            case LIGHT -> 2.25f;
+            case SHADOW -> 2.25f;
             default -> 1.0f;
         };
     }

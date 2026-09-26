@@ -641,7 +641,7 @@
                 <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD (−1 to 1)<br>
                 <code>B_element</code> = {ELEMENT}_DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED (0 to 1)<br>
                 <code>R_armor</code> = sum of armor resistance components (−0.99 to 0.99) &nbsp;|&nbsp; <code>C_crit</code> = 1.0 or (1.0 + totalCritDamage) × 2.0 (multi-crit)<br>
-                <code>M_threshold</code> = 1.0 / 1.25 / 1.5 / 2.0 (when triggered resonance explosion)<br><br>
+                <code>M_threshold</code> = baseMultiplier + resonanceFrequency × 0.01, where baseMultiplier = 2.00 / 2.25 / 2.50 (when triggered resonance explosion)<br><br>
                 <strong>Resonance Points:</strong> <code>pointsToAdd = round((baseAccum + effectiveAccumMultiplier) × (1 − effectiveResist))</code><br>
                 <code>effectiveAccumMultiplier = weaponAccum × (1 + buildup) × (1 + wetnessBonus)</code><br>
                 <code>effectiveResist</code> is the same for both damage and accumulation — all resistance sources are combined<br>
@@ -987,60 +987,56 @@ if (buildupAttr != null) {
                 </thead>
                 <tbody>
                     <tr>
-                        <td><span class="element-fire">FIRE</span></td>
-                        <td>125%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-ice">ICE</span></td>
-                        <td>125%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-natural">NATURAL</span></td>
-                        <td>125%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-quantum">QUANTUM</span></td>
-                        <td>125%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-ether">ETHER</span></td>
-                        <td>125%</td>
-                    </tr>
-                    <tr>
                         <td><span class="element-wind">WIND</span></td>
-                        <td>150%</td>
+                        <td>250%</td>
                     </tr>
                     <tr>
                         <td><span class="element-water">WATER</span></td>
-                        <td>150%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-earth">EARTH</span></td>
-                        <td>150%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-electric">ELECTRIC</span></td>
-                        <td>150%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-energy">ENERGY</span></td>
-                        <td>150%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-light">LIGHT</span></td>
-                        <td>150%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-shadow">SHADOW</span></td>
-                        <td>150%</td>
-                    </tr>
-                    <tr>
-                        <td><span class="element-prismatic">PRISMATIC</span></td>
-                        <td>150%</td>
+                        <td>250%</td>
                     </tr>
                     <tr>
                         <td><span class="element-physical">PHYSICAL</span></td>
-                        <td>150%</td>
+                        <td>225%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-electric">ELECTRIC</span></td>
+                        <td>225%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-energy">ENERGY</span></td>
+                        <td>225%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-natural">NATURAL</span></td>
+                        <td>225%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-light">LIGHT</span></td>
+                        <td>225%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-shadow">SHADOW</span></td>
+                        <td>225%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-fire">FIRE</span></td>
+                        <td>200%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-earth">EARTH</span></td>
+                        <td>200%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-ice">ICE</span></td>
+                        <td>200%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-quantum">QUANTUM</span></td>
+                        <td>200%</td>
+                    </tr>
+                    <tr>
+                        <td><span class="element-ether">ETHER</span></td>
+                        <td>200%</td>
                     </tr>
                 </tbody>
             </table>
@@ -1087,7 +1083,7 @@ if (rfBonus != null) {
 }</code></pre>
 
             <div class="tip">
-                <strong>Use Case:</strong> This attribute is useful for temporary buffs (potions, abilities), equipment bonuses, or mob-specific traits. For example, a "Resonance Amplifier" potion could grant <code>RESONANCE_FREQUENCY_BONUS = +100</code> for 30 seconds, boosting LIGHT resonance from 275% to 375% damage. A debuff could set it to <code>-50</code> to weaken resonance explosions.
+                <strong>Use Case:</strong> This attribute is useful for temporary buffs (potions, abilities), equipment bonuses, or mob-specific traits. For example, a "Resonance Amplifier" potion could grant <code>RESONANCE_FREQUENCY_BONUS = +100</code> for 30 seconds, boosting LIGHT resonance from 225% to 325% damage. A debuff could set it to <code>-50</code> to weaken resonance explosions.
             </div>
 
             <h3>Elemental Damage Bonus Attributes</h3>
@@ -1945,7 +1941,7 @@ public class MyModElements {
                 <li>Stage 4: FIRE damage with high accumulation (35.0)</li>
                 <li>50% crit chance with 100% extra crit damage</li>
                 <li>Base element is FIRE for resistance calculations</li>
-                <li>resonance_frequency: 125 (adds +125% to FIRE resonance explosion damage multiplier, FIRE: 1.25 + 1.25 = 2.5 = 250%)</li>
+                <li>resonance_frequency: 125 (adds +125% to FIRE resonance explosion damage multiplier, FIRE: 2.0 + 1.25 = 3.25 = 325%)</li>
             </ul>
 
             <h4>Single-Element Weapon Example (No Stages)</h4>
