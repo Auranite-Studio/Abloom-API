@@ -855,6 +855,10 @@ ElementalWeaponRegistry.registerBuiltinWeapon(
                 <strong>How it works:</strong> If you have 150% crit chance (1.5), you're guaranteed at least one crit. The remaining 0.5 (50%) gives you a 50% chance to trigger a multi-crit, dealing double critical damage. Multi-crits are displayed with <code>!!!</code> in damage numbers, while normal crits show <code>!!</code>.
             </div>
 
+            <div class="note">
+                <strong>Important:</strong> Critical hits do NOT apply to resonance explosion damage. When the accumulation threshold (100 points) is reached and the resonance effect is triggered, the damage multiplier is applied without critical hit calculation. Critical hits only apply to the base damage before the resonance explosion multiplier.
+            </div>
+
             <h4>Weapon Crit Values</h4>
             <pre><code>// Get crit chance from weapon stack
 float critChance = ElementalWeaponUtils.getCritChance(stack);

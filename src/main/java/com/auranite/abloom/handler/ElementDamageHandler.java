@@ -700,11 +700,6 @@ public class ElementDamageHandler {
             finalDamage = applyElementalDamageBonus(attacker, type, finalDamage);
         }
 
-        CritResult critResult = applyCriticalHit(attacker, finalDamage);
-        finalDamage = critResult.damage();
-        boolean isCrit = critResult.isCrit();
-        boolean isMultiCrit = critResult.isMultiCrit();
-
         // Get resonance frequency from attacker's weapon for threshold damage calculation
         float resonanceFrequency = 0.0f;
         if (attacker != null) {
@@ -718,6 +713,8 @@ public class ElementDamageHandler {
             }
         }
 
+        // Apply threshold effect BEFORE critical hit - resonance explosion does not crit
+        boolean isThresholdDamage = false;
         if (thresholdReached) {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
                 AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
@@ -726,7 +723,14 @@ public class ElementDamageHandler {
             finalDamage = applyThresholdEffect(target, type, finalDamage, isErosionTrigger, resonanceFrequency);
             AbloomModAttachments.resetPoints(target, type);
             syncAccumulationToClients(target);
+            isThresholdDamage = true;
         }
+
+        // Apply critical hit only to non-threshold damage (resonance explosion does not crit)
+        CritResult critResult = isThresholdDamage ? new CritResult(finalDamage, false, false) : applyCriticalHit(attacker, finalDamage);
+        finalDamage = critResult.damage();
+        boolean isCrit = critResult.isCrit();
+        boolean isMultiCrit = critResult.isMultiCrit();
 
         if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit, isMultiCrit);
         updateLastDamageTime(target, type);
@@ -1434,6 +1438,7 @@ public class ElementDamageHandler {
 
         float damageMultiplier = 1.0f;
         float accumBonus = 1.0f;
+        boolean isThresholdDamage = false;
 
         if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
             int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
@@ -1502,11 +1507,14 @@ public class ElementDamageHandler {
                 finalDamage = applyThresholdEffect(livingTarget, type, finalDamage, false, resonanceFrequency);
                 AbloomModAttachments.resetPoints(livingTarget, type);
                 syncAccumulationToClients(livingTarget);
+                isThresholdDamage = true;
             }
         }
 
-        // Apply critical hit (same as doProcessLivingHurt)
-        CritResult critResult = applyCriticalHit(attacker instanceof LivingEntity le ? le : null, finalDamage);
+        // Apply critical hit only to non-threshold damage (resonance explosion does not crit)
+        CritResult critResult = isThresholdDamage
+                ? new CritResult(finalDamage, false, false)
+                : applyCriticalHit(attacker instanceof LivingEntity le ? le : null, finalDamage);
         finalDamage = critResult.damage();
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
