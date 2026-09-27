@@ -1,6 +1,7 @@
 package com.auranite.abloom.util;
 
 import com.auranite.abloom.config.AbloomConfig;
+import com.auranite.abloom.init.AbloomModEffects;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -262,26 +263,27 @@ public class EffectRenderUtil {
             case "corruption" -> ElementType.ETHER;
             case "dispersion" -> ElementType.LIGHT;
             case "eclipse" -> ElementType.SHADOW;
+            case "prism" -> ElementType.PRISMATIC;
             default -> null;
         };
     }
 
     private static Holder<MobEffect> getEffectHolderForElementType(ElementType type) {
         net.minecraft.world.effect.MobEffect effect = switch (type) {
-            case FIRE -> com.auranite.abloom.init.AbloomModEffects.BURN.value();
-            case ICE -> com.auranite.abloom.init.AbloomModEffects.FREEZE.value();
-            case ELECTRIC -> com.auranite.abloom.init.AbloomModEffects.SHOCK.value();
-            case NATURAL -> com.auranite.abloom.init.AbloomModEffects.BLOOM.value();
-            case ENERGY -> com.auranite.abloom.init.AbloomModEffects.OVERLOAD.value();
-            case WATER -> com.auranite.abloom.init.AbloomModEffects.WETNESS.value();
-            case EARTH -> com.auranite.abloom.init.AbloomModEffects.STUN.value();
-            case QUANTUM -> com.auranite.abloom.init.AbloomModEffects.BREAK.value();
-            case ETHER -> com.auranite.abloom.init.AbloomModEffects.CORRUPTION.value();
-            case LIGHT -> com.auranite.abloom.init.AbloomModEffects.DISPERSION.value();
-            case SHADOW -> com.auranite.abloom.init.AbloomModEffects.ECLIPSE.value();
-            case WIND -> com.auranite.abloom.init.AbloomModEffects.WINDSWEPT.value();
-            case PHYSICAL -> com.auranite.abloom.init.AbloomModEffects.RUPTURE.value();
-            case PRISMATIC -> null;
+            case FIRE -> AbloomModEffects.BURN.value();
+            case ICE -> AbloomModEffects.FREEZE.value();
+            case ELECTRIC -> AbloomModEffects.SHOCK.value();
+            case NATURAL -> AbloomModEffects.BLOOM.value();
+            case ENERGY -> AbloomModEffects.OVERLOAD.value();
+            case WATER -> AbloomModEffects.WETNESS.value();
+            case EARTH -> AbloomModEffects.STUN.value();
+            case QUANTUM -> AbloomModEffects.BREAK.value();
+            case ETHER -> AbloomModEffects.CORRUPTION.value();
+            case LIGHT -> AbloomModEffects.DISPERSION.value();
+            case SHADOW -> AbloomModEffects.ECLIPSE.value();
+            case WIND -> AbloomModEffects.WINDSWEPT.value();
+            case PHYSICAL -> AbloomModEffects.RUPTURE.value();
+            case PRISMATIC -> AbloomModEffects.PRISM.value();
         };
         if (effect == null) return null;
         return net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);
