@@ -132,7 +132,7 @@ public class ResonanceDisplayUtil {
             case SHADOW -> AbloomModEffects.ECLIPSE.value();
             case WIND -> AbloomModEffects.WINDSWEPT.value();
             case PHYSICAL -> AbloomModEffects.RUPTURE.value();
-            case PRISMATIC -> null;
+            case PRISMATIC -> AbloomModEffects.PRISM.value();
         };
         if (effect == null) return null;
         return BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect);

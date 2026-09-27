@@ -110,6 +110,7 @@ public class ElementalTooltipHandler {
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
         float weaponCritChance = ElementalWeaponUtils.getCritChance(stack);
         float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);
+        float resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(stack);
 
         if (type == ElementType.PRISMATIC || accumPoints > 1.0f) {
             MutableComponent elementText = getElementText(type);
@@ -130,6 +131,14 @@ public class ElementalTooltipHandler {
             }
             if (critDamageAttr != null) {
                 entityBonusCritDamage = critDamageAttr.getValue();
+            }
+            var resonanceFreqAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.RESONANCE_FREQUENCY_BONUS.getKey()));
+            var resonanceAccumAttr = livingEntity.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.RESONANCE_ACCUMULATION_BUILDUP.getKey()));
+            if (resonanceFreqAttr != null) {
+                resonanceFrequency += (float) resonanceFreqAttr.getValue();
+            }
+            if (resonanceAccumAttr != null) {
+                accumPoints *= (1.0f + (float) resonanceAccumAttr.getValue());
             }
         }
 
@@ -159,8 +168,7 @@ public class ElementalTooltipHandler {
         }
 
         // Show resonance frequency if present
-        float resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(stack);
-        if (resonanceFrequency > 0.0f) {
+        if (resonanceFrequency > 0.0f && accumPoints > 1.0f && type != ElementType.PRISMATIC) {
             MutableComponent resonanceText = Component.translatable(
                     KEY_RESONANCE_FREQUENCY,
                     Math.round(resonanceFrequency)

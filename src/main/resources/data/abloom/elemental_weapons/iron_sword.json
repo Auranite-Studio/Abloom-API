@@ -3,5 +3,6 @@
   "base_element": "PHYSICAL",
   "crit_chance": 0.20,
   "crit_damage": 0.75,
-  "accumulation_multiplier": 3.0
+  "accumulation_multiplier": 3.0,
+  "resonance_frequency": 40
 }
