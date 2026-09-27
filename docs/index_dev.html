@@ -487,10 +487,6 @@
                 <li><strong>Datapack Support:</strong> Configure weapons, armor, and mob properties without code</li>
                 <li><strong>Developer API:</strong> Comprehensive Java API for mod integration</li>
             </ul>
-
-            <div class="tip">
-                <strong>Tip:</strong> The resonance threshold is 100 points by default. Base accumulation is 1 point per hit, modified by weapon multipliers and status effects like Wetness (+50% per level).
-            </div>
         </section>
 
         <section id="mechanics">
@@ -538,7 +534,7 @@
                     </tr>
                     <tr>
                         <td><span class="element-electric">ELECTRIC</span></td>
-                        <td>Electric resonance explosion, applies Shock effect (target inflicts 20% less damage)</td>
+                        <td>Electric resonance explosion, applies Shock effect (target inflicts 20% less damage and has 20% attack speed reduction)</td>
                         <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
@@ -578,10 +574,6 @@
                     </tr>
                 </tbody>
             </table>
-
-            <div class="note">
-                <strong>Note:</strong> Since prismatic damage does not accumulate resonance points, the <code>accumulation_multiplier</code> field will not affect it.
-            </div>
 
             <h3>Damage Priority System</h3>
             <p>The damage priority system resolves conflicts when multiple mods modify damage simultaneously. Modifiers are sorted by priority (highest to lowest) and called in registration order (FIFO) for equal priorities.</p>
@@ -689,7 +681,7 @@
                     <tr>
                         <td>Shock</td>
                         <td><code>abloom:shock</code></td>
-                        <td>Target inflicts 20% less damage</td>
+                        <td>Target inflicts 20% less damage and has 20% attack speed reduction</td>
                         <td style="color: #FF19FF;">#FF19FF</td>
                     </tr>
                     <tr>
