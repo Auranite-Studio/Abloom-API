@@ -1,6 +1,8 @@
 package com.auranite.abloom.effect;
 
+import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.AbloomModEffects;
+import com.auranite.abloom.util.ElementType;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
@@ -21,21 +23,17 @@ public class BurnEffect extends MobEffect {
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         Level level = entity.level();
         
-        // Если под водой, под дождём или под эффектом заморозки - наносим урон вместо горения
         boolean inWater = level.isWaterAt(entity.blockPosition());
         boolean inRain = level.isRaining() && level.canSeeSkyFromBelowWater(entity.blockPosition()) && !entity.isInWater();
         boolean HasFreezeEffect = entity.hasEffect(AbloomModEffects.FREEZE);
         boolean isFreezing = entity.isFreezing();
 
         if (inWater || inRain || isFreezing || HasFreezeEffect) {
-            // Наносим урон от огня
-            DamageSource damageSource = entity.damageSources().inFire();
-            float damage = 1.0f + (amplifier * 0.5f); // 1, 1.5, 2.0 и т.д.
-            entity.hurt(damageSource, damage);
+            float damage = 1.0f + (amplifier * 0.5f);
+            ElementDamageHandler.dealElementDamage(entity, ElementType.FIRE, damage, 0);
             return true;
         }
         
-        // Обычное горение
         if (!entity.isOnFire()) {
             entity.igniteForSeconds(1);
         }
