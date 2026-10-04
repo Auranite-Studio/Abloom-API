@@ -23,6 +23,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -85,7 +86,10 @@ public class ElementDamageHandler {
     private static final Map<Integer, Long> EROSION_COOLDOWNS = new ConcurrentHashMap<>();
     private static final int EROSION_COOLDOWN_TICKS = 100; // 5 seconds
 
+    // entityId -> (elementType -> lastDamageTick)
     private static final Map<Integer, Map<ElementType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
+    // entityId -> LivingEntity weak ref for fast alive-check without level iteration
+    private static final Map<Integer, java.lang.ref.WeakReference<LivingEntity>> LIVING_ENTITIES = new ConcurrentHashMap<>();
     private static final Object LAST_DAMAGE_LOCK = new Object();
 
     private static MinecraftServer currentServer = null;
@@ -97,6 +101,27 @@ public class ElementDamageHandler {
 
     // Enchantment to ElementType mapping for elemental override
     public static final Map<ResourceLocation, ElementType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
+
+    /**
+     * Maps ElementType to the corresponding DeferredHolder for fast resonance lookup.
+     * Resonance effects: BURN→FIRE, FREEZE→ICE, SHOCK→ELECTRIC, etc.
+     * This replaces the 13-if-chain in getActiveResonanceType() with O(1) EnumMap lookup.
+     */
+    private static final EnumMap<ElementType, DeferredHolder<MobEffect, MobEffect>> RESONANCE_EFFECT_MAP = new EnumMap<>(ElementType.class) {{
+        put(ElementType.FIRE, AbloomModEffects.BURN);
+        put(ElementType.ICE, AbloomModEffects.FREEZE);
+        put(ElementType.ELECTRIC, AbloomModEffects.SHOCK);
+        put(ElementType.NATURAL, AbloomModEffects.BLOOM);
+        put(ElementType.ENERGY, AbloomModEffects.OVERLOAD);
+        put(ElementType.WATER, AbloomModEffects.WETNESS);
+        put(ElementType.EARTH, AbloomModEffects.STUN);
+        put(ElementType.PHYSICAL, AbloomModEffects.RUPTURE);
+        put(ElementType.QUANTUM, AbloomModEffects.BREAK);
+        put(ElementType.WIND, AbloomModEffects.WINDSWEPT);
+        put(ElementType.ETHER, AbloomModEffects.CORRUPTION);
+        put(ElementType.LIGHT, AbloomModEffects.DISPERSION);
+        put(ElementType.SHADOW, AbloomModEffects.ECLIPSE);
+    }};
 
     /**
      * Process damage with priority handling to avoid conflicts with other mods.
@@ -758,6 +783,7 @@ public class ElementDamageHandler {
         EROSION_COOLDOWNS.remove(entity.getId());
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
+            LIVING_ENTITIES.remove(entity.getId());
         }
         // Clean up stage tracking and cooldown for dead entity
         STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
@@ -795,6 +821,7 @@ public class ElementDamageHandler {
             EROSION_COOLDOWNS.remove(entity.getId());
             synchronized (LAST_DAMAGE_LOCK) {
                 LAST_DAMAGE_TIME.remove(entity.getId());
+                LIVING_ENTITIES.remove(entity.getId());
             }
             // Clean up stage tracking and cooldown for leaving entity
             STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
@@ -809,6 +836,7 @@ public class ElementDamageHandler {
         DAMAGE_COOLDOWNS.remove(playerId);
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(playerId);
+            LIVING_ENTITIES.remove(playerId);
         }
     }
 
@@ -881,6 +909,8 @@ public class ElementDamageHandler {
     private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new EnumMap<>(ElementType.class)).put(type, entity.level().getGameTime());
+            // Cache weak reference to avoid level iteration during cleanup
+            LIVING_ENTITIES.put(entity.getId(), new java.lang.ref.WeakReference<>(entity));
         }
     }
 
@@ -889,23 +919,23 @@ public class ElementDamageHandler {
         long currentTime = currentServer.overworld().getGameTime();
         long expiryTime = currentTime - RESET_DELAY_TICKS;
         synchronized (LAST_DAMAGE_LOCK) {
+            // Clean up stale WeakReferences first
+            LIVING_ENTITIES.entrySet().removeIf(entry -> {
+                LivingEntity entity = entry.getValue().get();
+                return entity == null || !entity.isAlive();
+            });
+
             Iterator<Map.Entry<Integer, Map<ElementType, Long>>> entityIterator = LAST_DAMAGE_TIME.entrySet().iterator();
             while (entityIterator.hasNext()) {
                 Map.Entry<Integer, Map<ElementType, Long>> entityEntry = entityIterator.next();
                 int entityId = entityEntry.getKey();
                 Map<ElementType, Long> typeTimes = entityEntry.getValue();
 
-                LivingEntity livingEntity = null;
-                for (ServerLevel level : currentServer.getAllLevels()) {
-                    Entity entity = level.getEntity(entityId);
-                    if (entity instanceof LivingEntity le && le.isAlive()) {
-                        livingEntity = le;
-                        break;
-                    }
-                }
-
-                if (livingEntity == null) {
+                // Fast alive-check via cached WeakReference — O(1) instead of O(levels × entities)
+                LivingEntity livingEntity = LIVING_ENTITIES.get(entityId).get();
+                if (livingEntity == null || !livingEntity.isAlive()) {
                     entityIterator.remove();
+                    LIVING_ENTITIES.remove(entityId);
                     continue;
                 }
 
@@ -1624,22 +1654,13 @@ public class ElementDamageHandler {
 
     /**
      * Gets the active resonance effect type on the target.
-     * Resonance effects are: BURN, FREEZE, SHOCK, BLOOM, OVERLOAD, WETNESS, STUN, RUPTURE, BREAK, WINDSWEPT, CORRUPTION, DISPERSION, ECLIPSE
+     * Resonance effects: BURN→FIRE, FREEZE→ICE, SHOCK→ELECTRIC, BLOOM→NATURAL, etc.
+     * Uses EnumMap for O(1) lookup instead of 13 sequential if-checks.
      */
     private static ElementType getActiveResonanceType(LivingEntity target) {
-        if (target.hasEffect(AbloomModEffects.BURN)) return ElementType.FIRE;
-        if (target.hasEffect(AbloomModEffects.FREEZE)) return ElementType.ICE;
-        if (target.hasEffect(AbloomModEffects.SHOCK)) return ElementType.ELECTRIC;
-        if (target.hasEffect(AbloomModEffects.BLOOM)) return ElementType.NATURAL;
-        if (target.hasEffect(AbloomModEffects.OVERLOAD)) return ElementType.ENERGY;
-        if (target.hasEffect(AbloomModEffects.WETNESS)) return ElementType.WATER;
-        if (target.hasEffect(AbloomModEffects.STUN)) return ElementType.EARTH;
-        if (target.hasEffect(AbloomModEffects.RUPTURE)) return ElementType.PHYSICAL;
-        if (target.hasEffect(AbloomModEffects.BREAK)) return ElementType.QUANTUM;
-        if (target.hasEffect(AbloomModEffects.WINDSWEPT)) return ElementType.WIND;
-        if (target.hasEffect(AbloomModEffects.CORRUPTION)) return ElementType.ETHER;
-        if (target.hasEffect(AbloomModEffects.DISPERSION)) return ElementType.LIGHT;
-        if (target.hasEffect(AbloomModEffects.ECLIPSE)) return ElementType.SHADOW;
+        for (Map.Entry<ElementType, DeferredHolder<MobEffect, MobEffect>> entry : RESONANCE_EFFECT_MAP.entrySet()) {
+            if (target.hasEffect(entry.getValue())) return entry.getKey();
+        }
         return null;
     }
 
