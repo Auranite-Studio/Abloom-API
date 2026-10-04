@@ -37,6 +37,8 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> PRISM = REGISTRY.register("prism", () -> new PrismEffect(0xFFFFFF));
     public static final DeferredHolder<MobEffect, MobEffect> SUPPRESSION = REGISTRY.register("suppression", () -> new SuppressionEffect(0xEE204D));
     public static final DeferredHolder<MobEffect, MobEffect> FLUORESCENCE = REGISTRY.register("fluorescence", () -> new FluorescenceEffect(0xFFD700));
+    public static final DeferredHolder<MobEffect, MobEffect> BLEEDING = REGISTRY.register("bleeding", () -> new BleedingEffect(0xCC0033));
+    public static final DeferredHolder<MobEffect, MobEffect> REINFORCEMENT = REGISTRY.register("reinforcement", () -> new ReinforcementEffect(0x6B8BA4));
 
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {

@@ -1421,18 +1421,22 @@ public class ElementDamageHandler {
     }
 
     public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+        dealElementDamage(target, type, amount, accumMultiplier, attacker, false);
+    }
+
+    public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
         if (IS_PROCESSING_DAMAGE.get()) return;
 
         // Mark as processing to prevent infinite recursion
         IS_PROCESSING_DAMAGE.set(true);
         try {
-            processDealElementDamage(target, type, amount, accumMultiplier, attacker);
+            processDealElementDamage(target, type, amount, accumMultiplier, attacker, bypassKnockback);
         } finally {
             IS_PROCESSING_DAMAGE.set(false);
         }
     }
 
-    private static void processDealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+    private static void processDealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
         if (!(target instanceof LivingEntity livingTarget)) return;
 
         float damageMultiplier = 1.0f;
@@ -1527,6 +1531,10 @@ public class ElementDamageHandler {
             if (damageTypeHolder.isPresent()) {
                 DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
                 target.hurt(source, finalDamage);
+                if (bypassKnockback) {
+                    // Cancel knockback by resetting velocity
+                    livingTarget.setDeltaMovement(0.0, 0.0, 0.0);
+                }
             }
         }
         updateLastDamageTime(livingTarget, type);
@@ -1600,7 +1608,7 @@ public class ElementDamageHandler {
         if (IS_PROCESSING_DAMAGE.get()) return;
         IS_PROCESSING_DAMAGE.set(true);
         try {
-            processDealElementDamage(target, elementalType, baseDamage, accumPoints, source);
+            processDealElementDamage(target, elementalType, baseDamage, accumPoints, source, false);
         } finally {
             IS_PROCESSING_DAMAGE.set(false);
         }

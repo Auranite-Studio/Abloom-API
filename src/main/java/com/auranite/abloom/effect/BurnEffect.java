@@ -30,7 +30,7 @@ public class BurnEffect extends MobEffect {
 
         if (inWater || inRain || isFreezing || HasFreezeEffect) {
             float damage = 1.0f + (amplifier * 0.5f);
-            ElementDamageHandler.dealElementDamage(entity, ElementType.FIRE, damage, 0);
+            ElementDamageHandler.dealElementDamage(entity, ElementType.FIRE, damage, 0, null, true);
             return true;
         }
         

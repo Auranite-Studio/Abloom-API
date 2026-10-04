@@ -60,7 +60,7 @@ public class FreezeEffect extends MobEffect {
             if (remainingDuration % 20 == 0) {
                 float damage = 1.0f + amplifier * 0.5f;
                 entity.setDeltaMovement(entity.getDeltaMovement().multiply(0.85, 1.0, 0.85));
-                ElementDamageHandler.dealElementDamage(entity, ElementType.ICE, damage, 0);
+                ElementDamageHandler.dealElementDamage(entity, ElementType.ICE, damage, 0,null, true);
             }
         }
 
