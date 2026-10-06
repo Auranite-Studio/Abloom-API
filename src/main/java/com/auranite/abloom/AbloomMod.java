@@ -4,7 +4,6 @@ import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.client.ClientEventHandler;
 import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
-import com.auranite.abloom.handler.MobHealthModifierHandler;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 import com.auranite.abloom.network.EffectDisplayNetworking;
 import com.auranite.abloom.util.TauntTargetGoal;
@@ -82,7 +81,6 @@ public class AbloomMod {
 
         ElementDamageHandler.initDamageColors();
         NeoForge.EVENT_BUS.register(com.auranite.abloom.handler.ElementDamageHandler.class);
-        NeoForge.EVENT_BUS.register(new MobHealthModifierHandler());
         ElementalProjectileRegistry.register(modEventBus);
         modEventBus.addListener(AbloomModElementalProjectiles::onCommonSetup);
         modEventBus.addListener(this::onClientSetup);
