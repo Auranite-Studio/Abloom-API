@@ -372,16 +372,10 @@ public class ElementDamageHandler {
         // Process damage with priority handling
         float finalDamage = processDamageWithPriority(target, source, baseDamage, currentDamage);
 
-        // Only set damage if it was modified by Abloom (not by other mods)
-        // If currentDamage != baseDamage, another mod has already modified the damage
-        // We should NOT overwrite that modification
-        if (finalDamage != currentDamage && currentDamage == baseDamage) {
-            // Damage was modified by Abloom and not by other mods
-            event.setNewDamage(finalDamage);
-        } else if (currentDamage != baseDamage) {
-            // Another mod modified the damage - we already added accumulation points
-            // but should NOT overwrite their modification
-        }
+        // Always apply Abloom's calculated damage to the event.
+        // processDamageWithPriority already handles priority ordering with other mods
+        // and returns the correct final damage including elemental resistance.
+        event.setNewDamage(finalDamage);
     }
 
     /**
