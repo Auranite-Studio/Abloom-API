@@ -24,7 +24,7 @@ public class BleedingEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        if (!entity.onGround()) {
+        if (!entity.onGround() && entity.getHealth() > 1.0F) {
             float damage = 1.0f + (amplifier * 0.5f);
             ElementDamageHandler.dealElementDamage(entity, ElementType.PHYSICAL, damage, 0, null, true);
         }

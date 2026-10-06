@@ -1562,8 +1562,9 @@ public class ElementDamageHandler {
                 DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
                 target.hurt(source, finalDamage);
                 if (bypassKnockback) {
-                    // Cancel knockback by resetting velocity
-                    livingTarget.setDeltaMovement(0.0, 0.0, 0.0);
+                    // Cancel only horizontal knockback, preserve vertical velocity (e.g. jumping)
+                    livingTarget.setDeltaMovement(livingTarget.getDeltaMovement().x, livingTarget.getDeltaMovement().y, livingTarget.getDeltaMovement().z);
+                    livingTarget.setDeltaMovement(0.0, livingTarget.getDeltaMovement().y, 0.0);
                 }
             }
         }
