@@ -12,9 +12,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public class CriticalGainEffect extends MobEffect {
     public CriticalGainEffect(int color) {
         super(MobEffectCategory.BENEFICIAL, color);
-        this.addAttributeModifier(AbloomModAttributes.CRIT_DMG, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_0"), 0.3, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.CRIT_CHANCE, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_1"), 0.15, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(Attributes.ATTACK_SPEED, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_2"), 0.05, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        this.addAttributeModifier(AbloomModAttributes.CRIT_DMG, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.flash_0"), 0.4, AttributeModifier.Operation.ADD_VALUE);
 
     }
 
