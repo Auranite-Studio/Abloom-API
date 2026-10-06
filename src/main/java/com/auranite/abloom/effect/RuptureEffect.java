@@ -10,7 +10,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public class RuptureEffect extends MobEffect {
     public RuptureEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
-        this.addAttributeModifier(Attributes.ARMOR, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.rupture_0"), -0.3, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        this.addAttributeModifier(Attributes.ARMOR, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.rupture_0"), -0.2, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
     }
     @Override
     public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {

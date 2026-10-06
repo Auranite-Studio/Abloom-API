@@ -13,7 +13,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 public class BleedingEffect extends MobEffect {
     public BleedingEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
-        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.bleeding_0"), -0.25, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+        this.addAttributeModifier(Attributes.MOVEMENT_SPEED, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.bleeding_0"), -0.25, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
     }
 
     @Override
