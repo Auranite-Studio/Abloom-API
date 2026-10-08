@@ -1,7 +1,7 @@
 package com.auranite.abloom.network;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
+import java.util.HashMap;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -24,7 +24,7 @@ public class EffectDisplayNetworking {
         LivingEntity entity = event.getEntity();
         if (!entity.level().isClientSide) {
             PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new SyncEntityEffectsMessage(entity.getId(), new ArrayList<>()));
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new SyncResonanceAccumulationMessage(entity.getId(), new EnumMap<>(com.auranite.abloom.util.ElementType.class)));
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, new SyncResonanceAccumulationMessage(entity.getId(), new HashMap<>()));
         }
 
     }

@@ -2,7 +2,7 @@ package com.auranite.abloom.datapack;
 
 import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.registries.ArmorResistanceRegistry;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.minecraft.resources.ResourceLocation;
@@ -14,8 +14,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
@@ -70,7 +71,7 @@ public class ArmorResistanceProvider {
             }
         }
 
-        AbloomMod.LOGGER.info("Total: Loaded {} armor resistances from all mods", totalLoadedCount);
+        AbloomMod.LOGGER.info("Total: Loaded {} armor resistances from all mods", totalLoadedCount.get());
     }
 
     private static void loadArmorFromJson(String sourcePath, String jsonContent, AtomicInteger loadedCount, String modId) {
@@ -89,14 +90,14 @@ public class ArmorResistanceProvider {
             }
 
             // Парсим сопротивления
-            Map<ElementType, Float> resistances = new EnumMap<>(ElementType.class);
+            Map<IElementalType, Float> resistances = new HashMap<>();
             if (jsonObject.has("resistances")) {
                 JsonObject resistancesObj = GsonHelper.getAsJsonObject(jsonObject, "resistances");
                 for (String key : resistancesObj.keySet()) {
-                    ElementType elementType = ElementType.safeValueOf(key.toUpperCase());
-                    if (elementType != null) {
+                    Optional<? extends IElementalType> elementType = IElementalType.byName(key.toUpperCase());
+                    if (elementType.isPresent()) {
                         float value = GsonHelper.getAsFloat(resistancesObj, key);
-                        resistances.put(elementType, value);
+                        resistances.put((IElementalType) elementType.get(), value);
                     } else {
                         AbloomMod.LOGGER.warn("Invalid element type: {} in {} (from mod {})", key, sourcePath, modId);
                     }

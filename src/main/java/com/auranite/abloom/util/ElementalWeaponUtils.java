@@ -25,7 +25,7 @@ public class ElementalWeaponUtils {
      * @param item the item to register
      * @param type the elemental type
      */
-    public static void registerItem(Item item, ElementType type) {
+    public static void registerItem(Item item, IElementalType type) {
         registerItem(item, type, 1.0f);
     }
 
@@ -36,7 +36,7 @@ public class ElementalWeaponUtils {
      * @param type the elemental type
      * @param accumulationMultiplier the accumulation multiplier (>= 0)
      */
-    public static void registerItem(Item vanillaItem, ElementType type, float accumulationMultiplier) {
+    public static void registerItem(Item vanillaItem, IElementalType type, float accumulationMultiplier) {
         if (vanillaItem == null || type == null) return;
         
         // Check if already registered via datapack
@@ -48,7 +48,7 @@ public class ElementalWeaponUtils {
         
         ElementalWeaponRegistry.registerWeapon(vanillaItem, type, Math.max(0f, accumulationMultiplier));
         AbloomMod.LOGGER.info("Registered item {} as {} elemental (accum x{})",
-                itemId, type, accumulationMultiplier);
+                itemId, type.getDisplayName(), accumulationMultiplier);
     }
 
     /**
@@ -58,7 +58,7 @@ public class ElementalWeaponUtils {
      * @param type the elemental type
      * @return true if registration succeeded, false if item not found
      */
-    public static boolean registerItemById(String modId, String itemName, ElementType type) {
+    public static boolean registerItemById(String modId, String itemName, IElementalType type) {
         return registerItemById(modId, itemName, type, 1.0f);
     }
 
@@ -70,13 +70,13 @@ public class ElementalWeaponUtils {
      * @param accumulationMultiplier the accumulation multiplier
      * @return true if registration succeeded, false if item not found
      */
-    public static boolean registerItemById(String modId, String itemName, ElementType type, float accumulationMultiplier) {
+    public static boolean registerItemById(String modId, String itemName, IElementalType type, float accumulationMultiplier) {
         ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(modId, itemName);
         Optional<Item> itemOpt = BuiltInRegistries.ITEM.getOptional(rl);
 
         if (itemOpt.isPresent()) {
             ElementalWeaponRegistry.registerWeapon(itemOpt.get(), type, accumulationMultiplier);
-            AbloomMod.LOGGER.info("Registered {}:{} as {} elemental (accum x{})", modId, itemName, type, accumulationMultiplier);
+            AbloomMod.LOGGER.info("Registered {}:{} as {} elemental (accum x{})", modId, itemName, type.getDisplayName(), accumulationMultiplier);
             return true;
         } else {
             AbloomMod.LOGGER.warn("Item not found: {}:{} ", modId, itemName);
@@ -90,7 +90,7 @@ public class ElementalWeaponUtils {
      * @param items the items to register
      */
     @SafeVarargs
-    public static void registerMultiple(ElementType type, Item... items) {
+    public static void registerMultiple(IElementalType type, Item... items) {
         registerMultiple(type, 1.0f, items);
     }
 
@@ -101,7 +101,7 @@ public class ElementalWeaponUtils {
      * @param items the items to register
      */
     @SafeVarargs
-    public static void registerMultiple(ElementType type, float accumulationMultiplier, Item... items) {
+    public static void registerMultiple(IElementalType type, float accumulationMultiplier, Item... items) {
         if (items == null || items.length == 0) return;
         int registered = 0;
         for (Item item : items) {
@@ -111,7 +111,7 @@ public class ElementalWeaponUtils {
             }
         }
         if (registered > 0) {
-            AbloomMod.LOGGER.info("Registered {} items as {} elemental (accum x{})", registered, type, accumulationMultiplier);
+            AbloomMod.LOGGER.info("Registered {} items as {} elemental (accum x{})", registered, type.getDisplayName(), accumulationMultiplier);
         }
     }
 
@@ -141,10 +141,10 @@ public class ElementalWeaponUtils {
      * @param stack the item stack
      * @return the elemental type, or null if not elemental (or multi-stage)
      */
-    public static ElementType getElementType(ItemStack stack) {
+    public static IElementalType getElementType(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
 
-        Optional<ElementType> component = ElementalWeaponComponent.getElement(stack);
+        Optional<? extends IElementalType> component = ElementalWeaponComponent.getElement(stack);
         if (component.isPresent()) {
             return component.get();
         }
@@ -214,7 +214,7 @@ public class ElementalWeaponUtils {
      * @param type the elemental type
      * @return a new stack with the elemental property
      */
-    public static ItemStack addElementToStack(ItemStack stack, ElementType type) {
+    public static ItemStack addElementToStack(ItemStack stack, IElementalType type) {
         return addElementToStackWithAccum(stack, type, 1.0f);
     }
 
@@ -225,7 +225,7 @@ public class ElementalWeaponUtils {
      * @param accumPoints the accumulation multiplier
      * @return a new stack with the elemental property
      */
-    public static ItemStack addElementToStackWithAccum(ItemStack stack, ElementType type, float accumPoints) {
+    public static ItemStack addElementToStackWithAccum(ItemStack stack, IElementalType type, float accumPoints) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
         return ElementalWeaponComponent.withElementAndAccum(stack, type, accumPoints);
     }

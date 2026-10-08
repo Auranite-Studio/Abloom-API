@@ -5,7 +5,7 @@ import com.auranite.abloom.component.ElementalResistanceComponent;
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.auranite.abloom.util.ElementalWeaponUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -17,6 +17,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,24 +63,30 @@ public class ElementalTooltipHandler {
     private static final String KEY_RESISTANCE_PRISMATIC = "elemental.resistance.prismatic";
     private static final String KEY_RESISTANCE_DEFAULT = "elemental.resistance.element";
 
-    private static int getElementColor(ElementType type) {
-        return switch (type) {
-            case FIRE -> 0xFF5500;
-            case PHYSICAL -> 0xC0C0C0;
-            case WIND -> 0x00FFFF;
-            case WATER -> 0x0080FF;
-            case EARTH -> 0x8B4513;
-            case ICE -> 0x00BFFF;
-            case ELECTRIC -> 0xFF19FF;
-            case ENERGY -> 0xFFFF00;
-            case NATURAL -> 0x32CD32;
-            case QUANTUM -> 0x9400D3;
-            case ETHER -> 0x24B3A7;
-            case LIGHT -> 0xFFF1A5;
-            case SHADOW -> 0x4B0082;
-            case PRISMATIC -> 0xFFFFFF;
-            default -> 0xFFFFFF;
-        };
+    // Built-in element color map
+    private static final Map<String, Integer> BUILTIN_ELEMENT_COLORS;
+    static {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("FIRE", 0xFF5500);
+        map.put("PHYSICAL", 0xC0C0C0);
+        map.put("WIND", 0x00FFFF);
+        map.put("WATER", 0x0080FF);
+        map.put("EARTH", 0x8B4513);
+        map.put("ICE", 0x00BFFF);
+        map.put("ELECTRIC", 0xFF19FF);
+        map.put("ENERGY", 0xFFFF00);
+        map.put("NATURAL", 0x32CD32);
+        map.put("QUANTUM", 0x9400D3);
+        map.put("ETHER", 0x24B3A7);
+        map.put("LIGHT", 0xFFF1A5);
+        map.put("SHADOW", 0x4B0082);
+        map.put("PRISMATIC", 0xFFFFFF);
+        BUILTIN_ELEMENT_COLORS = Map.copyOf(map);
+    }
+
+    private static int getElementColor(IElementalType type) {
+        Integer color = BUILTIN_ELEMENT_COLORS.get(type.name());
+        return color != null ? color : 0xFFFFFF;
     }
 
     @SubscribeEvent
@@ -106,13 +113,13 @@ public class ElementalTooltipHandler {
 
         }
 
-        ElementType type = ElementDamageHandler.getEffectiveElementType(stack);
+        IElementalType type = ElementDamageHandler.getEffectiveElementType(stack);
         float accumPoints = ElementalWeaponUtils.getAccumulationMultiplier(stack);
         float weaponCritChance = ElementalWeaponUtils.getCritChance(stack);
         float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);
         float resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(stack);
 
-        if (type == ElementType.PRISMATIC || accumPoints > 1.0f) {
+        if (type != null && (type.name().equals("PRISMATIC") || accumPoints > 1.0f)) {
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
         }
@@ -168,7 +175,7 @@ public class ElementalTooltipHandler {
         }
 
         // Show resonance frequency if present
-        if (resonanceFrequency > 0.0f && accumPoints > 1.0f && type != ElementType.PRISMATIC) {
+        if (resonanceFrequency > 0.0f && accumPoints > 1.0f && !type.name().equals("PRISMATIC")) {
             MutableComponent resonanceText = Component.translatable(
                     KEY_RESONANCE_FREQUENCY,
                     Math.round(resonanceFrequency)
@@ -177,7 +184,7 @@ public class ElementalTooltipHandler {
             event.getToolTip().add(Component.literal(" ").append(resonanceText));
         }
 
-        if (accumPoints > 1.0f && type != ElementType.PRISMATIC ) {
+        if (accumPoints > 1.0f && !type.name().equals("PRISMATIC") ) {
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_POINTS,
                     String.format("%d", Math.round(accumPoints))
@@ -187,24 +194,33 @@ public class ElementalTooltipHandler {
         }
     }
 
-    private static MutableComponent getElementText(ElementType type) {
-        MutableComponent text = switch (type) {
-            case FIRE -> Component.translatable(KEY_ELEMENT_FIRE);
-            case PHYSICAL -> Component.translatable(KEY_ELEMENT_PHYSICAL);
-            case WIND -> Component.translatable(KEY_ELEMENT_WIND);
-            case WATER -> Component.translatable(KEY_ELEMENT_WATER);
-            case EARTH -> Component.translatable(KEY_ELEMENT_EARTH);
-            case ICE -> Component.translatable(KEY_ELEMENT_ICE);
-            case ELECTRIC -> Component.translatable(KEY_ELEMENT_ELECTRIC);
-            case ENERGY -> Component.translatable(KEY_ELEMENT_ENERGY);
-            case NATURAL -> Component.translatable(KEY_ELEMENT_NATURAL);
-            case QUANTUM -> Component.translatable(KEY_ELEMENT_QUANTUM);
-            case ETHER -> Component.translatable(KEY_ELEMENT_ETHER);
-            case LIGHT -> Component.translatable(KEY_ELEMENT_LIGHT);
-            case SHADOW -> Component.translatable(KEY_ELEMENT_SHADOW);
-            case PRISMATIC -> Component.translatable(KEY_ELEMENT_PRISMATIC);
-            default -> Component.translatable(KEY_ELEMENT_DEFAULT, type.name());
+    private static MutableComponent getElementText(IElementalType type) {
+        // Check built-in types first
+        String key = switch (type.name()) {
+            case "FIRE" -> KEY_ELEMENT_FIRE;
+            case "PHYSICAL" -> KEY_ELEMENT_PHYSICAL;
+            case "WIND" -> KEY_ELEMENT_WIND;
+            case "WATER" -> KEY_ELEMENT_WATER;
+            case "EARTH" -> KEY_ELEMENT_EARTH;
+            case "ICE" -> KEY_ELEMENT_ICE;
+            case "ELECTRIC" -> KEY_ELEMENT_ELECTRIC;
+            case "ENERGY" -> KEY_ELEMENT_ENERGY;
+            case "NATURAL" -> KEY_ELEMENT_NATURAL;
+            case "QUANTUM" -> KEY_ELEMENT_QUANTUM;
+            case "ETHER" -> KEY_ELEMENT_ETHER;
+            case "LIGHT" -> KEY_ELEMENT_LIGHT;
+            case "SHADOW" -> KEY_ELEMENT_SHADOW;
+            case "PRISMATIC" -> KEY_ELEMENT_PRISMATIC;
+            default -> null;
         };
+
+        MutableComponent text;
+        if (key != null) {
+            text = Component.translatable(key);
+        } else {
+            // Custom element type
+            text = Component.translatable(KEY_ELEMENT_DEFAULT, type.getDisplayName());
+        }
         text.setStyle(text.getStyle().withColor(getElementColor(type)));
         return text;
     }
@@ -214,15 +230,15 @@ public class ElementalTooltipHandler {
             return;
         }
 
-        Map<ElementType, Float> resistances = ElementalResistanceComponent.getAllResistances(stack);
+        Map<IElementalType, Float> resistances = ElementalResistanceComponent.getAllResistances(stack);
         if (resistances.isEmpty()) return;
 
         MutableComponent headerText = Component.translatable(KEY_RESISTANCE_HEADER);
         headerText.setStyle(headerText.getStyle().withColor(0xAAAAAA));
         event.getToolTip().add(headerText);
 
-        for (Map.Entry<ElementType, Float> entry : resistances.entrySet()) {
-            ElementType type = entry.getKey();
+        for (Map.Entry<IElementalType, Float> entry : resistances.entrySet()) {
+            IElementalType type = entry.getKey();
             float resistance = entry.getValue();
 
             if (resistance != 0.0f) {
@@ -232,24 +248,33 @@ public class ElementalTooltipHandler {
         }
     }
 
-    private static MutableComponent getResistanceText(ElementType type, float resistance) {
-        MutableComponent text = switch (type) {
-            case FIRE -> Component.translatable(KEY_RESISTANCE_FIRE);
-            case PHYSICAL -> Component.translatable(KEY_RESISTANCE_PHYSICAL);
-            case WIND -> Component.translatable(KEY_RESISTANCE_WIND);
-            case WATER -> Component.translatable(KEY_RESISTANCE_WATER);
-            case EARTH -> Component.translatable(KEY_RESISTANCE_EARTH);
-            case ICE -> Component.translatable(KEY_RESISTANCE_ICE);
-            case ELECTRIC -> Component.translatable(KEY_RESISTANCE_ELECTRIC);
-            case ENERGY -> Component.translatable(KEY_RESISTANCE_ENERGY);
-            case NATURAL -> Component.translatable(KEY_RESISTANCE_NATURAL);
-            case QUANTUM -> Component.translatable(KEY_RESISTANCE_QUANTUM);
-            case ETHER -> Component.translatable(KEY_RESISTANCE_ETHER);
-            case LIGHT -> Component.translatable(KEY_RESISTANCE_LIGHT);
-            case SHADOW -> Component.translatable(KEY_RESISTANCE_SHADOW);
-            case PRISMATIC -> Component.translatable(KEY_RESISTANCE_PRISMATIC);
-            default -> Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
+    private static MutableComponent getResistanceText(IElementalType type, float resistance) {
+        // Check built-in types first
+        String key = switch (type.name()) {
+            case "FIRE" -> KEY_RESISTANCE_FIRE;
+            case "PHYSICAL" -> KEY_RESISTANCE_PHYSICAL;
+            case "WIND" -> KEY_RESISTANCE_WIND;
+            case "WATER" -> KEY_RESISTANCE_WATER;
+            case "EARTH" -> KEY_RESISTANCE_EARTH;
+            case "ICE" -> KEY_RESISTANCE_ICE;
+            case "ELECTRIC" -> KEY_RESISTANCE_ELECTRIC;
+            case "ENERGY" -> KEY_RESISTANCE_ENERGY;
+            case "NATURAL" -> KEY_RESISTANCE_NATURAL;
+            case "QUANTUM" -> KEY_RESISTANCE_QUANTUM;
+            case "ETHER" -> KEY_RESISTANCE_ETHER;
+            case "LIGHT" -> KEY_RESISTANCE_LIGHT;
+            case "SHADOW" -> KEY_RESISTANCE_SHADOW;
+            case "PRISMATIC" -> KEY_RESISTANCE_PRISMATIC;
+            default -> null;
         };
+
+        MutableComponent text;
+        if (key != null) {
+            text = Component.translatable(key);
+        } else {
+            // Custom element type
+            text = Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
+        }
 
         int percentage = Math.round(resistance * 100);
         String sign = percentage > 0 ? "+" : "";

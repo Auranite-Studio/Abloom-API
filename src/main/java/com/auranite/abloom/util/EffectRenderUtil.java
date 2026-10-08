@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Camera;
@@ -44,7 +45,7 @@ public class EffectRenderUtil {
         renderAllMobEffects(entity, poseStack, buffers, camera, entityRenderer, partialTicks, x, y, z, effects, isGuiEnvironment, null);
     }
 
-    public static void renderAllMobEffects(Entity entity, PoseStack poseStack, MultiBufferSource buffers, Camera camera, EntityRenderer<? super Entity> entityRenderer, float partialTicks, double x, double y, double z, List<MobEffectInstance> effects, boolean isGuiEnvironment, Map<ElementType, Integer> resonancePoints) {
+    public static void renderAllMobEffects(Entity entity, PoseStack poseStack, MultiBufferSource buffers, Camera camera, EntityRenderer<? super Entity> entityRenderer, float partialTicks, double x, double y, double z, List<MobEffectInstance> effects, boolean isGuiEnvironment, Map<IElementalType, Integer> resonancePoints) {
         int entityId = entity.getId();
         Vec3 renderOffset = entityRenderer.getRenderOffset(entity, partialTicks);
 
@@ -65,10 +66,10 @@ public class EffectRenderUtil {
         float iconHeight = ICON_BASE_SIZE * scale;
         int maxIconsPerRow = Math.max(1, (int) Math.floor((entity.getBbWidth() / SCALE_FACTOR * 3.0F + ICON_SPACING) / (iconWidth + ICON_SPACING)));
 
-        // Build map: ElementType -> icon data (effect or points)
-        Map<ElementType, IconData> iconMap = buildIconMap(effects, resonancePoints);
+        // Build map: IElementalType -> icon data (effect or points)
+        Map<IElementalType, IconData> iconMap = buildIconMap(effects, resonancePoints);
 
-        List<ElementType> sortedTypes = new ArrayList<>(iconMap.keySet());
+        List<IElementalType> sortedTypes = new ArrayList<>(iconMap.keySet());
         int totalRows = (int) Math.ceil((double) sortedTypes.size() / maxIconsPerRow);
         for (int row = 0; row < totalRows; ++row) {
             renderRow(sortedTypes, row, maxIconsPerRow, iconWidth, iconHeight, entityId, font, buffers, minecraft, poseStack, iconMap, resonancePoints);
@@ -77,12 +78,12 @@ public class EffectRenderUtil {
         poseStack.popPose();
     }
 
-    private static Map<ElementType, IconData> buildIconMap(List<MobEffectInstance> effects, Map<ElementType, Integer> resonancePoints) {
-        java.util.Map<ElementType, IconData> map = new java.util.LinkedHashMap<>();
+    private static Map<IElementalType, IconData> buildIconMap(List<MobEffectInstance> effects, Map<IElementalType, Integer> resonancePoints) {
+        Map<IElementalType, IconData> map = new HashMap<>();
 
         // Active effects
         for (MobEffectInstance effect : effects) {
-            ElementType type = getElementTypeForEffect(effect.getEffect());
+            IElementalType type = getElementTypeForEffect(effect.getEffect());
             if (type != null && isDisplayEffect(effect.getEffect())) {
                 map.put(type, new IconData(effect, null));
             }
@@ -90,11 +91,22 @@ public class EffectRenderUtil {
 
         // Resonance only (no active effect)
         if (resonancePoints != null && !resonancePoints.isEmpty()) {
-            for (ElementType type : ElementType.values()) {
+            // Built-in types first
+            for (com.auranite.abloom.util.ElementType type : com.auranite.abloom.util.ElementType.values()) {
                 if (!map.containsKey(type)) {
                     int points = resonancePoints.getOrDefault(type, 0);
                     if (points > 0) {
                         map.put(type, new IconData(null, points));
+                    }
+                }
+            }
+            // Custom types
+            for (String customName : com.auranite.abloom.util.ElementType.getCustomTypeNames()) {
+                IElementalType custom = com.auranite.abloom.util.ElementType.getCustomTypeByName(customName).orElse(null);
+                if (custom != null && !map.containsKey(custom)) {
+                    int points = resonancePoints.getOrDefault(custom, 0);
+                    if (points > 0) {
+                        map.put(custom, new IconData(null, points));
                     }
                 }
             }
@@ -103,7 +115,7 @@ public class EffectRenderUtil {
         return map;
     }
 
-    private static void renderRow(List<ElementType> types, int row, int maxIconsPerRow, float iconWidth, float iconHeight, int entityId, Font font, MultiBufferSource buffers, Minecraft minecraft, PoseStack basePoseStack, Map<ElementType, IconData> iconMap, Map<ElementType, Integer> resonancePoints) {
+    private static void renderRow(List<IElementalType> types, int row, int maxIconsPerRow, float iconWidth, float iconHeight, int entityId, Font font, MultiBufferSource buffers, Minecraft minecraft, PoseStack basePoseStack, Map<IElementalType, IconData> iconMap, Map<IElementalType, Integer> resonancePoints) {
         int startIndex = row * maxIconsPerRow;
         int endIndex = Math.min(startIndex + maxIconsPerRow, types.size());
 
@@ -112,7 +124,7 @@ public class EffectRenderUtil {
         float rowY = -(float) row * (iconHeight + ICON_SPACING);
 
         for (int i = startIndex; i < endIndex; i++) {
-            ElementType type = types.get(i);
+            IElementalType type = types.get(i);
             IconData data = iconMap.get(type);
             float halfSize = iconWidth / 2.0F;
             float iconX = startX + (i - startIndex) * (iconWidth + ICON_SPACING);
@@ -203,16 +215,19 @@ public class EffectRenderUtil {
         font.drawInBatch(text, halfSize - tw + 2.0F, halfSize - th, color, false, textPose.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
     }
 
-    private static void drawElementIcon(PoseStack poseStack, ElementType type, float halfSize, MultiBufferSource buffers, Minecraft minecraft) {
-        Holder<MobEffect> effectHolder = getEffectHolderForElementType(type);
-        if (effectHolder != null) {
-            TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
-            if (sprite != null) {
-                try {
-                    drawSprite(poseStack, sprite, halfSize, buffers);
-                    return;
-                } catch (Exception e) {
-                    // Fall through to colored square
+    private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize, MultiBufferSource buffers, Minecraft minecraft) {
+        // Try to get texture from MobEffect texture map (only for built-in types)
+        if (!type.isCustom()) {
+            Holder<MobEffect> effectHolder = getEffectHolderForElementType((com.auranite.abloom.util.ElementType) type);
+            if (effectHolder != null) {
+                TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
+                if (sprite != null) {
+                    try {
+                        drawSprite(poseStack, sprite, halfSize, buffers);
+                        return;
+                    } catch (Exception e) {
+                        // Fall through to colored square
+                    }
                 }
             }
         }
@@ -244,31 +259,31 @@ public class EffectRenderUtil {
         font.drawInBatch(text, halfSize - tw + 2.0F, halfSize - th, 0xFFFFFFFF, false, textPose.last().pose(), buffers, DisplayMode.NORMAL, 0, 15728880);
     }
 
-    private static ElementType getElementTypeForEffect(Holder<MobEffect> effectHolder) {
+    private static IElementalType getElementTypeForEffect(Holder<MobEffect> effectHolder) {
         String effectName = effectHolder.unwrap().left()
                 .map(key -> key.location().getPath())
                 .orElse("");
 
         return switch (effectName) {
-            case "burn" -> ElementType.FIRE;
-            case "freeze" -> ElementType.ICE;
-            case "shock" -> ElementType.ELECTRIC;
-            case "bloom" -> ElementType.NATURAL;
-            case "overload" -> ElementType.ENERGY;
-            case "wetness" -> ElementType.WATER;
-            case "stun" -> ElementType.EARTH;
-            case "rupture" -> ElementType.PHYSICAL;
-            case "break" -> ElementType.QUANTUM;
-            case "windswept" -> ElementType.WIND;
-            case "corruption" -> ElementType.ETHER;
-            case "dispersion" -> ElementType.LIGHT;
-            case "eclipse" -> ElementType.SHADOW;
-            case "prism" -> ElementType.PRISMATIC;
+            case "burn" -> com.auranite.abloom.util.ElementType.FIRE;
+            case "freeze" -> com.auranite.abloom.util.ElementType.ICE;
+            case "shock" -> com.auranite.abloom.util.ElementType.ELECTRIC;
+            case "bloom" -> com.auranite.abloom.util.ElementType.NATURAL;
+            case "overload" -> com.auranite.abloom.util.ElementType.ENERGY;
+            case "wetness" -> com.auranite.abloom.util.ElementType.WATER;
+            case "stun" -> com.auranite.abloom.util.ElementType.EARTH;
+            case "rupture" -> com.auranite.abloom.util.ElementType.PHYSICAL;
+            case "break" -> com.auranite.abloom.util.ElementType.QUANTUM;
+            case "windswept" -> com.auranite.abloom.util.ElementType.WIND;
+            case "corruption" -> com.auranite.abloom.util.ElementType.ETHER;
+            case "dispersion" -> com.auranite.abloom.util.ElementType.LIGHT;
+            case "eclipse" -> com.auranite.abloom.util.ElementType.SHADOW;
+            case "prism" -> com.auranite.abloom.util.ElementType.PRISMATIC;
             default -> null;
         };
     }
 
-    private static Holder<MobEffect> getEffectHolderForElementType(ElementType type) {
+    private static Holder<MobEffect> getEffectHolderForElementType(com.auranite.abloom.util.ElementType type) {
         net.minecraft.world.effect.MobEffect effect = switch (type) {
             case FIRE -> AbloomModEffects.BURN.value();
             case ICE -> AbloomModEffects.FREEZE.value();

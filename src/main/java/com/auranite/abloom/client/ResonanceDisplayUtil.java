@@ -2,7 +2,7 @@ package com.auranite.abloom.client;
 
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.AbloomModEffects;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -35,7 +35,7 @@ public class ResonanceDisplayUtil {
      * Must be called WHILE poseStack is still in the transformed state (inside push/pop block).
      */
     public static void renderResonanceAccumulation(Entity entity, PoseStack poseStack,
-            MultiBufferSource buffers, int entityId, Map<ElementType, Integer> points,
+            MultiBufferSource buffers, int entityId, Map<IElementalType, Integer> points,
             float iconWidth, float iconHeight, Font font, Minecraft minecraft) {
         if (points.isEmpty()) return;
 
@@ -43,11 +43,17 @@ public class ResonanceDisplayUtil {
         float scaledIconWidth = ICON_BASE_SIZE * scale;
         float scaledIconHeight = ICON_BASE_SIZE * scale;
 
-        // Collect visible elements (points > 0) in enum order
-        List<ElementType> visibleElements = new ArrayList<>();
-        for (ElementType type : ElementType.values()) {
+        // Collect visible elements (points > 0) in order: built-in first, then custom
+        List<IElementalType> visibleElements = new ArrayList<>();
+        for (com.auranite.abloom.util.ElementType type : com.auranite.abloom.util.ElementType.values()) {
             if (points.getOrDefault(type, 0) > 0) {
                 visibleElements.add(type);
+            }
+        }
+        for (String customName : com.auranite.abloom.util.ElementType.getCustomTypeNames()) {
+            IElementalType custom = com.auranite.abloom.util.ElementType.getCustomTypeByName(customName).orElse(null);
+            if (custom != null && points.getOrDefault(custom, 0) > 0) {
+                visibleElements.add(custom);
             }
         }
 
@@ -71,8 +77,8 @@ public class ResonanceDisplayUtil {
             float rowY = resonanceRowStartY - (float) row * (scaledIconHeight + ICON_SPACING);
 
             for (int i = rowStartIdx; i < rowEndIdx; i++) {
-                ElementType type = visibleElements.get(i);
-                int pointsVal = points.get(type);
+                IElementalType type = visibleElements.get(i);
+                int pointsVal = points.getOrDefault(type, 0);
                 float halfSize = scaledIconWidth / 2.0F;
                 float iconX = startX + (i - rowStartIdx) * (scaledIconWidth + ICON_SPACING);
 
@@ -97,19 +103,21 @@ public class ResonanceDisplayUtil {
                 poseStack.last().pose(), buffers, DisplayMode.SEE_THROUGH, 0, 15728880);
     }
 
-    private static void drawElementIcon(PoseStack poseStack, ElementType type, float halfSize,
+    private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize,
             MultiBufferSource buffers, Minecraft minecraft) {
-        // Try to get texture from MobEffect texture map
-        Holder<MobEffect> effectHolder = getEffectForElementType(type);
-        if (effectHolder != null) {
-            TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
-            if (sprite != null) {
-                try {
-                    drawSprite(poseStack, sprite, halfSize, buffers);
-                } catch (Exception e) {
-                    drawColoredSquare(poseStack, halfSize, type, buffers);
+        // Try to get texture from MobEffect texture map (only for built-in types)
+        if (!type.isCustom()) {
+            Holder<MobEffect> effectHolder = getEffectForElementType((com.auranite.abloom.util.ElementType) type);
+            if (effectHolder != null) {
+                TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
+                if (sprite != null) {
+                    try {
+                        drawSprite(poseStack, sprite, halfSize, buffers);
+                    } catch (Exception e) {
+                        drawColoredSquare(poseStack, halfSize, type, buffers);
+                    }
+                    return;
                 }
-                return;
             }
         }
 
@@ -117,7 +125,7 @@ public class ResonanceDisplayUtil {
         drawColoredSquare(poseStack, halfSize, type, buffers);
     }
 
-    private static Holder<MobEffect> getEffectForElementType(ElementType type) {
+    private static Holder<MobEffect> getEffectForElementType(com.auranite.abloom.util.ElementType type) {
         MobEffect effect = switch (type) {
             case FIRE -> AbloomModEffects.BURN.value();
             case ICE -> AbloomModEffects.FREEZE.value();
@@ -151,7 +159,7 @@ public class ResonanceDisplayUtil {
         buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(u1, v0).setUv1(0, 10).setUv2(240, 240).setNormal(0.0F, 0.0F, 1.0F);
     }
 
-    private static void drawColoredSquare(PoseStack poseStack, float halfSize, ElementType type,
+    private static void drawColoredSquare(PoseStack poseStack, float halfSize, IElementalType type,
             MultiBufferSource buffers) {
         int color = ElementDamageHandler.getDamageColor(type);
         float r = ((color >> 16) & 0xFF) / 255.0F;

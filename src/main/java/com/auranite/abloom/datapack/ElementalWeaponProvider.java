@@ -1,7 +1,7 @@
 package com.auranite.abloom.datapack;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.datapack.ElementalWeaponData.WeaponStage;
 import com.google.gson.JsonObject;
@@ -98,12 +98,12 @@ public class ElementalWeaponProvider {
             }
 
             // Determine the base element for tooltip display
-            var baseElementOpt = weaponData.getBaseElementType();
+            Optional<IElementalType> baseElementOpt = weaponData.getBaseElementType();
             if (!baseElementOpt.isPresent()) {
                 AbloomMod.LOGGER.warn("Missing base_element in {} (from mod {})", sourcePath, modId);
                 return;
             }
-            ElementType baseElement = baseElementOpt.get();
+            IElementalType baseElement = baseElementOpt.get();
             ElementalWeaponRegistry.setBaseElement(location, baseElement);
 
             // Handle multi-stage weapons
@@ -114,12 +114,13 @@ public class ElementalWeaponProvider {
                         location, stages.size(), modId);
 
                 for (WeaponStage stage : stages) {
-                    ElementType stageElement = stage.getStageElementType();
-                    if (stageElement == null) {
+                    Optional<IElementalType> stageElementOpt = stage.getStageElementType();
+                    if (!stageElementOpt.isPresent()) {
                         AbloomMod.LOGGER.warn("Invalid element type in stage {} of {} (from mod {}): {}, using PHYSICAL",
                                 stage.getStageNumber(), location, modId, stage.getStageElementString());
-                        stageElement = ElementType.PHYSICAL;
+                        stageElementOpt = Optional.of(com.auranite.abloom.util.ElementType.PHYSICAL);
                     }
+                    IElementalType stageElement = stageElementOpt.get();
 
                     // Register each stage separately with its element and accumulation
                     ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
@@ -138,7 +139,7 @@ public class ElementalWeaponProvider {
                         location, stages.size(), modId);
             } else {
                 // Legacy single-element format
-                ElementType elementType = baseElement;
+                IElementalType elementType = baseElement;
 
                 ElementalWeaponRegistry.registerBuiltinWeapon(
                         location,
@@ -150,8 +151,8 @@ public class ElementalWeaponProvider {
                 );
 
                 loadedCount.getAndIncrement();
-                AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (multiplier: {}, crit: {:.0f}%/{:.0f}%, rf: {}) from mod {}",
-                        location, elementType, weaponData.getAccumulationMultiplier(),
+                AbloomMod.LOGGER.debug("Registered elemental weapon: {} (multiplier: {}, crit: {:.0f}%/{:.0f}%, rf: {}) from mod {}",
+                        location, elementType.getDisplayName(),
                         weaponData.getCritChance() * 100, weaponData.getCritDamage() * 100, weaponData.getResonanceFrequency(), modId);
             }
         } catch (Exception e) {

@@ -29,8 +29,8 @@ public class ArmorResistanceApplier {
                 // Build the custom data with resistances
                 CustomData resistancesData = CustomData.EMPTY.update(tag -> {
                     var resistanceTag = tag.getCompound("elemental_resistance_bonus");
-                    for (Map.Entry<ElementType, Float> resistanceEntry : resistances.entrySet()) {
-                        ElementType type = resistanceEntry.getKey();
+                    for (Map.Entry<IElementalType, Float> resistanceEntry : resistances.entrySet()) {
+                        IElementalType type = resistanceEntry.getKey();
                         Float value = resistanceEntry.getValue();
                         if (type != null && value != null) {
                             resistanceTag.putFloat(type.name(), value);

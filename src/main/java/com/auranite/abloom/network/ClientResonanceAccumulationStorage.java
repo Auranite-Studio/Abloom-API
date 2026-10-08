@@ -1,22 +1,21 @@
 package com.auranite.abloom.network;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClientResonanceAccumulationStorage {
-    private static final Map<Integer, Map<ElementType, Integer>> entityAccumulation = new HashMap<>();
+    private static final Map<Integer, Map<IElementalType, Integer>> entityAccumulation = new HashMap<>();
 
-    public static void updateEntityAccumulation(int entityId, Map<ElementType, Integer> newPoints) {
+    public static void updateEntityAccumulation(int entityId, Map<IElementalType, Integer> newPoints) {
         AbloomMod.LOGGER.info("Client storing accumulation for entity {}: {}", entityId, newPoints);
-        entityAccumulation.put(entityId, new EnumMap<>(newPoints));
+        entityAccumulation.put(entityId, new HashMap<>(newPoints));
     }
 
-    public static Map<ElementType, Integer> getEntityAccumulation(int entityId) {
-        return entityAccumulation.getOrDefault(entityId, new EnumMap<>(ElementType.class));
+    public static Map<IElementalType, Integer> getEntityAccumulation(int entityId) {
+        return entityAccumulation.getOrDefault(entityId, new HashMap<>());
     }
 
     public static void removeEntityAccumulation(int entityId) {
@@ -24,7 +23,7 @@ public class ClientResonanceAccumulationStorage {
     }
 
     public static boolean hasEntityAccumulation(int entityId) {
-        Map<ElementType, Integer> map = entityAccumulation.get(entityId);
+        Map<IElementalType, Integer> map = entityAccumulation.get(entityId);
         return map != null && !map.isEmpty();
     }
 

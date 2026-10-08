@@ -1,30 +1,30 @@
 package com.auranite.abloom.datapack;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.google.gson.JsonObject;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class ArmorResistanceData {
 
     private final String item;
-    private final Map<ElementType, Float> resistances;
+    private final Map<IElementalType, Float> resistances;
 
-    public ArmorResistanceData(String item, Map<ElementType, Float> resistances) {
+    public ArmorResistanceData(String item, Map<IElementalType, Float> resistances) {
         this.item = item;
-        this.resistances = resistances != null ? resistances : new EnumMap<>(ElementType.class);
+        this.resistances = resistances != null ? resistances : new HashMap<>();
     }
 
     public String getItem() {
         return item;
     }
 
-    public Map<ElementType, Float> getResistances() {
+    public Map<IElementalType, Float> getResistances() {
         return resistances;
     }
 
@@ -37,17 +37,18 @@ public class ArmorResistanceData {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static ArmorResistanceData fromJson(JsonObject json) {
         String item = GsonHelper.getAsString(json, "item");
-        
-        Map<ElementType, Float> resistances = new EnumMap<>(ElementType.class);
+
+        Map<IElementalType, Float> resistances = new HashMap<>();
         if (json.has("resistances")) {
             JsonObject resistancesObj = GsonHelper.getAsJsonObject(json, "resistances");
             for (String key : resistancesObj.keySet()) {
-                ElementType elementType = ElementType.safeValueOf(key.toUpperCase());
-                if (elementType != null) {
+                Optional<? extends IElementalType> elementType = IElementalType.byName(key.toUpperCase());
+                if (elementType.isPresent()) {
                     float value = GsonHelper.getAsFloat(resistancesObj, key);
-                    resistances.put(elementType, value);
+                    resistances.put((IElementalType) elementType.get(), value);
                 } else {
                     AbloomMod.LOGGER.warn("Invalid element type: {} in resistances", key);
                 }

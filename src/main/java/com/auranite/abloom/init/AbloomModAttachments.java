@@ -1,7 +1,7 @@
 package com.auranite.abloom.init;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
@@ -9,7 +9,7 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -18,42 +18,42 @@ public class AbloomModAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
             DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, AbloomMod.MODID);
 
-    public static final Supplier<AttachmentType<Map<ElementType, Integer>>> ELEMENT_ACCUMULATOR =
+    public static final Supplier<AttachmentType<Map<IElementalType, Integer>>> ELEMENT_ACCUMULATOR =
             ATTACHMENT_TYPES.register("element_accumulator", () ->
-                    AttachmentType.<Map<ElementType, Integer>>builder(() -> new EnumMap<>(ElementType.class)).build()
+                    AttachmentType.<Map<IElementalType, Integer>>builder(() -> new HashMap<>()).build()
             );
 
-    public static final Supplier<AttachmentType<ElementType>> PROJECTILE_ELEMENT =
+    public static final Supplier<AttachmentType<IElementalType>> PROJECTILE_ELEMENT =
             ATTACHMENT_TYPES.register("projectile_element", () ->
-                    AttachmentType.<ElementType>builder(() -> null).build()
+                    AttachmentType.<IElementalType>builder(() -> null).build()
             );
 
     public static void register(IEventBus modEventBus) {
         ATTACHMENT_TYPES.register(modEventBus);
     }
 
-    public static Map<ElementType, Integer> getAccumulator(LivingEntity entity) {
+    public static Map<IElementalType, Integer> getAccumulator(LivingEntity entity) {
         return entity.getData(ELEMENT_ACCUMULATOR.get());
     }
 
-    public static void addPoints(LivingEntity entity, ElementType type, int amount) {
-        Map<ElementType, Integer> acc = getAccumulator(entity);
+    public static void addPoints(LivingEntity entity, IElementalType type, int amount) {
+        Map<IElementalType, Integer> acc = getAccumulator(entity);
         acc.put(type, acc.getOrDefault(type, 0) + amount);
     }
 
-    public static int getPoints(LivingEntity entity, ElementType type) {
+    public static int getPoints(LivingEntity entity, IElementalType type) {
         return getAccumulator(entity).getOrDefault(type, 0);
     }
 
-    public static void setPoints(LivingEntity entity, ElementType type, int amount) {
+    public static void setPoints(LivingEntity entity, IElementalType type, int amount) {
         getAccumulator(entity).put(type, amount);
     }
 
-    public static void resetPoints(LivingEntity entity, ElementType type) {
+    public static void resetPoints(LivingEntity entity, IElementalType type) {
         getAccumulator(entity).put(type, 0);
     }
 
-    public static boolean hasReachedThreshold(LivingEntity entity, ElementType type, int threshold) {
+    public static boolean hasReachedThreshold(LivingEntity entity, IElementalType type, int threshold) {
         return getPoints(entity, type) >= threshold;
     }
 
@@ -61,13 +61,13 @@ public class AbloomModAttachments {
         getAccumulator(entity).clear();
     }
 
-    public static void setProjectileElement(Entity entity, ElementType type) {
+    public static void setProjectileElement(Entity entity, IElementalType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
             entity.setData(PROJECTILE_ELEMENT.get(), type);
         }
     }
 
-    public static ElementType getProjectileElement(Entity entity) {
+    public static IElementalType getProjectileElement(Entity entity) {
         if (entity != null) {
             return entity.getData(PROJECTILE_ELEMENT.get());
         }
@@ -75,7 +75,7 @@ public class AbloomModAttachments {
     }
 
     public static boolean hasProjectileElement(Entity entity) {
-        ElementType element = getProjectileElement(entity);
+        IElementalType element = getProjectileElement(entity);
         return element != null;
     }
 
@@ -85,21 +85,17 @@ public class AbloomModAttachments {
         }
     }
 
-    public static void setPrismConversionType(LivingEntity entity, ElementType type) {
+    public static void setPrismConversionType(LivingEntity entity, IElementalType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
             entity.getPersistentData().putString("Abloom_PrismConversionType", type.name());
         }
     }
 
-    public static ElementType getPrismConversionType(LivingEntity entity) {
+    public static IElementalType getPrismConversionType(LivingEntity entity) {
         if (entity != null) {
             String typeName = entity.getPersistentData().getString("Abloom_PrismConversionType");
             if (!typeName.isEmpty()) {
-                try {
-                    return ElementType.valueOf(typeName);
-                } catch (IllegalArgumentException e) {
-                    return null;
-                }
+                return IElementalType.byName(typeName).orElse(null);
             }
         }
         return null;
@@ -111,21 +107,17 @@ public class AbloomModAttachments {
         }
     }
 
-    public static void setFluorescenceType(LivingEntity entity, ElementType type) {
+    public static void setFluorescenceType(LivingEntity entity, IElementalType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
             entity.getPersistentData().putString("Abloom_FluorescenceType", type.name());
         }
     }
 
-    public static ElementType getFluorescenceType(LivingEntity entity) {
+    public static IElementalType getFluorescenceType(LivingEntity entity) {
         if (entity != null) {
             String typeName = entity.getPersistentData().getString("Abloom_FluorescenceType");
             if (!typeName.isEmpty()) {
-                try {
-                    return ElementType.valueOf(typeName);
-                } catch (IllegalArgumentException e) {
-                    return null;
-                }
+                return IElementalType.byName(typeName).orElse(null);
             }
         }
         return null;

@@ -1,13 +1,13 @@
 package com.auranite.abloom.registries;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.HashSet;
@@ -15,13 +15,13 @@ import java.util.Set;
 
 public class ArmorResistanceRegistry {
 
-    private static final Map<Item, Map<ElementType, Float>> ARMOR_RESISTANCES = new WeakHashMap<>();
-    private static final Map<ResourceLocation, Map<ElementType, Float>> ARMOR_RESISTANCES_BY_ID = new WeakHashMap<>();
+    private static final Map<Item, Map<IElementalType, Float>> ARMOR_RESISTANCES = new WeakHashMap<>();
+    private static final Map<ResourceLocation, Map<IElementalType, Float>> ARMOR_RESISTANCES_BY_ID = new WeakHashMap<>();
     private static final Set<ResourceLocation> BUILTIN_REGISTRATIONS = new HashSet<>();
 
     private ArmorResistanceRegistry() {}
 
-    public static void registerArmor(Item item, Map<ElementType, Float> resistanceMap) {
+    public static void registerArmor(Item item, Map<IElementalType, Float> resistanceMap) {
         if (item == null || resistanceMap == null || resistanceMap.isEmpty()) return;
         
         // Check for duplicates
@@ -36,8 +36,8 @@ public class ArmorResistanceRegistry {
             return;
         }
         
-        Map<ElementType, Float> clampedMap = new EnumMap<>(ElementType.class);
-        for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
+        Map<IElementalType, Float> clampedMap = new HashMap<>();
+        for (Map.Entry<IElementalType, Float> entry : resistanceMap.entrySet()) {
             if (entry.getKey() != null && entry.getValue() != null) {
                 float clampedValue = Math.max(-0.99f, Math.min(0.99f, entry.getValue()));
                 clampedMap.put(entry.getKey(), clampedValue);
@@ -50,7 +50,7 @@ public class ArmorResistanceRegistry {
             item.getDescriptionId(), clampedMap);
     }
 
-    public static void registerArmor(Item item, ElementType type, float resistance) {
+    public static void registerArmor(Item item, IElementalType type, float resistance) {
         if (item == null || type == null) return;
         registerArmor(item, Map.of(type, resistance));
     }
@@ -58,7 +58,7 @@ public class ArmorResistanceRegistry {
     /**
      * Register armor from datapack (builtin)
      */
-    public static void registerBuiltinArmor(ResourceLocation itemLocation, Map<ElementType, Float> resistanceMap) {
+    public static void registerBuiltinArmor(ResourceLocation itemLocation, Map<IElementalType, Float> resistanceMap) {
         if (itemLocation == null || resistanceMap == null || resistanceMap.isEmpty()) return;
         
         // Check for conflicts
@@ -68,8 +68,8 @@ public class ArmorResistanceRegistry {
         }
         
         // Clamp values
-        Map<ElementType, Float> clampedMap = new EnumMap<>(ElementType.class);
-        for (Map.Entry<ElementType, Float> entry : resistanceMap.entrySet()) {
+        Map<IElementalType, Float> clampedMap = new HashMap<>();
+        for (Map.Entry<IElementalType, Float> entry : resistanceMap.entrySet()) {
             if (entry.getKey() != null && entry.getValue() != null) {
                 float clampedValue = Math.max(-0.99f, Math.min(0.99f, entry.getValue()));
                 clampedMap.put(entry.getKey(), clampedValue);
@@ -90,19 +90,19 @@ public class ArmorResistanceRegistry {
         }
     }
 
-    public static Map<ElementType, Float> getResistances(ItemStack stack) {
+    public static Map<IElementalType, Float> getResistances(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return Map.of();
         return ARMOR_RESISTANCES.getOrDefault(stack.getItem(), Map.of());
     }
 
-    public static Map<ElementType, Float> getResistancesById(ResourceLocation itemLocation) {
+    public static Map<IElementalType, Float> getResistancesById(ResourceLocation itemLocation) {
         if (itemLocation == null) return Map.of();
         return ARMOR_RESISTANCES_BY_ID.getOrDefault(itemLocation, Map.of());
     }
 
-    public static float getResistance(ItemStack stack, ElementType type) {
+    public static float getResistance(ItemStack stack, IElementalType type) {
         if (stack == null || stack.isEmpty() || type == null) return 0.0f;
-        Map<ElementType, Float> resistances = getResistances(stack);
+        Map<IElementalType, Float> resistances = getResistances(stack);
         return resistances.getOrDefault(type, 0.0f);
     }
 
@@ -128,7 +128,7 @@ public class ArmorResistanceRegistry {
     /**
      * Get all registered armor resistances by item location
      */
-    public static Map<ResourceLocation, Map<ElementType, Float>> getAllRegisteredResistances() {
+    public static Map<ResourceLocation, Map<IElementalType, Float>> getAllRegisteredResistances() {
         return new java.util.HashMap<>(ARMOR_RESISTANCES_BY_ID);
     }
 }

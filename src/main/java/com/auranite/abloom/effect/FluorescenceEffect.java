@@ -1,7 +1,7 @@
 package com.auranite.abloom.effect;
 
 import com.auranite.abloom.init.AbloomModAttachments;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +18,7 @@ public class FluorescenceEffect extends MobEffect {
 
     public String getDescriptionId(LivingEntity entity) {
         if (entity != null) {
-            ElementType type = AbloomModAttachments.getFluorescenceType(entity);
+            IElementalType type = AbloomModAttachments.getFluorescenceType(entity);
             if (type != null) {
                 return "effect.abloom.fluorescence." + type.name().toLowerCase();
             }

@@ -2,7 +2,7 @@ package com.auranite.abloom.network;
 
 import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.init.AbloomModAttachments;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +13,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 @EventBusSubscriber(modid = AbloomMod.MODID)
 public record SyncResonanceAccumulationMessage(
         int entityId,
-        Map<ElementType, Integer> points
+        Map<IElementalType, Integer> points
 ) implements CustomPacketPayload {
 
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "sync_resonance_accumulation");
@@ -36,13 +36,16 @@ public record SyncResonanceAccumulationMessage(
         this(buf.readInt(), readPoints(buf));
     }
 
-    private static Map<ElementType, Integer> readPoints(FriendlyByteBuf buf) {
+    private static Map<IElementalType, Integer> readPoints(FriendlyByteBuf buf) {
         int size = buf.readInt();
-        Map<ElementType, Integer> map = new EnumMap<>(ElementType.class);
+        Map<IElementalType, Integer> map = new HashMap<>();
         for (int i = 0; i < size; i++) {
-            ElementType type = buf.readEnum(ElementType.class);
+            String typeName = buf.readUtf();
+            IElementalType type = IElementalType.byName(typeName).orElse(null);
             int points = buf.readInt();
-            map.put(type, points);
+            if (type != null) {
+                map.put(type, points);
+            }
         }
         return map;
     }
@@ -50,8 +53,8 @@ public record SyncResonanceAccumulationMessage(
     public void encode(FriendlyByteBuf buf) {
         buf.writeInt(this.entityId);
         buf.writeInt(this.points.size());
-        for (Map.Entry<ElementType, Integer> entry : this.points.entrySet()) {
-            buf.writeEnum(entry.getKey());
+        for (Map.Entry<IElementalType, Integer> entry : this.points.entrySet()) {
+            buf.writeUtf(entry.getKey().name());
             buf.writeInt(entry.getValue());
         }
     }
@@ -83,10 +86,10 @@ public record SyncResonanceAccumulationMessage(
         if (!event.getEntity().level().isClientSide() && event.getTarget() instanceof LivingEntity && event.getEntity() instanceof ServerPlayer) {
             ServerPlayer player = (ServerPlayer) event.getEntity();
             LivingEntity targetEntity = (LivingEntity) event.getTarget();
-            Map<ElementType, Integer> accumulator = AbloomModAttachments.getAccumulator(targetEntity);
+            Map<IElementalType, Integer> accumulator = AbloomModAttachments.getAccumulator(targetEntity);
 
-            Map<ElementType, Integer> nonZeroPoints = new EnumMap<>(ElementType.class);
-            for (Map.Entry<ElementType, Integer> entry : accumulator.entrySet()) {
+            Map<IElementalType, Integer> nonZeroPoints = new HashMap<>();
+            for (Map.Entry<IElementalType, Integer> entry : accumulator.entrySet()) {
                 if (entry.getValue() > 0) {
                     nonZeroPoints.put(entry.getKey(), entry.getValue());
                 }

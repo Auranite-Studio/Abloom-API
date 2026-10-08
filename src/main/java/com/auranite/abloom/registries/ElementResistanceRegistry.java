@@ -2,14 +2,14 @@ package com.auranite.abloom.registries;
 
 import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.util.ElementResistanceManager;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ElementResistanceRegistry {
@@ -26,7 +26,7 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
 
         try {
-            for (ElementType elementType : ElementType.values()) {
+            for (com.auranite.abloom.util.ElementType elementType : com.auranite.abloom.util.ElementType.values()) {
                 String tagName = elementType.name().toLowerCase();
 
                 ElementResistanceManager.loadFromTag(
@@ -52,33 +52,40 @@ public class ElementResistanceRegistry {
         }
     }
 
+    private static ElementResistanceManager.Resistance toResistance(float value) {
+        if (value >= 1.0f) return ElementResistanceManager.Resistance.IMMUNE;
+        if (value >= 0.5f) return ElementResistanceManager.Resistance.HALF_RESIST;
+        if (value <= -0.5f) return ElementResistanceManager.Resistance.WEAKNESS;
+        return ElementResistanceManager.Resistance.ZERO;
+    }
+
     @SafeVarargs
-    public static void registerUniform(ElementType elementType, float resistance, EntityType<?>... entityTypes) {
+    public static void registerUniform(IElementalType elementType, float resistance, EntityType<?>... entityTypes) {
         if (elementType == null || entityTypes == null) return;
 
         for (EntityType<?> type : entityTypes) {
             if (type == null) continue;
             ElementResistanceManager.registerResistance(type, Map.of(
-                    elementType, new ElementResistanceManager.Resistance(resistance)
+                    elementType, toResistance(resistance)
             ));
         }
     }
 
-    public static void registerSingle(EntityType<?> entityType, ElementType elementType, float resistance) {
+    public static void registerSingle(EntityType<?> entityType, IElementalType elementType, float resistance) {
         if (entityType == null || elementType == null) return;
         ElementResistanceManager.registerResistance(entityType, Map.of(
-                elementType, new ElementResistanceManager.Resistance(resistance)
+                elementType, toResistance(resistance)
         ));
     }
 
-    public static void registerSingleUniform(EntityType<?> entityType, ElementType elementType, float resistance) {
+    public static void registerSingleUniform(EntityType<?> entityType, IElementalType elementType, float resistance) {
         registerSingle(entityType, elementType, resistance);
     }
 
     public static void registerMultiple(EntityType<?> entityType,
-                                        Map<ElementType, ElementResistanceManager.Resistance> resistanceMap) {
+                                        Map<IElementalType, ElementResistanceManager.Resistance> resistanceMap) {
         if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
-        ElementResistanceManager.registerResistance(entityType, new EnumMap<>(resistanceMap));
+        ElementResistanceManager.registerResistance(entityType, new HashMap<>(resistanceMap));
     }
 
     public static boolean hasResistances(EntityType<?> entityType) {
@@ -90,11 +97,11 @@ public class ElementResistanceRegistry {
         return ElementResistanceManager.hasResistanceFor(entity.getType());
     }
 
-    public static boolean hasResistance(EntityType<?> entityType, ElementType elementType) {
+    public static boolean hasResistance(EntityType<?> entityType, IElementalType elementType) {
         return ElementResistanceManager.hasResistanceFor(entityType, elementType);
     }
 
-    public static ElementResistanceManager.Resistance getResistance(EntityType<?> entityType, ElementType elementType) {
+    public static ElementResistanceManager.Resistance getResistance(EntityType<?> entityType, IElementalType elementType) {
         return ElementResistanceManager.getResistance(entityType, elementType);
     }
 

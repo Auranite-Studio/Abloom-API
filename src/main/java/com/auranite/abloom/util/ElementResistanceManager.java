@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ElementResistanceManager {
 
-	private static final Map<EntityType<?>, Map<ElementType, Resistance>> ENTITY_RESISTANCES = new ConcurrentHashMap<>();
+	private static final Map<EntityType<?>, Map<IElementalType, Resistance>> ENTITY_RESISTANCES = new ConcurrentHashMap<>();
 	private static final Map<EntityType<?>, Boolean> TAG_CHECKED_ENTITIES = new ConcurrentHashMap<>();
 
 	private ElementResistanceManager() {}
@@ -36,11 +36,11 @@ public class ElementResistanceManager {
 	 * @param entityType the entity type
 	 * @param resistanceMap map of element types to resistance values
 	 */
-	public static void registerResistance(EntityType<?> entityType, Map<ElementType, Resistance> resistanceMap) {
+	public static void registerResistance(EntityType<?> entityType, Map<IElementalType, Resistance> resistanceMap) {
 		if (entityType == null || resistanceMap == null || resistanceMap.isEmpty()) return;
 
-		Map<ElementType, Resistance> existing = ENTITY_RESISTANCES.computeIfAbsent(
-				entityType, k -> new EnumMap<>(ElementType.class)
+		Map<IElementalType, Resistance> existing = ENTITY_RESISTANCES.computeIfAbsent(
+				entityType, k -> new HashMap<>()
 		);
 		existing.putAll(resistanceMap);
 	}
@@ -52,7 +52,7 @@ public class ElementResistanceManager {
 	 * @param resistance the resistance value to apply
 	 * @param lookupProvider the lookup provider for loading tags
 	 */
-	public static void loadFromTag(ElementType elementType, TagKey<EntityType<?>> tag,
+	public static void loadFromTag(IElementalType elementType, TagKey<EntityType<?>> tag,
 			Resistance resistance, net.minecraft.core.HolderLookup.Provider lookupProvider) {
 		if (elementType == null || tag == null || resistance == null || lookupProvider == null) {
 			AbloomMod.LOGGER.warn("loadFromTag called with null params: element={}, tag={}, resistance={}, lookup={}",
@@ -65,11 +65,11 @@ public class ElementResistanceManager {
 		entityLookup.get(tag).ifPresentOrElse(tagged -> {
 			int count = 0;
 			for (var holder : tagged) {
-			 EntityType<?> entityType = holder.value();
+				EntityType<?> entityType = holder.value();
 				if (entityType == null) continue;
 
-				Map<ElementType, Resistance> resistanceMap = ENTITY_RESISTANCES
-						.computeIfAbsent(entityType, k -> new EnumMap<>(ElementType.class));
+				Map<IElementalType, Resistance> resistanceMap = ENTITY_RESISTANCES
+						.computeIfAbsent(entityType, k -> new HashMap<>());
 				resistanceMap.put(elementType, resistance);
 				count++;
 			}
@@ -79,7 +79,7 @@ public class ElementResistanceManager {
 		});
 	}
 
-	private static void tryLazyLoadFromTags(EntityType<?> entityType, ElementType elementType) {
+	private static void tryLazyLoadFromTags(EntityType<?> entityType, IElementalType elementType) {
 		if (entityType == null || elementType == null) return;
 
 		if (TAG_CHECKED_ENTITIES.getOrDefault(entityType, false)) {
@@ -114,7 +114,7 @@ public class ElementResistanceManager {
 	 * @param type the element type
 	 * @return the resistance value
 	 */
-	public static Resistance getResistance(Entity entity, ElementType type) {
+	public static Resistance getResistance(Entity entity, IElementalType type) {
 		if (entity == null || type == null) return Resistance.ZERO;
 		return getResistance(entity.getType(), type);
 	}
@@ -125,10 +125,10 @@ public class ElementResistanceManager {
 	 * @param type the element type
 	 * @return the resistance value
 	 */
-	public static Resistance getResistance(EntityType<?> entityType, ElementType type) {
+	public static Resistance getResistance(EntityType<?> entityType, IElementalType type) {
 		if (entityType == null || type == null) return Resistance.ZERO;
 
-		Map<ElementType, Resistance> typeMap = ENTITY_RESISTANCES.get(entityType);
+		Map<IElementalType, Resistance> typeMap = ENTITY_RESISTANCES.get(entityType);
 
 		if (typeMap == null || !typeMap.containsKey(type)) {
 			tryLazyLoadFromTags(entityType, type);
@@ -148,90 +148,138 @@ public class ElementResistanceManager {
 	 * @param basePoints the base accumulation points
 	 * @return the accumulated points after resistance
 	 */
-	public static int calculateAccumulationPoints(Entity entity, ElementType type, int basePoints) {
-		Resistance resistance = getResistance(entity, type);
-		float multiplier = 1f - resistance.resistance();
-		return Math.round(basePoints * Math.max(0.001f, multiplier));
+	public static int calculateAccumulationPoints(Entity entity, IElementalType type, int basePoints) {
+		if (entity == null || type == null) return basePoints;
+		return calculateAccumulationPoints(entity.getType(), type, basePoints);
 	}
 
 	/**
-	 * Calculates reduced damage with resistance applied.
-	 * Also applies additional reduction for corruption effect.
+	 * Calculates accumulation points with resistance applied.
+	 * @param entityType the entity type
+	 * @param type the element type
+	 * @param basePoints the base accumulation points
+	 * @return the accumulated points after resistance
+	 */
+	public static int calculateAccumulationPoints(EntityType<?> entityType, IElementalType type, int basePoints) {
+		if (entityType == null || type == null) return basePoints;
+		Resistance resistance = getResistance(entityType, type);
+		return resistance.applyToAccumulation(basePoints);
+	}
+
+	/**
+	 * Calculates reduced damage based on entity resistance.
 	 * @param entity the target entity
 	 * @param type the element type
 	 * @param baseDamage the base damage
-	 * @return the reduced damage
+	 * @return the damage after resistance reduction
 	 */
-	public static float calculateReducedDamage(Entity entity, ElementType type, float baseDamage) {
-		Resistance resistance = getResistance(entity, type);
-		float multiplier = 1f - resistance.resistance();
-		return Math.max(0.001f, baseDamage * multiplier);
+	public static float calculateReducedDamage(Entity entity, IElementalType type, float baseDamage) {
+		if (entity == null || type == null) return baseDamage;
+		return calculateReducedDamage(entity.getType(), type, baseDamage);
 	}
 
 	/**
-	 * Checks if an entity is immune to an element type.
-	 * Currently always returns false (reserved for future implementation).
+	 * Calculates reduced damage based on entity resistance.
+	 * @param entityType the entity type
+	 * @param type the element type
+	 * @param baseDamage the base damage
+	 * @return the damage after resistance reduction
+	 */
+	public static float calculateReducedDamage(EntityType<?> entityType, IElementalType type, float baseDamage) {
+		if (entityType == null || type == null) return baseDamage;
+		Resistance resistance = getResistance(entityType, type);
+		return resistance.applyToDamage(baseDamage);
+	}
+
+	/**
+	 * Checks if an entity is immune to a specific element type.
 	 * @param entity the entity
 	 * @param type the element type
 	 * @return true if immune
 	 */
-	public static boolean isImmune(Entity entity, ElementType type) {
-		return false;
+	public static boolean isImmune(Entity entity, IElementalType type) {
+		if (entity == null || type == null) return false;
+		return isImmune(entity.getType(), type);
 	}
 
 	/**
-	 * Checks if an entity has weakness to an element type.
-	 * @param entity the entity
-	 * @param type the element type
-	 * @return true if has weakness
-	 */
-	public static boolean isWeakness(Entity entity, ElementType type) {
-		return getResistance(entity, type).isWeakness();
-	}
-
-	/**
-	 * Checks if an entity type has any resistance values registered.
+	 * Checks if an entity type is immune to a specific element type.
 	 * @param entityType the entity type
-	 * @return true if has resistances
+	 * @param type the element type
+	 * @return true if immune
 	 */
-	public static boolean hasResistanceFor(EntityType<?> entityType) {
-		return entityType != null && ENTITY_RESISTANCES.containsKey(entityType);
+	public static boolean isImmune(EntityType<?> entityType, IElementalType type) {
+		if (entityType == null || type == null) return false;
+		Resistance resistance = getResistance(entityType, type);
+		return resistance == Resistance.IMMUNE;
 	}
 
 	/**
-	 * Checks if an entity has resistance to a specific element type.
+	 * Checks if an entity has resistance for a specific element type.
 	 * @param entity the entity
 	 * @param type the element type
-	 * @return true if has resistance
+	 * @return true if resistance is set
 	 */
-	public static boolean hasResistanceFor(Entity entity, ElementType type) {
+	public static boolean hasResistanceFor(Entity entity, IElementalType type) {
 		if (entity == null || type == null) return false;
 		return hasResistanceFor(entity.getType(), type);
 	}
 
 	/**
-	 * Checks if an entity type has resistance to a specific element type.
+	 * Checks if an entity type has resistance for a specific element type.
 	 * @param entityType the entity type
 	 * @param type the element type
-	 * @return true if has resistance
+	 * @return true if resistance is set
 	 */
-	public static boolean hasResistanceFor(EntityType<?> entityType, ElementType type) {
+	public static boolean hasResistanceFor(EntityType<?> entityType, IElementalType type) {
 		if (entityType == null || type == null) return false;
-
-		Map<ElementType, Resistance> typeMap = ENTITY_RESISTANCES.get(entityType);
-
-		if (typeMap != null && typeMap.containsKey(type)) {
-			Resistance res = typeMap.get(type);
-			return res != null && res != Resistance.ZERO;
-		}
-
-		tryLazyLoadFromTags(entityType, type);
-		typeMap = ENTITY_RESISTANCES.get(entityType);
-
+		Map<IElementalType, Resistance> typeMap = ENTITY_RESISTANCES.get(entityType);
 		if (typeMap == null) return false;
+		return typeMap.containsKey(type);
+	}
 
-		Resistance res = typeMap.get(type);
-		return res != null && res != Resistance.ZERO;
+	/**
+	 * Checks if an entity type has any resistance registered.
+	 * @param entityType the entity type
+	 * @return true if any resistance is registered
+	 */
+	public static boolean hasResistanceFor(EntityType<?> entityType) {
+		if (entityType == null) return false;
+		Map<IElementalType, Resistance> typeMap = ENTITY_RESISTANCES.get(entityType);
+		return typeMap != null && !typeMap.isEmpty();
+	}
+
+	/**
+	 * Checks if an entity has any resistance registered.
+	 * @param entity the entity
+	 * @return true if any resistance is registered
+	 */
+	public static boolean hasResistanceFor(Entity entity) {
+		if (entity == null) return false;
+		return hasResistanceFor(entity.getType());
+	}
+
+	/**
+	 * Checks if an entity is weak to a specific element type.
+	 * @param entity the entity
+	 * @param type the element type
+	 * @return true if weak
+	 */
+	public static boolean isWeakness(Entity entity, IElementalType type) {
+		if (entity == null || type == null) return false;
+		return isWeakness(entity.getType(), type);
+	}
+
+	/**
+	 * Checks if an entity type is weak to a specific element type.
+	 * @param entityType the entity type
+	 * @param type the element type
+	 * @return true if weak
+	 */
+	public static boolean isWeakness(EntityType<?> entityType, IElementalType type) {
+		if (entityType == null || type == null) return false;
+		Resistance resistance = getResistance(entityType, type);
+		return resistance == Resistance.WEAKNESS;
 	}
 
 	/**
@@ -240,49 +288,65 @@ public class ElementResistanceManager {
 	public static void clearAllResistances() {
 		ENTITY_RESISTANCES.clear();
 		TAG_CHECKED_ENTITIES.clear();
-		AbloomMod.LOGGER.info("Cleared all element resistances");
 	}
 
 	/**
-	 * Gets the count of registered entity types with resistances.
-	 * @return number of registered entities
+	 * Returns the number of registered entity types with resistances.
 	 */
 	public static int getRegisteredEntityCount() {
 		return ENTITY_RESISTANCES.size();
 	}
 
 	/**
-	 * Gets the total count of resistance entries.
-	 * @return total number of resistance mappings
-	 */
-	public static int getTotalResistanceEntries() {
-		return ENTITY_RESISTANCES.values().stream().mapToInt(Map::size).sum();
-	}
-
-	/**
-	 * Prints debug information about the resistance registry.
+	 * Debug print of all registered resistances.
 	 */
 	public static void debugPrintRegistry() {
-		AbloomMod.LOGGER.info("=== RESISTANCE REGISTRY ===");
-		AbloomMod.LOGGER.info("Entities: {}, Entries: {}",
-				getRegisteredEntityCount(), getTotalResistanceEntries());
-
-		ENTITY_RESISTANCES.forEach((type, map) -> {
-			AbloomMod.LOGGER.info("  {} → {}", type.getDescriptionId(), map);
-		});
+		AbloomMod.LOGGER.info("=== Element Resistance Registry ===");
+		AbloomMod.LOGGER.info("Registered entities: {}", ENTITY_RESISTANCES.size());
+		for (Map.Entry<EntityType<?>, Map<IElementalType, Resistance>> entry : ENTITY_RESISTANCES.entrySet()) {
+			AbloomMod.LOGGER.info("  {} -> {}", entry.getKey(), entry.getValue());
+		}
 	}
 
 	/**
-	 * Records the resistance value for an element type.
-	 * Values range from -0.99 (weakness) to 0.99 (high resistance).
-	 * Negative values increase damage, positive values reduce it.
+	 * Represents the level of elemental resistance.
 	 */
-	public record Resistance(float resistance) {
-		public static final Resistance ZERO = new Resistance(0.0f);
-		public static final Resistance HALF_RESIST = new Resistance(0.5f);
-		public static final Resistance WEAKNESS = new Resistance(-0.5f);
+	public enum Resistance {
+		/** Full damage, no resistance */
+		ZERO(0.0f),
+		/** 50% damage reduction */
+		HALF_RESIST(0.5f),
+		/** 50% damage increase (weakness) */
+		WEAKNESS(-0.5f),
+		/** Complete immunity */
+		IMMUNE(1.0f);
 
-		public boolean isWeakness() { return resistance < 0f; }
-		public float getMultiplier() { return 1f - resistance; }
+		private final float value;
+
+		Resistance(float value) {
+			this.value = value;
+		}
+
+		public float getValue() {
+			return value;
+		}
+
+		/**
+		 * Applies resistance to damage.
+		 * @param baseDamage the base damage
+		 * @return the damage after resistance
+		 */
+		public float applyToDamage(float baseDamage) {
+			return baseDamage * (1.0f - value);
+		}
+
+		/**
+		 * Applies resistance to accumulation points.
+		 * @param basePoints the base points
+		 * @return the points after resistance
+		 */
+		public int applyToAccumulation(int basePoints) {
+			return (int) (basePoints * (1.0f - value));
+		}
 	}
 }

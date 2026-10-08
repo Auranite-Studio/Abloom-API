@@ -2,7 +2,7 @@ package com.auranite.abloom.client;
 
 import com.auranite.abloom.config.AbloomConfig;
 import com.auranite.abloom.handler.DamageNumbersHandler;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.ParticleStatus;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -15,13 +15,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DamageNumbersImpl implements DamageNumbersHandler {
    private final Deque<TextParticle> particles = new ArrayDeque<>();
-   private final Map<ElementType, Integer> damageColors = new EnumMap<>(ElementType.class);
+   private final Map<String, Integer> damageColors = new HashMap<>();
    // Track vertical offset per entity for status texts to prevent overlapping
    static final Map<Integer, Double> statusTextOffsets = new ConcurrentHashMap<>();
    private static final double STATUS_TEXT_VERTICAL_SPACING = 0.3;
@@ -31,20 +31,20 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
    }
 
    private void initDefaultColors() {
-      damageColors.put(ElementType.FIRE, 0xFF5500);
-      damageColors.put(ElementType.PHYSICAL, 0xC0C0C0);
-      damageColors.put(ElementType.WIND, 0x00FFFF);
-      damageColors.put(ElementType.WATER, 0x0080FF);
-      damageColors.put(ElementType.EARTH, 0x8B4513);
-      damageColors.put(ElementType.ICE, 0x00BFFF);
-      damageColors.put(ElementType.ELECTRIC, 0xFF19FF);
-      damageColors.put(ElementType.ENERGY, 0xFFFF00);
-      damageColors.put(ElementType.NATURAL, 0x32CD32);
-      damageColors.put(ElementType.QUANTUM, 0x9400D3);
-      damageColors.put(ElementType.ETHER, 0x24B3A7);
-      damageColors.put(ElementType.LIGHT, 0xFFF1A5);
-      damageColors.put(ElementType.SHADOW, 0x4B0082);
-      damageColors.put(ElementType.PRISMATIC, 0xFFFFFF);
+      damageColors.put("FIRE", 0xFF5500);
+      damageColors.put("PHYSICAL", 0xC0C0C0);
+      damageColors.put("WIND", 0x00FFFF);
+      damageColors.put("WATER", 0x0080FF);
+      damageColors.put("EARTH", 0x8B4513);
+      damageColors.put("ICE", 0x00BFFF);
+      damageColors.put("ELECTRIC", 0xFF19FF);
+      damageColors.put("ENERGY", 0xFFFF00);
+      damageColors.put("NATURAL", 0x32CD32);
+      damageColors.put("QUANTUM", 0x9400D3);
+      damageColors.put("ETHER", 0x24B3A7);
+      damageColors.put("LIGHT", 0xFFF1A5);
+      damageColors.put("SHADOW", 0x4B0082);
+      damageColors.put("PRISMATIC", 0xFFFFFF);
    }
 
    @Override
@@ -130,7 +130,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
    }
 
    @Override
-   public void spawnDamageNumber(int entityId, float damage, @Nullable ElementType elementType, int color, boolean isCrit, boolean hasBreak, boolean isMultiCrit) {
+   public void spawnDamageNumber(int entityId, float damage, @Nullable IElementalType elementType, int color, boolean isCrit, boolean hasBreak, boolean isMultiCrit) {
       if (!AbloomConfig.areDamageNumbersEnabled()) {
          return;
       }
@@ -192,7 +192,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
       particle.setText(text);
       
       // Use color from packet (set by server based on element type)
-      if (color == -1 || elementType == ElementType.PRISMATIC) {
+      if (color == -1 || (elementType != null && elementType.name().equals("PRISMATIC"))) {
          // Prismatic - rainbow effect handled in particle render
          particle.setColor(new Color(1.0F, 1.0F, 1.0F, 1.0F));
          particle.setPrismatic(true);
@@ -259,18 +259,18 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
       client.particleEngine.add(particle);
    }
 
-   public int getDamageColor(@Nullable ElementType type) {
+   public int getDamageColor(@Nullable IElementalType type) {
       if (type == null) return 0xFFFFFF;
-      if (type == ElementType.PRISMATIC) return -1;
-      return damageColors.getOrDefault(type, 0xFFFFFF);
+      if (type.name().equals("PRISMATIC")) return -1;
+      return damageColors.getOrDefault(type.name(), 0xFFFFFF);
    }
 
-   public void setDamageColor(ElementType type, int color) {
-      damageColors.put(type, color);
+   public void setDamageColor(IElementalType type, int color) {
+      damageColors.put(type.name(), color);
    }
 
-   public Map<ElementType, Integer> getAllDamageColors() {
-      return new EnumMap<>(damageColors);
+   public Map<String, Integer> getAllDamageColors() {
+      return new HashMap<>(damageColors);
    }
 
    /**

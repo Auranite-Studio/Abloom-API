@@ -1,6 +1,6 @@
 package com.auranite.abloom.datapack;
 
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.auranite.abloom.AbloomMod;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -68,8 +68,9 @@ public class ElementalWeaponData {
             return stageElement;
         }
 
-        public ElementType getStageElementType() {
-            return ElementType.safeValueOf(stageElement.toUpperCase());
+        @SuppressWarnings("unchecked")
+        public Optional<IElementalType> getStageElementType() {
+            return (Optional<IElementalType>) (Optional<? extends IElementalType>) IElementalType.byName(stageElement);
         }
 
         public float getAccumulationMultiplier() {
@@ -107,12 +108,12 @@ public class ElementalWeaponData {
         return baseElement;
     }
 
-    public Optional<ElementType> getBaseElementType() {
+    @SuppressWarnings("unchecked")
+    public Optional<IElementalType> getBaseElementType() {
         if (baseElement == null || baseElement.isEmpty()) {
             return Optional.empty();
         }
-        ElementType result = ElementType.safeValueOf(baseElement.toUpperCase());
-        return result != null ? Optional.of(result) : Optional.empty();
+        return (Optional<IElementalType>) (Optional<? extends IElementalType>) IElementalType.byName(baseElement.toUpperCase());
     }
 
     public float getAccumulationMultiplier() {
@@ -144,7 +145,7 @@ public class ElementalWeaponData {
      * Gets the base element type for this weapon.
      * Used for tooltip display and general element determination.
      */
-    public Optional<ElementType> getElementType() {
+    public Optional<IElementalType> getElementType() {
         return getBaseElementType();
     }
 
@@ -268,7 +269,7 @@ public class ElementalWeaponData {
                 String stageElement = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
                 float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
 
-                if (ElementType.safeValueOf(stageElement.toUpperCase()) == null) {
+                if (IElementalType.byName(stageElement).isEmpty()) {
                     AbloomMod.LOGGER.warn("Unknown element type '{}' for stage {} of weapon, defaulting to PHYSICAL", stageElement, stageKeyNumber);
                 }
 

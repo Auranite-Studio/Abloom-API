@@ -1,7 +1,7 @@
 package com.auranite.abloom.registries;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.auranite.abloom.datapack.ElementalWeaponData;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -29,7 +29,7 @@ public class ElementalWeaponRegistry {
 	private static final Map<ResourceLocation, List<StageData>> WEAPON_STAGES = new WeakHashMap<>();
 
 	// Base element tracking for multi-stage weapons (used for tooltip display)
-	private static final Map<ResourceLocation, ElementType> WEAPON_BASE_ELEMENTS = new WeakHashMap<>();
+	private static final Map<ResourceLocation, IElementalType> WEAPON_BASE_ELEMENTS = new WeakHashMap<>();
 
 	// Cooldown tracking: tracks last attack time for each (attacker, target) pair
 	private static final Map<String, Long> STAGE_COOLDOWN_TRACKER = new ConcurrentHashMap<>();
@@ -39,15 +39,15 @@ public class ElementalWeaponRegistry {
 
 	private ElementalWeaponRegistry() {}
 
-	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier) {
+	public static void registerWeapon(Item item, IElementalType type, float accumulationMultiplier) {
 		registerWeapon(item, type, accumulationMultiplier, 0.0f, 0.0f, 0.0f);
 	}
 
-	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier, float critChance, float critDamage) {
+	public static void registerWeapon(Item item, IElementalType type, float accumulationMultiplier, float critChance, float critDamage) {
 		registerWeapon(item, type, accumulationMultiplier, critChance, critDamage, 0.0f);
 	}
 
-	public static void registerWeapon(Item item, ElementType type, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
+	public static void registerWeapon(Item item, IElementalType type, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
 		if (item == null || type == null) return;
 
 		// Check for duplicates
@@ -65,25 +65,25 @@ public class ElementalWeaponRegistry {
 		WEAPON_DATA.put(item, new WeaponData(type, Math.max(0f, accumulationMultiplier), critChance, critDamage, resonanceFrequency));
 		WEAPON_DATA_BY_ID.put(itemId, new WeaponData(type, Math.max(0f, accumulationMultiplier), critChance, critDamage, resonanceFrequency));
 		AbloomMod.LOGGER.debug("Registered elemental weapon: {} -> {} (accum: x{}, crit: {:.0f}%/{:.0f}%, rf: {})",
-				item.getDescriptionId(), type, accumulationMultiplier, critChance * 100, critDamage * 100, resonanceFrequency);
+				item.getDescriptionId(), type.getDisplayName(), accumulationMultiplier, critChance * 100, critDamage * 100, resonanceFrequency);
 	}
 
-	public static void registerWeapon(Item item, ElementType type) {
+	public static void registerWeapon(Item item, IElementalType type) {
 		registerWeapon(item, type, 1.0f);
 	}
 
 	/**
 	 * Register weapon from datapack (builtin)
 	 */
-	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier) {
+	public static void registerBuiltinWeapon(ResourceLocation itemLocation, IElementalType type, float accumulationMultiplier) {
 		registerBuiltinWeapon(itemLocation, type, accumulationMultiplier, 0.0f, 0.0f, 0.0f);
 	}
 
-	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier, float critChance, float critDamage) {
+	public static void registerBuiltinWeapon(ResourceLocation itemLocation, IElementalType type, float accumulationMultiplier, float critChance, float critDamage) {
 		registerBuiltinWeapon(itemLocation, type, accumulationMultiplier, critChance, critDamage, 0.0f);
 	}
 
-	public static void registerBuiltinWeapon(ResourceLocation itemLocation, ElementType type, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
+	public static void registerBuiltinWeapon(ResourceLocation itemLocation, IElementalType type, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
 		if (itemLocation == null || type == null) return;
 
 		// Check for conflicts
@@ -100,7 +100,7 @@ public class ElementalWeaponRegistry {
 			BUILTIN_REGISTRATIONS.add(itemLocation);
 			WEAPON_DATA_BY_ID.put(itemLocation, new WeaponData(type, Math.max(0f, accumulationMultiplier), critChance, critDamage, resonanceFrequency));
 			AbloomMod.LOGGER.info("Registered builtin elemental weapon: {} -> {} (accum: x{}, crit: {:.0f}%/{:.0f}%, rf: {})",
-					itemLocation, type, accumulationMultiplier, critChance * 100, critDamage * 100, resonanceFrequency);
+					itemLocation, type.getDisplayName(), accumulationMultiplier, critChance * 100, critDamage * 100, resonanceFrequency);
 		} else {
 			AbloomMod.LOGGER.warn("Item not found for builtin registration: {}", itemLocation);
 		}
@@ -118,8 +118,8 @@ public class ElementalWeaponRegistry {
 	 * @param critDamage Critical hit damage multiplier (shared across all stages)
 	 */
 	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber,
-													  ElementType stageElement, float stageAccumulation,
-													  float critChance, float critDamage) {
+			IElementalType stageElement, float stageAccumulation,
+			float critChance, float critDamage) {
 		registerBuiltinWeaponWithStage(itemLocation, stageNumber, stageElement, stageAccumulation, critChance, critDamage, 0.0f);
 	}
 
@@ -135,8 +135,8 @@ public class ElementalWeaponRegistry {
 	 * @param resonanceFrequency Resonance frequency that adds to threshold damage multiplier
 	 */
 	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber,
-													  ElementType stageElement, float stageAccumulation,
-													  float critChance, float critDamage, float resonanceFrequency) {
+			IElementalType stageElement, float stageAccumulation,
+			float critChance, float critDamage, float resonanceFrequency) {
 		if (itemLocation == null || stageElement == null) return;
 		if (stageNumber < 0 || stageNumber >= ElementalWeaponData.MAX_STAGES) {
 			AbloomMod.LOGGER.warn("Invalid stage number {} for weapon {}, must be 0-{}",
@@ -205,7 +205,7 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Set the base element for a multi-stage weapon.
 	 */
-	public static void setBaseElement(ResourceLocation itemLocation, ElementType baseElement) {
+	public static void setBaseElement(ResourceLocation itemLocation, IElementalType baseElement) {
 		if (itemLocation != null && baseElement != null) {
 			WEAPON_BASE_ELEMENTS.put(itemLocation, baseElement);
 		}
@@ -214,8 +214,8 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Get the base element for a multi-stage weapon.
 	 */
-	public static ElementType getBaseElement(ResourceLocation itemLocation) {
-		ElementType result = WEAPON_BASE_ELEMENTS.get(itemLocation);
+	public static IElementalType getBaseElement(ResourceLocation itemLocation) {
+		IElementalType result = WEAPON_BASE_ELEMENTS.get(itemLocation);
 		if (result != null) {
 			return result;
 		}
@@ -278,16 +278,16 @@ public class ElementalWeaponRegistry {
 		return WEAPON_DATA_BY_ID.get(itemLocation);
 	}
 
-	public static ElementType getElementType(ItemStack stack) {
+	public static IElementalType getElementType(ItemStack stack) {
 		if (stack == null || stack.isEmpty()) {
-			return ElementType.PHYSICAL;
+			return com.auranite.abloom.util.ElementType.PHYSICAL;
 		}
 
 		ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
 
 		// If weapon has stages, return base element if set, otherwise first stage element
 		if (hasStages(itemId)) {
-			ElementType baseElement = getBaseElement(itemId);
+			IElementalType baseElement = getBaseElement(itemId);
 			if (baseElement != null) {
 				return baseElement;
 			}
@@ -296,11 +296,11 @@ public class ElementalWeaponRegistry {
 			if (!stages.isEmpty()) {
 				return stages.get(0).element();
 			}
-			return ElementType.PHYSICAL;
+			return com.auranite.abloom.util.ElementType.PHYSICAL;
 		}
 
 		WeaponData data = getWeaponData(stack);
-		return data != null ? data.type() : ElementType.PHYSICAL;
+		return data != null ? data.type() : com.auranite.abloom.util.ElementType.PHYSICAL;
 	}
 
 	public static float getCritChance(ItemStack stack) {
@@ -360,20 +360,20 @@ public class ElementalWeaponRegistry {
 		return WEAPON_DATA.size();
 	}
 
-	public record WeaponData(ElementType type, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
+	public record WeaponData(IElementalType type, float accumulationMultiplier, float critChance, float critDamage, float resonanceFrequency) {
 		@Override
 		public String toString() {
-			return String.format("WeaponData{type=%s, accum=x%.2f, crit=%.0f%%/%.0f%%, rf=%s}", type, accumulationMultiplier, critChance * 100, critDamage * 100, resonanceFrequency);
+			return String.format("WeaponData{type=%s, accum=x%.2f, crit=%.0f%%/%.0f%%, rf=%s}", type.getDisplayName(), accumulationMultiplier, critChance * 100, critDamage * 100, resonanceFrequency);
 		}
 	}
 
 	/**
 	 * Represents a single stage of a multi-stage elemental weapon.
 	 */
-	public record StageData(int stageNumber, ElementType element, float accumulation) {
+	public record StageData(int stageNumber, IElementalType element, float accumulation) {
 		@Override
 		public String toString() {
-			return String.format("Stage%d{%s, accum=x%.2f}", stageNumber, element, accumulation);
+			return String.format("Stage%d{%s, accum=x%.2f}", stageNumber, element.getDisplayName(), accumulation);
 		}
 	}
 

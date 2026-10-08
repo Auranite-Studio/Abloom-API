@@ -45,6 +45,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +88,7 @@ public class ElementDamageHandler {
     private static final int EROSION_COOLDOWN_TICKS = 100; // 5 seconds
 
     // entityId -> (elementType -> lastDamageTick)
-    private static final Map<Integer, Map<ElementType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
+    private static final Map<Integer, Map<IElementalType, Long>> LAST_DAMAGE_TIME = new ConcurrentHashMap<>();
     // entityId -> LivingEntity weak ref for fast alive-check without level iteration
     private static final Map<Integer, java.lang.ref.WeakReference<LivingEntity>> LIVING_ENTITIES = new ConcurrentHashMap<>();
     private static final Object LAST_DAMAGE_LOCK = new Object();
@@ -99,8 +100,8 @@ public class ElementDamageHandler {
     private static final ThreadLocal<Boolean> IS_PROCESSING_DAMAGE = ThreadLocal.withInitial(() -> false);
     private static int cleanupTickCounter = 0;
 
-    // Enchantment to ElementType mapping for elemental override
-    public static final Map<ResourceLocation, ElementType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
+    // Enchantment to IElementalType mapping for elemental override
+    public static final Map<ResourceLocation, IElementalType> ENCHANTMENT_ELEMENT_MAP = new ConcurrentHashMap<>();
 
     /**
      * Maps ElementType to the corresponding DeferredHolder for fast resonance lookup.
@@ -146,7 +147,7 @@ public class ElementDamageHandler {
             // 1. Track accumulation based on the modified damage
             // 2. Call doProcessLivingHurt to process elemental calculations
             // 3. Then apply low-priority modifiers
-            ElementType type = getElementTypeFromSource(source);
+            IElementalType type = getElementTypeFromSource(source);
             if (type != null) {
                 // Add accumulation points based on the modified damage (not just 1 point)
                 int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, 1);
@@ -211,26 +212,26 @@ public class ElementDamageHandler {
         return IS_PROCESSING_DAMAGE.get();
     }
 
-    private static final Map<ElementType, Integer> DAMAGE_COLORS = new EnumMap<>(ElementType.class);
+    private static final Map<String, Integer> DAMAGE_COLORS = new HashMap<>();
     /**
      * Initializes damage colors for all element types.
      * Must be called during mod initialization before any displays are spawned.
      */
     public static void initDamageColors() {
-        DAMAGE_COLORS.put(ElementType.FIRE, 0xFF5500);
-        DAMAGE_COLORS.put(ElementType.PHYSICAL, 0xC0C0C0);
-        DAMAGE_COLORS.put(ElementType.WIND, 0x00FFFF);
-        DAMAGE_COLORS.put(ElementType.WATER, 0x0080FF);
-        DAMAGE_COLORS.put(ElementType.EARTH, 0x8B4513);
-        DAMAGE_COLORS.put(ElementType.ICE, 0x00BFFF);
-        DAMAGE_COLORS.put(ElementType.ELECTRIC, 0xFF19FF);
-        DAMAGE_COLORS.put(ElementType.ENERGY, 0xFFFF00);
-        DAMAGE_COLORS.put(ElementType.NATURAL, 0x32CD32);
-        DAMAGE_COLORS.put(ElementType.QUANTUM, 0x9400D3);
-        DAMAGE_COLORS.put(ElementType.ETHER, 0x24B3A7);
-        DAMAGE_COLORS.put(ElementType.LIGHT, 0xFFF1A5);
-        DAMAGE_COLORS.put(ElementType.SHADOW, 0x4B0082);
-        DAMAGE_COLORS.put(ElementType.PRISMATIC, 0xFFFFFF);
+        DAMAGE_COLORS.put("FIRE", 0xFF5500);
+        DAMAGE_COLORS.put("PHYSICAL", 0xC0C0C0);
+        DAMAGE_COLORS.put("WIND", 0x00FFFF);
+        DAMAGE_COLORS.put("WATER", 0x0080FF);
+        DAMAGE_COLORS.put("EARTH", 0x8B4513);
+        DAMAGE_COLORS.put("ICE", 0x00BFFF);
+        DAMAGE_COLORS.put("ELECTRIC", 0xFF19FF);
+        DAMAGE_COLORS.put("ENERGY", 0xFFFF00);
+        DAMAGE_COLORS.put("NATURAL", 0x32CD32);
+        DAMAGE_COLORS.put("QUANTUM", 0x9400D3);
+        DAMAGE_COLORS.put("ETHER", 0x24B3A7);
+        DAMAGE_COLORS.put("LIGHT", 0xFFF1A5);
+        DAMAGE_COLORS.put("SHADOW", 0x4B0082);
+        DAMAGE_COLORS.put("PRISMATIC", 0xFFFFFF);
 
         // Initialize enchantment to element mapping
         initEnchantmentElementMapping();
@@ -249,9 +250,9 @@ public class ElementDamageHandler {
         // ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.fromNamespaceAndPath("abloom", "electric_aspect"), ElementType.ELECTRIC);
     }
 
-    public static int getDamageColor(ElementType type) {
+    public static int getDamageColor(IElementalType type) {
         if (type == null) return 0xFFFFFF;
-        return DAMAGE_COLORS.getOrDefault(type, 0xFFFFFF);
+        return DAMAGE_COLORS.getOrDefault(type.name(), 0xFFFFFF);
     }
 
     /**
@@ -261,11 +262,11 @@ public class ElementDamageHandler {
      * @param stack the weapon ItemStack
      * @return the effective ElementType (enchantment override if present, otherwise original element)
      */
-    public static ElementType getEffectiveElementType(ItemStack stack) {
+    public static IElementalType getEffectiveElementType(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
 
         // Check enchantment override first (works on both client and server)
-        ElementType enchantmentOverride = getOverrideFromStack(stack);
+        IElementalType enchantmentOverride = getOverrideFromStack(stack);
         if (enchantmentOverride != null) {
             return enchantmentOverride;
         }
@@ -285,14 +286,14 @@ public class ElementDamageHandler {
      * @param attacker the attacking entity
      * @return the overridden ElementType if an enchantment override is found, null otherwise
      */
-    public static ElementType getOverrideElementTypeFromEnchantments(LivingEntity attacker) {
+    public static IElementalType getOverrideElementTypeFromEnchantments(LivingEntity attacker) {
         if (attacker == null) return null;
 
         ItemStack mainHand = attacker.getMainHandItem();
         ItemStack offHand = attacker.getOffhandItem();
 
         // Check main hand weapon
-        ElementType override = getOverrideFromStack(mainHand);
+        IElementalType override = getOverrideFromStack(mainHand);
         if (override != null) return override;
 
         // Check offhand weapon
@@ -305,7 +306,7 @@ public class ElementDamageHandler {
      * @param stack the ItemStack to check
      * @return the overridden ElementType if an enchantment override is found, null otherwise
      */
-    public static ElementType getOverrideFromStack(ItemStack stack) {
+    public static IElementalType getOverrideFromStack(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
 
         // getEnchantments() returns Object2IntMap<Holder<Enchantment>>
@@ -316,7 +317,7 @@ public class ElementDamageHandler {
                     .map(key -> key.location())
                     .orElse(null);
             if (enchantId != null) {
-                ElementType elementType = ENCHANTMENT_ELEMENT_MAP.get(enchantId);
+                IElementalType elementType = ENCHANTMENT_ELEMENT_MAP.get(enchantId);
                 if (elementType != null) {
                     AbloomMod.LOGGER.debug("Enchantment override: {} (level {}) on {} -> {}",
                             enchantId, level, stack.getHoverName(), elementType);
@@ -421,7 +422,7 @@ public class ElementDamageHandler {
 
         // Consume Fluorescence: apply Prism to target with stored type
         if (attacker != null && attacker.hasEffect(AbloomModEffects.FLUORESCENCE)) {
-            ElementType fluorescenceType = AbloomModAttachments.getFluorescenceType(attacker);
+            IElementalType fluorescenceType = AbloomModAttachments.getFluorescenceType(attacker);
             if (fluorescenceType != null) {
                 attacker.removeEffect(AbloomModEffects.FLUORESCENCE);
                 AbloomModAttachments.clearFluorescenceType(attacker);
@@ -436,14 +437,14 @@ public class ElementDamageHandler {
             }
         }
 
-        ElementType type = getElementTypeFromSource(source);
+        IElementalType type = getElementTypeFromSource(source);
         float currentAccumMultiplier = 1.0f;
 
         // Check if element was overridden by enchantments (skip stage progression for these)
         boolean elementOverriddenByEnchantment = false;
         if (type != null && attacker != null) {
-            ElementType enchantmentType = getOverrideElementTypeFromEnchantments(attacker);
-            if (enchantmentType != null && enchantmentType == type) {
+            IElementalType enchantmentType = getOverrideElementTypeFromEnchantments(attacker);
+            if (enchantmentType != null && enchantmentType.name().equals(type.name())) {
                 elementOverriddenByEnchantment = true;
             }
         }
@@ -547,14 +548,16 @@ public class ElementDamageHandler {
             return currentDamage;
         }
 
-        // Handle Prism damage conversion
-        ElementType originalType = type;
-        if (type == ElementType.PRISMATIC) {
+        boolean isCustomType = type.isCustom();
+
+        // Handle Prism damage conversion (only for built-in PRISMATIC type)
+        IElementalType originalType = type;
+        if (!isCustomType && type.name().equals("PRISMATIC")) {
             if (target.hasEffect(AbloomModEffects.PRISM)) {
                 // PRISM is active: check if a new resonance has appeared
-                ElementType storedType = getConvertedPrismType(target);
-                ElementType currentResonance = getActiveResonanceType(target);
-                if (currentResonance != null && currentResonance != storedType) {
+                IElementalType storedType = getConvertedPrismType(target);
+                IElementalType currentResonance = getActiveResonanceType(target);
+                if (currentResonance != null && !currentResonance.name().equals(storedType != null ? storedType.name() : "")) {
                     // New resonance appeared — switch conversion type and extend PRISM
                     setPrismConversionType(target, currentResonance);
                     target.removeEffect(AbloomModEffects.PRISM);
@@ -571,13 +574,13 @@ public class ElementDamageHandler {
                     // No active resonance — use stored type from attachment
                     type = storedType;
                     if (type == null) {
-                        type = ElementType.PRISMATIC; // Fallback
+                        type = com.auranite.abloom.util.ElementType.PRISMATIC; // Fallback
                     }
                 }
             } else {
                 // No Prism effect active — activate it from current resonance
-                ElementType resonanceType = getActiveResonanceType(target);
-                if (resonanceType != null && resonanceType != ElementType.PRISMATIC) {
+                IElementalType resonanceType = getActiveResonanceType(target);
+                if (resonanceType != null && !resonanceType.name().equals("PRISMATIC")) {
                     target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
                     setPrismConversionType(target, resonanceType);
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
@@ -651,7 +654,7 @@ public class ElementDamageHandler {
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
         // Apply effective resistance (base + attribute modifier + armor)
-        float effectiveResist = ElementResistanceManager.getResistance(target, type).resistance();
+        float effectiveResist = ElementResistanceManager.getResistance(target, type).getValue();
         if (target != null) {
             effectiveResist += getElementResistMod(target, type);
         }
@@ -672,7 +675,7 @@ public class ElementDamageHandler {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
         }
 
-        if (erosionActive && type != ElementType.WIND) {
+        if (erosionActive && !type.name().equals("WIND")) {
             long currentTime = target.level().getGameTime();
             long lastErosionTime = EROSION_COOLDOWNS.getOrDefault(target.getId(), 0L);
 
@@ -690,7 +693,8 @@ public class ElementDamageHandler {
 
         // Prism damage that is converted does NOT accumulate resonance points
         // Also, pure prism damage without conversion doesn't accumulate
-        if (!isConvertedPrism && originalType != ElementType.PRISMATIC) {
+        boolean isConvertedPrismDamage = (originalType != null && originalType.name().equals("PRISMATIC") && !type.name().equals(originalType.name()));
+        if (!isConvertedPrismDamage && originalType != null && !originalType.name().equals("PRISMATIC")) {
             AbloomModAttachments.addPoints(target, type, pointsToAdd);
             // Sync only if below threshold (threshold sync happens after reset)
             int currentPoints = AbloomModAttachments.getPoints(target, type);
@@ -701,7 +705,7 @@ public class ElementDamageHandler {
             AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
         }
 
-        int pointsAfter = isConvertedPrism || originalType == ElementType.PRISMATIC
+        int pointsAfter = isConvertedPrism || (originalType != null && originalType.name().equals("PRISMATIC"))
                 ? AbloomModAttachments.getPoints(target, type)
                 : AbloomModAttachments.getPoints(target, type);
         boolean thresholdReached = pointsAfter >= THRESHOLD;
@@ -788,7 +792,7 @@ public class ElementDamageHandler {
 
         // If entity dies with PRISM_CONVERSION_TYPE, give Fluorescence to attacker
         if (attacker != null && attacker.isAlive()) {
-            ElementType fluorescenceType = AbloomModAttachments.getPrismConversionType(entity);
+            IElementalType fluorescenceType = AbloomModAttachments.getPrismConversionType(entity);
 
             if (fluorescenceType != null) {
                 AbloomModAttachments.setFluorescenceType(attacker, fluorescenceType);
@@ -834,11 +838,11 @@ public class ElementDamageHandler {
         }
     }
 
-    private static ElementType getElementTypeFromSource(DamageSource source) {
+    private static IElementalType getElementTypeFromSource(DamageSource source) {
         // === Enchantment override has HIGHEST priority ===
         Entity causingEntity = source.getEntity();
         if (causingEntity instanceof LivingEntity attacker) {
-            ElementType enchantmentOverride = getOverrideElementTypeFromEnchantments(attacker);
+            IElementalType enchantmentOverride = getOverrideElementTypeFromEnchantments(attacker);
             if (enchantmentOverride != null) {
                 return enchantmentOverride;
             }
@@ -848,7 +852,7 @@ public class ElementDamageHandler {
         Entity directEntity = source.getDirectEntity();
         if (directEntity != null) {
             // ElementalProjectileRegistry now handles attachment priority internally
-            Optional<ElementType> element = ElementalProjectileRegistry.getElementForEntity(directEntity);
+            Optional<IElementalType> element = ElementalProjectileRegistry.getElementForEntity(directEntity);
             if (element.isPresent()) return element.get();
         }
         causingEntity = source.getEntity();
@@ -859,7 +863,7 @@ public class ElementDamageHandler {
             // Check for multi-stage weapon first
             if (ElementalWeaponRegistry.hasStages(weaponId)) {
                 // Return base element if set, otherwise fall back to first stage's element
-                ElementType baseElement = ElementalWeaponRegistry.getBaseElement(weaponId);
+                IElementalType baseElement = ElementalWeaponRegistry.getBaseElement(weaponId);
                 if (baseElement != null) {
                     return baseElement;
                 }
@@ -869,40 +873,40 @@ public class ElementDamageHandler {
                 }
             }
 
-            Optional<ElementType> componentType = ElementalWeaponComponent.getElement(weapon);
+            Optional<? extends IElementalType> componentType = ElementalWeaponComponent.getElement(weapon);
             if (componentType.isPresent()) return componentType.get();
-            ElementType registryType = ElementalWeaponRegistry.getElementType(weapon);
+            IElementalType registryType = ElementalWeaponRegistry.getElementType(weapon);
             if (registryType != null) return registryType;
         }
         String msgId = source.type().msgId();
         if (msgId != null) {
-            for (ElementType type : ElementType.values()) {
-                if (type.getDamageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) return type;
+            for (com.auranite.abloom.util.ElementType type : com.auranite.abloom.util.ElementType.values()) {
+                if (type.damageTypeId().equals(msgId) || type.getFullDamageTypeId().equals(msgId)) return type;
             }
-            ElementType vanillaType = ElementType.fromVanillaDamageType(msgId);
+            com.auranite.abloom.util.ElementType vanillaType = com.auranite.abloom.util.ElementType.fromVanillaDamageType(msgId);
             if (vanillaType != null) return vanillaType;
         }
         return null;
     }
 
-    public static ElementType getElementTypeFromItem(ItemStack stack) {
+    public static IElementalType getElementTypeFromItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return null;
-        Optional<ElementType> componentType = ElementalWeaponComponent.getElement(stack);
+        Optional<? extends IElementalType> componentType = ElementalWeaponComponent.getElement(stack);
         if (componentType.isPresent()) return componentType.get();
         return ElementalWeaponRegistry.getElementType(stack);
     }
 
-    public static ItemStack createElementalItem(net.minecraft.world.item.Item item, ElementType type, int count) {
+    public static ItemStack createElementalItem(net.minecraft.world.item.Item item, IElementalType type, int count) {
         return ElementalWeaponComponent.withElement(new ItemStack(item, count), type);
     }
 
-    public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, ElementType type, int count, float accumPoints) {
+    public static ItemStack createElementalItemWithAccum(net.minecraft.world.item.Item item, IElementalType type, int count, float accumPoints) {
         return ElementalWeaponComponent.withElementAndAccum(new ItemStack(item, count), type, accumPoints);
     }
 
-    private static void updateLastDamageTime(LivingEntity entity, ElementType type) {
+    private static void updateLastDamageTime(LivingEntity entity, IElementalType type) {
         synchronized (LAST_DAMAGE_LOCK) {
-            LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new EnumMap<>(ElementType.class)).put(type, entity.level().getGameTime());
+            LAST_DAMAGE_TIME.computeIfAbsent(entity.getId(), k -> new HashMap<>()).put(type, entity.level().getGameTime());
             // Cache weak reference to avoid level iteration during cleanup
             LIVING_ENTITIES.put(entity.getId(), new java.lang.ref.WeakReference<>(entity));
         }
@@ -919,11 +923,11 @@ public class ElementDamageHandler {
                 return entity == null || !entity.isAlive();
             });
 
-            Iterator<Map.Entry<Integer, Map<ElementType, Long>>> entityIterator = LAST_DAMAGE_TIME.entrySet().iterator();
+            Iterator<Map.Entry<Integer, Map<IElementalType, Long>>> entityIterator = LAST_DAMAGE_TIME.entrySet().iterator();
             while (entityIterator.hasNext()) {
-                Map.Entry<Integer, Map<ElementType, Long>> entityEntry = entityIterator.next();
+                Map.Entry<Integer, Map<IElementalType, Long>> entityEntry = entityIterator.next();
                 int entityId = entityEntry.getKey();
-                Map<ElementType, Long> typeTimes = entityEntry.getValue();
+                Map<IElementalType, Long> typeTimes = entityEntry.getValue();
 
                 // Fast alive-check via cached WeakReference — O(1) instead of O(levels × entities)
                 LivingEntity livingEntity = LIVING_ENTITIES.get(entityId).get();
@@ -933,9 +937,9 @@ public class ElementDamageHandler {
                     continue;
                 }
 
-                Iterator<Map.Entry<ElementType, Long>> typeIterator = typeTimes.entrySet().iterator();
+                Iterator<Map.Entry<IElementalType, Long>> typeIterator = typeTimes.entrySet().iterator();
                 while (typeIterator.hasNext()) {
-                    Map.Entry<ElementType, Long> typeEntry = typeIterator.next();
+                    Map.Entry<IElementalType, Long> typeEntry = typeIterator.next();
                     if (typeEntry.getValue() <= expiryTime) {
                         AbloomModAttachments.resetPoints(livingEntity, typeEntry.getKey());
                         syncAccumulationToClients(livingEntity);
@@ -1008,11 +1012,11 @@ public class ElementDamageHandler {
         return new CritResult(baseDamage, false, false);
     }
 
-    private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type) {
+    private static void spawnDamageNumber(LivingEntity entity, float amount, IElementalType type) {
         spawnDamageNumber(entity, amount, type, false, false);
     }
 
-    private static void spawnDamageNumber(LivingEntity entity, float amount, ElementType type, boolean isCrit, boolean isMultiCrit) {
+    private static void spawnDamageNumber(LivingEntity entity, float amount, IElementalType type, boolean isCrit, boolean isMultiCrit) {
         // Only send packet from server side
         if (entity.level().isClientSide) return;
         
@@ -1045,7 +1049,7 @@ public class ElementDamageHandler {
     public static void setThreshold(int threshold) {
     }
 
-    private static float getArmorResistanceBonus(LivingEntity entity, ElementType type) {
+    private static float getArmorResistanceBonus(LivingEntity entity, IElementalType type) {
         if (entity == null || type == null) return 0.0f;
 
         float totalResistance = 0.0f;
@@ -1069,8 +1073,9 @@ public class ElementDamageHandler {
      * @param type the elemental type
      * @return the resistance modifier value
      */
-    private static double getElementResistMod(LivingEntity attacker, ElementType type) {
-        return switch (type) {
+    private static double getElementResistMod(LivingEntity attacker, IElementalType type) {
+        if (type.isCustom()) return 0.0;
+        return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RESIST_MOD.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
@@ -1139,8 +1144,9 @@ public class ElementDamageHandler {
      * @param type the elemental type
      * @return the resistance shred value
      */
-    private static double getElementResShred(LivingEntity attacker, ElementType type) {
-        return switch (type) {
+    private static double getElementResShred(LivingEntity attacker, IElementalType type) {
+        if (type.isCustom()) return 0.0;
+        return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RES_SHRED.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
@@ -1210,8 +1216,9 @@ public class ElementDamageHandler {
      * @param baseDamage the damage before applying elemental bonus
      * @return the damage with elemental bonus applied
      */
-    private static float applyElementalDamageBonus(LivingEntity attacker, ElementType type, float baseDamage) {
-        double bonusValue = switch (type) {
+    private static float applyElementalDamageBonus(LivingEntity attacker, IElementalType type, float baseDamage) {
+        if (type.isCustom()) return baseDamage;
+        double bonusValue = switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_DMG_BONUS.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
@@ -1290,14 +1297,19 @@ public class ElementDamageHandler {
         return applyThresholdEffect(target, type, originalDamage, isErosionTrigger, 0.0f);
     }
 
-    private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency) {
+    private static float applyThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency) {
+        // Custom types don't have built-in threshold effects
+        if (type.isCustom()) {
+            return originalDamage;
+        }
+
         // Erosion triggers apply effects at half duration
         int durationMultiplier = isErosionTrigger ? 10 : 20; // half of standard (20 ticks = 1 second)
 
         // Calculate total threshold damage multiplier: Rdm = Rem + Rf
-        float totalMultiplier = getThresholdResonanceMultiplier(type, resonanceFrequency);
+        float totalMultiplier = getThresholdResonanceMultiplier((com.auranite.abloom.util.ElementType) type, resonanceFrequency);
 
-        return switch (type) {
+        return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 12 * durationMultiplier, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
@@ -1371,8 +1383,10 @@ public class ElementDamageHandler {
         baseAccumulation = value;
     }
 
-    private static float getDispersionBonus(ElementType type) {
-        return switch (type) {
+    private static float getDispersionBonus(IElementalType type) {
+        if (type.isCustom()) return 0.0f;
+        com.auranite.abloom.util.ElementType et = (com.auranite.abloom.util.ElementType) type;
+        return switch (et) {
             case PHYSICAL -> 0.15f;
             case FIRE -> 0.15f;
             case WIND -> 0.30f;
@@ -1395,7 +1409,7 @@ public class ElementDamageHandler {
      * Base threshold damage multipliers per element (Rem).
      * These are the base multipliers before resonance frequency is applied.
      */
-    private static float getBaseThresholdMultiplier(ElementType type) {
+    private static float getBaseThresholdMultiplier(com.auranite.abloom.util.ElementType type) {
         return switch (type) {
             case FIRE -> 2.0f;
             case PHYSICAL -> 2.25f;
@@ -1426,7 +1440,7 @@ public class ElementDamageHandler {
      * @param resonanceFrequency the weapon's resonance frequency value
      * @return the total threshold damage multiplier
      */
-    private static float getThresholdResonanceMultiplier(ElementType type, float resonanceFrequency) {
+    private static float getThresholdResonanceMultiplier(com.auranite.abloom.util.ElementType type, float resonanceFrequency) {
         float baseMultiplier = getBaseThresholdMultiplier(type);
         float frequencyBonus = resonanceFrequency * 0.01f; // 1 unit = 0.01 multiplier
         return baseMultiplier + frequencyBonus;
@@ -1436,19 +1450,19 @@ public class ElementDamageHandler {
         return baseAccumulation;
     }
 
-    public static void dealElementDamage(Entity target, ElementType type, float amount) {
+    public static void dealElementDamage(Entity target, IElementalType type, float amount) {
         dealElementDamage(target, type, amount, 1.0f, null);
     }
 
-    public static void dealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints) {
+    public static void dealElementDamage(Entity target, IElementalType type, float amount, int accumulationPoints) {
         dealElementDamage(target, type, amount, accumulationPoints >= 0 ? accumulationPoints : -accumulationPoints, null);
     }
 
-    public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+    public static void dealElementDamage(Entity target, IElementalType type, float amount, float accumMultiplier, Entity attacker) {
         dealElementDamage(target, type, amount, accumMultiplier, attacker, false);
     }
 
-    public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
+    public static void dealElementDamage(Entity target, IElementalType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
         if (IS_PROCESSING_DAMAGE.get()) return;
 
         // Mark as processing to prevent infinite recursion
@@ -1460,7 +1474,7 @@ public class ElementDamageHandler {
         }
     }
 
-    private static void processDealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
+    private static void processDealElementDamage(Entity target, IElementalType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
         if (!(target instanceof LivingEntity livingTarget)) return;
 
         float damageMultiplier = 1.0f;
@@ -1490,7 +1504,7 @@ public class ElementDamageHandler {
         finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
 
         // Apply effective resistance (base + attribute modifier + armor)
-        float effectiveResist = ElementResistanceManager.getResistance(livingTarget, type).resistance();
+        float effectiveResist = ElementResistanceManager.getResistance(livingTarget, type).getValue();
         effectiveResist += getElementResistMod(livingTarget, type);
         float armorResistanceBonus = getArmorResistanceBonus(livingTarget, type);
         effectiveResist += armorResistanceBonus;
@@ -1550,7 +1564,7 @@ public class ElementDamageHandler {
 
         if (target.level() instanceof ServerLevel serverLevel) {
             var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);
-            var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.getDamageTypeId());
+            var rl = ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, type.damageTypeId());
             var damageTypeHolder = damageTypeRegistry.getHolder(rl);
             if (damageTypeHolder.isPresent()) {
                 DamageSource source = new DamageSource(damageTypeHolder.get(), attacker, attacker);
@@ -1565,17 +1579,17 @@ public class ElementDamageHandler {
         updateLastDamageTime(livingTarget, type);
     }
 
-    public static void addElementPoints(LivingEntity entity, ElementType type, int points) {
+    public static void addElementPoints(LivingEntity entity, IElementalType type, int points) {
         AbloomModAttachments.addPoints(entity, type, ElementResistanceManager.calculateAccumulationPoints(entity, type, points));
         updateLastDamageTime(entity, type);
         syncAccumulationToClients(entity);
     }
 
-    public static int getElementPoints(LivingEntity entity, ElementType type) {
+    public static int getElementPoints(LivingEntity entity, IElementalType type) {
         return AbloomModAttachments.getPoints(entity, type);
     }
 
-    public static void resetElementPoints(LivingEntity entity, ElementType type) {
+    public static void resetElementPoints(LivingEntity entity, IElementalType type) {
         AbloomModAttachments.resetPoints(entity, type);
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.computeIfPresent(entity.getId(), (id, map) -> {
@@ -1587,7 +1601,7 @@ public class ElementDamageHandler {
     }
 
     public static void resetAllElementPoints(LivingEntity entity) {
-        for (ElementType type : ElementType.values()) AbloomModAttachments.resetPoints(entity, type);
+        for (com.auranite.abloom.util.ElementType type : com.auranite.abloom.util.ElementType.values()) AbloomModAttachments.resetPoints(entity, type);
         synchronized (LAST_DAMAGE_LOCK) {
             LAST_DAMAGE_TIME.remove(entity.getId());
         }
@@ -1601,9 +1615,9 @@ public class ElementDamageHandler {
     public static void syncAccumulationToClients(LivingEntity entity) {
         if (entity.level().isClientSide) return;
 
-        Map<ElementType, Integer> accumulator = AbloomModAttachments.getAccumulator(entity);
-        Map<ElementType, Integer> nonZeroPoints = new EnumMap<>(ElementType.class);
-        for (Map.Entry<ElementType, Integer> entry : accumulator.entrySet()) {
+        Map<IElementalType, Integer> accumulator = AbloomModAttachments.getAccumulator(entity);
+        Map<IElementalType, Integer> nonZeroPoints = new HashMap<>();
+        for (Map.Entry<IElementalType, Integer> entry : accumulator.entrySet()) {
             if (entry.getValue() > 0) {
                 nonZeroPoints.put(entry.getKey(), entry.getValue());
             }
@@ -1615,21 +1629,21 @@ public class ElementDamageHandler {
         );
     }
 
-    public static int getAccumulationProgress(LivingEntity entity, ElementType type) {
+    public static int getAccumulationProgress(LivingEntity entity, IElementalType type) {
         return THRESHOLD > 0 ? (AbloomModAttachments.getPoints(entity, type) * 100) / THRESHOLD : 0;
     }
 
-    public static ElementResistanceManager.Resistance getEntityResistance(Entity entity, ElementType type) {
+    public static ElementResistanceManager.Resistance getEntityResistance(Entity entity, IElementalType type) {
         return ElementResistanceManager.getResistance(entity, type);
     }
 
-    public static void markProjectileAsElemental(Entity projectile, ElementType type) {
+    public static void markProjectileAsElemental(Entity projectile, IElementalType type) {
         if (projectile != null && !projectile.level().isClientSide) {
             AbloomModAttachments.setProjectileElement(projectile, type);
         }
     }
 
-    public static void applyElementalDamageInstant(Entity target, Entity source, ElementType elementalType, float baseDamage, float accumPoints) {
+    public static void applyElementalDamageInstant(Entity target, Entity source, IElementalType elementalType, float baseDamage, float accumPoints) {
         if (IS_PROCESSING_DAMAGE.get()) return;
         IS_PROCESSING_DAMAGE.set(true);
         try {
@@ -1643,7 +1657,7 @@ public class ElementDamageHandler {
      * Gets the stored prism conversion type from the target's attachment.
      * This is the element type that prism damage should be converted to.
      */
-    private static ElementType getConvertedPrismType(LivingEntity target) {
+    private static IElementalType getConvertedPrismType(LivingEntity target) {
         return AbloomModAttachments.getPrismConversionType(target);
     }
 
@@ -1652,7 +1666,7 @@ public class ElementDamageHandler {
      * Resonance effects: BURN→FIRE, FREEZE→ICE, SHOCK→ELECTRIC, BLOOM→NATURAL, etc.
      * Uses EnumMap for O(1) lookup instead of 13 sequential if-checks.
      */
-    private static ElementType getActiveResonanceType(LivingEntity target) {
+    private static IElementalType getActiveResonanceType(LivingEntity target) {
         for (Map.Entry<ElementType, DeferredHolder<MobEffect, MobEffect>> entry : RESONANCE_EFFECT_MAP.entrySet()) {
             if (target.hasEffect(entry.getValue())) return entry.getKey();
         }

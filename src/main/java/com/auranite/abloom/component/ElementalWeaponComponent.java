@@ -1,6 +1,6 @@
 package com.auranite.abloom.component;
 
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -17,19 +17,19 @@ public class ElementalWeaponComponent {
 
     private static final CustomData EMPTY_DATA = CustomData.EMPTY;
 
-    public static ItemStack withElement(ItemStack stack, ElementType type) {
+    public static ItemStack withElement(ItemStack stack, IElementalType type) {
         return withElementAndAccum(stack, type, 1f, 0.0f, 0.0f);
     }
 
-    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints) {
+    public static ItemStack withElementAndAccum(ItemStack stack, IElementalType type, float accumPoints) {
         return withElementAndAccum(stack, type, accumPoints, 0.0f, 0.0f);
     }
 
-    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints, float critChance, float critDamage) {
+    public static ItemStack withElementAndAccum(ItemStack stack, IElementalType type, float accumPoints, float critChance, float critDamage) {
         return withElementAndAccum(stack, type, accumPoints, critChance, critDamage, 0.0f);
     }
 
-    public static ItemStack withElementAndAccum(ItemStack stack, ElementType type, float accumPoints, float critChance, float critDamage, float resonanceFrequency) {
+    public static ItemStack withElementAndAccum(ItemStack stack, IElementalType type, float accumPoints, float critChance, float critDamage, float resonanceFrequency) {
         if (stack == null || stack.isEmpty() || type == null) return stack;
 
         CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, EMPTY_DATA);
@@ -45,14 +45,15 @@ public class ElementalWeaponComponent {
         return stack;
     }
 
-    public static Optional<ElementType> getElement(ItemStack stack) {
+    @SuppressWarnings("unchecked")
+    public static Optional<IElementalType> getElement(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return Optional.empty();
 
         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
         if (customData == null) return Optional.empty();
 
         String typeName = customData.copyTag().getString(ELEMENT_TYPE_KEY);
-        return typeName.isEmpty() ? Optional.empty() : Optional.ofNullable(ElementType.safeValueOf(typeName));
+        return typeName.isEmpty() ? Optional.empty() : (Optional<IElementalType>) (Optional<? extends IElementalType>) IElementalType.byName(typeName);
     }
 
     public static float getAccumMultiplier(ItemStack stack) {

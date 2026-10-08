@@ -1,7 +1,7 @@
 package com.auranite.abloom.network;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 public record SpawnDamageNumberPacket(
         int entityId,
         float damage,
-        @Nullable ElementType elementType,
+        @Nullable IElementalType elementType,
         int color,
         boolean isCrit,
         boolean hasBreak,
@@ -29,7 +29,7 @@ public record SpawnDamageNumberPacket(
                     int entityId = buffer.readInt();
                     float damage = buffer.readFloat();
                     boolean hasType = buffer.readBoolean();
-                    @Nullable ElementType elementType = hasType ? buffer.readEnum(ElementType.class) : null;
+                    @Nullable IElementalType elementType = hasType ? IElementalType.byName(buffer.readUtf()).orElse(null) : null;
                     int color = buffer.readInt();
                     boolean isCrit = buffer.readBoolean();
                     boolean hasBreak = buffer.readBoolean();
@@ -43,7 +43,7 @@ public record SpawnDamageNumberPacket(
                     buffer.writeFloat(packet.damage);
                     if (packet.elementType != null) {
                         buffer.writeBoolean(true);
-                        buffer.writeEnum(packet.elementType);
+                        buffer.writeUtf(packet.elementType.name());
                     } else {
                         buffer.writeBoolean(false);
                     }

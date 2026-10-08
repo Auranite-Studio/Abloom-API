@@ -1,7 +1,7 @@
 package com.auranite.abloom.registries;
 
 import com.auranite.abloom.AbloomMod;
-import com.auranite.abloom.util.ElementType;
+import com.auranite.abloom.util.IElementalType;
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.AbloomModAttachments;
 import net.minecraft.world.entity.Entity;
@@ -20,11 +20,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ElementalProjectileRegistry {
 
-    private static final Map<EntityType<?>, ElementType> PROJECTILE_ELEMENT_MAP = new ConcurrentHashMap<>();
+    private static final Map<EntityType<?>, IElementalType> PROJECTILE_ELEMENT_MAP = new ConcurrentHashMap<>();
 
     private static final Map<EntityType<?>, Float> PROJECTILE_ACCUM_MAP = new ConcurrentHashMap<>();
 
-    private static final Map<Class<? extends Entity>, ElementType> PROJECTILE_CLASS_MAP = new ConcurrentHashMap<>();
+    private static final Map<Class<? extends Entity>, IElementalType> PROJECTILE_CLASS_MAP = new ConcurrentHashMap<>();
 
     private static final Map<Class<? extends Entity>, Float> PROJECTILE_CLASS_ACCUM_MAP = new ConcurrentHashMap<>();
 
@@ -47,7 +47,7 @@ public class ElementalProjectileRegistry {
      * @param element the elemental type
      * @param accumulationMultiplier the accumulation multiplier
      */
-    public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier) {
+    public static void registerProjectile(EntityType<?> entityType, IElementalType element, float accumulationMultiplier) {
         registerProjectile(entityType, element, accumulationMultiplier, false);
     }
 
@@ -59,7 +59,7 @@ public class ElementalProjectileRegistry {
      * @param allowOverride if true, projectile can override its element via
      *                      {@link AbloomModAttachments#setProjectileElement} (e.g. from shooter's weapon)
      */
-    public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier, boolean allowOverride) {
+    public static void registerProjectile(EntityType<?> entityType, IElementalType element, float accumulationMultiplier, boolean allowOverride) {
         if (entityType == null || element == null) {
             AbloomMod.LOGGER.warn("Cannot register null projectile type or element");
             return;
@@ -67,7 +67,7 @@ public class ElementalProjectileRegistry {
         PROJECTILE_ELEMENT_MAP.put(entityType, element);
         PROJECTILE_ACCUM_MAP.put(entityType, accumulationMultiplier);
         OVERRIDE_ENTITY_TYPE_SET.add(entityType);
-        AbloomMod.LOGGER.debug("Registered projectile {} → {} (accum: x{}, override: {})", entityType, element, accumulationMultiplier, allowOverride);
+        AbloomMod.LOGGER.debug("Registered projectile {} → {} (accum: x{}, override: {})", entityType, element.getDisplayName(), accumulationMultiplier, allowOverride);
     }
 
     /**
@@ -77,14 +77,14 @@ public class ElementalProjectileRegistry {
      * @param element the elemental type
      * @param accumulationMultiplier the accumulation multiplier
      */
-    public static void registerProjectileByClass(Class<? extends Entity> entityClass, ElementType element, float accumulationMultiplier) {
+    public static void registerProjectileByClass(Class<? extends Entity> entityClass, IElementalType element, float accumulationMultiplier) {
         if (entityClass == null || element == null) {
             AbloomMod.LOGGER.warn("Cannot register null projectile class or element");
             return;
         }
         PROJECTILE_CLASS_MAP.put(entityClass, element);
         PROJECTILE_CLASS_ACCUM_MAP.put(entityClass, accumulationMultiplier);
-        AbloomMod.LOGGER.debug("Registered projectile class {} → {} (accum: x{})", entityClass.getSimpleName(), element, accumulationMultiplier);
+        AbloomMod.LOGGER.debug("Registered projectile class {} → {} (accum: x{})", entityClass.getSimpleName(), element.getDisplayName(), accumulationMultiplier);
     }
 
     /**
@@ -92,7 +92,7 @@ public class ElementalProjectileRegistry {
      * @param entityType the projectile entity type
      * @return optional containing the elemental type, or empty if not registered
      */
-    public static Optional<ElementType> getElementForType(EntityType<?> entityType) {
+    public static Optional<IElementalType> getElementForType(EntityType<?> entityType) {
         return Optional.ofNullable(PROJECTILE_ELEMENT_MAP.get(entityType));
     }
 
@@ -108,7 +108,7 @@ public class ElementalProjectileRegistry {
      * @param entity the projectile entity
      * @return optional containing the elemental type, or empty if not elemental
      */
-    public static Optional<ElementType> getElementForEntity(Entity entity) {
+    public static Optional<IElementalType> getElementForEntity(Entity entity) {
         if (entity == null) return Optional.empty();
 
         boolean canOverride = OVERRIDE_ENTITY_TYPE_SET.contains(entity.getType());
@@ -119,11 +119,11 @@ public class ElementalProjectileRegistry {
         }
 
         // Type registry
-        ElementType byType = PROJECTILE_ELEMENT_MAP.get(entity.getType());
+        IElementalType byType = PROJECTILE_ELEMENT_MAP.get(entity.getType());
         if (byType != null) return Optional.of(byType);
 
         // Class registry
-        for (Map.Entry<Class<? extends Entity>, ElementType> entry : PROJECTILE_CLASS_MAP.entrySet()) {
+        for (Map.Entry<Class<? extends Entity>, IElementalType> entry : PROJECTILE_CLASS_MAP.entrySet()) {
             if (entry.getKey().isInstance(entity)) {
                 return Optional.of(entry.getValue());
             }
@@ -187,8 +187,8 @@ public class ElementalProjectileRegistry {
     public static boolean applyElementToProjectile(Entity projectile, LivingEntity shooter) {
         if (projectile == null || projectile.level().isClientSide) return false;
 
-        Optional<ElementType> registeredElement = getElementForEntity(projectile);
-        ElementType elementToApply = null;
+        Optional<IElementalType> registeredElement = getElementForEntity(projectile);
+        IElementalType elementToApply = null;
 
         if (registeredElement.isPresent()) {
             elementToApply = registeredElement.get();
@@ -269,7 +269,7 @@ public class ElementalProjectileRegistry {
             net.minecraft.server.level.ServerLevel level,
             LivingEntity shooter,
             EntityType<T> projectileType,
-            ElementType forcedElement,
+            IElementalType forcedElement,
             float velocity,
             float inaccuracy
     ) {
