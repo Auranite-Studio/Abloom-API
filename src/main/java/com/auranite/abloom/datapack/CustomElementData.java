@@ -101,6 +101,24 @@ public record CustomElementData(
     }
 
     /**
+     * Returns the raw element translation key for use with Component.translatable().
+     * @return the elementTranslationKey, or null if not set
+     */
+    @Nullable
+    public String getRawElementTranslationKey() {
+        return elementTranslationKey;
+    }
+
+    /**
+     * Returns the raw resonance translation key for use with Component.translatable().
+     * @return the resonanceTranslationKey, or null if not set
+     */
+    @Nullable
+    public String getRawResonanceTranslationKey() {
+        return resonanceTranslationKey;
+    }
+
+    /**
      * Parses a {@link CustomElementData} from a JSON object.
      * 
      * @param json the JSON object to parse
@@ -143,7 +161,18 @@ public record CustomElementData(
         // Parse color (optional, defaults to 0xFFFFFF)
         int color = 0xFFFFFF;
         if (json.has("color") && !json.get("color").isJsonNull()) {
-            color = json.get("color").getAsInt();
+            JsonElement colorElem = json.get("color");
+            if (colorElem.isJsonPrimitive()) {
+                String colorStr = colorElem.getAsString();
+                // Support both decimal (16777215) and hex (0xFFFFFF) format
+                if (colorStr.startsWith("0x") || colorStr.startsWith("0X")) {
+                    color = Integer.decode(colorStr);
+                } else {
+                    color = Integer.parseInt(colorStr);
+                }
+            } else {
+                color = colorElem.getAsInt();
+            }
         }
 
         // Parse element_translation_key (optional)

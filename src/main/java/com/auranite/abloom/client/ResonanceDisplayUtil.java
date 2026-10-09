@@ -105,18 +105,43 @@ public class ResonanceDisplayUtil {
 
     private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize,
             MultiBufferSource buffers, Minecraft minecraft) {
-        // Try to get texture from MobEffect texture map (only for built-in types)
+        // Try to get texture from MobEffect texture map
         if (!type.isCustom()) {
+            // Built-in types: use hardcoded effect mapping
             Holder<MobEffect> effectHolder = getEffectForElementType((com.auranite.abloom.util.ElementType) type);
             if (effectHolder != null) {
                 TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
                 if (sprite != null) {
                     try {
                         drawSprite(poseStack, sprite, halfSize, buffers);
+                        return;
                     } catch (Exception e) {
-                        drawColoredSquare(poseStack, halfSize, type, buffers);
+                        // Fall through to colored square
                     }
-                    return;
+                }
+            }
+        } else {
+            // Custom types: use resonanceEffect.effect() from CustomElementRegistry
+            var resonanceEffectOpt = com.auranite.abloom.registries.CustomElementRegistry.getResonanceEffectConfig(type);
+            if (resonanceEffectOpt.isPresent()) {
+                var resonanceEffect = resonanceEffectOpt.get();
+                try {
+                    var effectRegistry = BuiltInRegistries.MOB_EFFECT;
+                    var effect = effectRegistry.getOptional(resonanceEffect.effect());
+                    if (effect.isPresent()) {
+                        Holder<MobEffect> effectHolder = effectRegistry.wrapAsHolder(effect.get());
+                        TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
+                        if (sprite != null) {
+                            try {
+                                drawSprite(poseStack, sprite, halfSize, buffers);
+                                return;
+                            } catch (Exception e) {
+                                // Fall through to colored square
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Fall through to colored square
                 }
             }
         }

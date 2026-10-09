@@ -85,6 +85,14 @@ public class ElementalTooltipHandler {
     }
 
     private static int getElementColor(IElementalType type) {
+        if (type == null) return 0xFFFFFF;
+        
+        // Check custom element registry first
+        if (type.isCustom()) {
+            int customColor = com.auranite.abloom.registries.CustomElementRegistry.getColor(type);
+            if (customColor != 0xFFFFFF) return customColor;
+        }
+        
         Integer color = BUILTIN_ELEMENT_COLORS.get(type.name());
         return color != null ? color : 0xFFFFFF;
     }
@@ -218,8 +226,17 @@ public class ElementalTooltipHandler {
         if (key != null) {
             text = Component.translatable(key);
         } else {
-            // Custom element type
-            text = Component.translatable(KEY_ELEMENT_DEFAULT, type.getDisplayName());
+            // Custom element type - use raw translation key if available
+            if (type instanceof com.auranite.abloom.util.ElementType.CustomElementType customType) {
+                String rawKey = customType.getRawElementTranslationKey();
+                if (rawKey != null && !rawKey.isEmpty()) {
+                    text = Component.translatable(rawKey);
+                } else {
+                    text = Component.translatable(KEY_ELEMENT_DEFAULT, type.getDisplayName());
+                }
+            } else {
+                text = Component.translatable(KEY_ELEMENT_DEFAULT, type.getDisplayName());
+            }
         }
         text.setStyle(text.getStyle().withColor(getElementColor(type)));
         return text;
@@ -272,8 +289,17 @@ public class ElementalTooltipHandler {
         if (key != null) {
             text = Component.translatable(key);
         } else {
-            // Custom element type
-            text = Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
+            // Custom element type - use raw translation key if available
+            if (type instanceof com.auranite.abloom.util.ElementType.CustomElementType customType) {
+                String rawKey = customType.getRawElementTranslationKey();
+                if (rawKey != null && !rawKey.isEmpty()) {
+                    text = Component.translatable(rawKey);
+                } else {
+                    text = Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
+                }
+            } else {
+                text = Component.translatable(KEY_RESISTANCE_DEFAULT, type.getDisplayName());
+            }
         }
 
         int percentage = Math.round(resistance * 100);

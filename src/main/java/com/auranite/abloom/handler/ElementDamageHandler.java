@@ -250,11 +250,6 @@ public class ElementDamageHandler {
         // ENCHANTMENT_ELEMENT_MAP.put(ResourceLocation.fromNamespaceAndPath("abloom", "electric_aspect"), ElementType.ELECTRIC);
     }
 
-    public static int getDamageColor(IElementalType type) {
-        if (type == null) return 0xFFFFFF;
-        return DAMAGE_COLORS.getOrDefault(type.name(), 0xFFFFFF);
-    }
-
     /**
      * Gets the effective elemental type for a weapon stack, considering enchantment overrides.
      * This method is safe to call from both client and server side.
@@ -1298,9 +1293,9 @@ public class ElementDamageHandler {
     }
 
     private static float applyThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency) {
-        // Custom types don't have built-in threshold effects
+        // Handle custom element types with CustomElementData
         if (type.isCustom()) {
-            return originalDamage;
+            return applyCustomThresholdEffect(target, type, originalDamage, resonanceFrequency);
         }
 
         // Erosion triggers apply effects at half duration
@@ -1381,6 +1376,102 @@ public class ElementDamageHandler {
 
     public static void setBaseAccumulation(float value) {
         baseAccumulation = value;
+    }
+
+    /**
+     * Applies threshold effect for custom element types using CustomElementData.
+     */
+    private static float applyCustomThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, float resonanceFrequency) {
+        var customData = com.auranite.abloom.registries.CustomElementRegistry.getData(type);
+        if (customData.isEmpty()) {
+            AbloomMod.LOGGER.warn("Custom element {} has no CustomElementData, skipping threshold effect", type.name());
+            return originalDamage;
+        }
+
+        var data = customData.get();
+        
+        // Check if resonance is enabled for this element
+        if (!data.canResonanceAccumulation()) {
+            AbloomMod.LOGGER.debug("Custom element {} does not support resonance accumulation", type.name());
+            return originalDamage;
+        }
+
+        // Calculate total threshold damage multiplier: base (2.0) * resonance_dmg_multiplier + frequencyBonus
+        float baseMultiplier = 2.0f;
+        float resonanceMultiplier = (float) data.resonanceDmgMultiplier();
+        float frequencyBonus = resonanceFrequency * 0.01f; // 1 unit = 0.01 multiplier (same as built-in)
+        float totalMultiplier = baseMultiplier * resonanceMultiplier + frequencyBonus;
+
+        // Apply resonance effect if configured
+        if (data.resonanceEffect() != null) {
+            var resonanceEffect = data.resonanceEffect();
+            try {
+                var effectRegistry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
+                var effect = effectRegistry.getOptional(net.minecraft.resources.ResourceLocation.tryParse(resonanceEffect.effect().toString()));
+                if (effect.isPresent()) {
+                    target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                            net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect.get()),
+                            resonanceEffect.duration(),
+                            resonanceEffect.amplifier(),
+                            false,
+                            true
+                    ));
+                    AbloomMod.LOGGER.debug("Applied resonance effect {} to {} for custom element {}",
+                            resonanceEffect.effect(), target.getDisplayName(), type.name());
+                } else {
+                    AbloomMod.LOGGER.warn("Resonance effect {} not found for custom element {}",
+                            resonanceEffect.effect(), type.name());
+                }
+            } catch (Exception e) {
+                AbloomMod.LOGGER.error("Failed to apply resonance effect for custom element {}", type.name(), e);
+            }
+        }
+
+        // Spawn status text with element color
+        int color = com.auranite.abloom.registries.CustomElementRegistry.getColor(type);
+        Component resonanceMsg;
+        if (type instanceof com.auranite.abloom.util.ElementType.CustomElementType customType) {
+            String rawKey = customType.getRawResonanceTranslationKey();
+            if (rawKey != null && !rawKey.isEmpty()) {
+                resonanceMsg = Component.translatable(rawKey);
+            } else {
+                resonanceMsg = Component.translatable("elemental.tooltip.resonance", type.getDisplayName());
+            }
+        } else {
+            resonanceMsg = Component.translatable("elemental.tooltip.resonance", type.getDisplayName());
+        }
+        spawnStatusText(target, resonanceMsg, color);
+
+        return originalDamage * totalMultiplier;
+    }
+
+    /**
+     * Gets the damage color for an elemental type.
+     * Uses built-in colors for standard types, CustomElementData for custom types.
+     */
+    public static int getDamageColor(IElementalType type) {
+        if (type == null) return 0xFFFFFF;
+        if (type.isCustom()) {
+            return com.auranite.abloom.registries.CustomElementRegistry.getColor(type);
+        }
+        // Built-in element colors
+        return switch ((com.auranite.abloom.util.ElementType) type) {
+            case FIRE -> 0xFF5500;
+            case PHYSICAL -> 0xC0C0C0;
+            case WIND -> 0x00FFFF;
+            case WATER -> 0x0080FF;
+            case EARTH -> 0x8B4513;
+            case ICE -> 0x00BFFF;
+            case ELECTRIC -> 0xFF19FF;
+            case ENERGY -> 0xFFFF00;
+            case NATURAL -> 0x32CD32;
+            case QUANTUM -> 0x9400D3;
+            case ETHER -> 0x24B3A7;
+            case LIGHT -> 0xFFF1A5;
+            case SHADOW -> 0x4B0082;
+            case PRISMATIC -> -1;
+            default -> 0xFFFFFF;
+        };
     }
 
     private static float getDispersionBonus(IElementalType type) {
@@ -1665,10 +1756,33 @@ public class ElementDamageHandler {
      * Gets the active resonance effect type on the target.
      * Resonance effects: BURN→FIRE, FREEZE→ICE, SHOCK→ELECTRIC, BLOOM→NATURAL, etc.
      * Uses EnumMap for O(1) lookup instead of 13 sequential if-checks.
+     * Also checks custom elements by their resonance effect instance.
      */
     private static IElementalType getActiveResonanceType(LivingEntity target) {
+        // Check built-in types via RESONANCE_EFFECT_MAP
         for (Map.Entry<ElementType, DeferredHolder<MobEffect, MobEffect>> entry : RESONANCE_EFFECT_MAP.entrySet()) {
             if (target.hasEffect(entry.getValue())) return entry.getKey();
+        }
+        // Check custom types by their resonance effect instance
+        for (String customName : ElementType.getCustomTypeNames()) {
+            IElementalType custom = ElementType.getCustomTypeByName(customName).orElse(null);
+            if (custom != null) {
+                var resonanceEffectOpt = com.auranite.abloom.registries.CustomElementRegistry.getResonanceEffectConfig(custom);
+                if (resonanceEffectOpt.isPresent()) {
+                    var resonanceEffect = resonanceEffectOpt.get();
+                    try {
+                        var effectRegistry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
+                        var effect = effectRegistry.getOptional(net.minecraft.resources.ResourceLocation.tryParse(resonanceEffect.effect().toString()));
+                        if (effect.isPresent()) {
+                            if (target.hasEffect(effectRegistry.wrapAsHolder(effect.get()))) {
+                                return custom;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Skip invalid resonance effects
+                    }
+                }
+            }
         }
         return null;
     }

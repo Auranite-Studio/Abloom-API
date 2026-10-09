@@ -23,6 +23,7 @@ import net.minecraft.client.renderer.RenderType.CompositeState;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -81,11 +82,32 @@ public class EffectRenderUtil {
     private static Map<IElementalType, IconData> buildIconMap(List<MobEffectInstance> effects, Map<IElementalType, Integer> resonancePoints) {
         Map<IElementalType, IconData> map = new HashMap<>();
 
-        // Active effects
+        // Active effects (built-in)
         for (MobEffectInstance effect : effects) {
             IElementalType type = getElementTypeForEffect(effect.getEffect());
             if (type != null && isDisplayEffect(effect.getEffect())) {
                 map.put(type, new IconData(effect, null));
+            }
+        }
+
+        // Active effects (custom) — match by resonanceEffect.effect()
+        for (String customName : com.auranite.abloom.util.ElementType.getCustomTypeNames()) {
+            IElementalType custom = com.auranite.abloom.util.ElementType.getCustomTypeByName(customName).orElse(null);
+            if (custom != null && !map.containsKey(custom)) {
+                var resonanceEffectOpt = com.auranite.abloom.registries.CustomElementRegistry.getResonanceEffectConfig(custom);
+                if (resonanceEffectOpt.isPresent()) {
+                    var resonanceEffect = resonanceEffectOpt.get();
+                    for (MobEffectInstance effect : effects) {
+                        String effectPath = effect.getEffect().unwrap().left()
+                                .map(key -> key.location().getPath())
+                                .orElse("");
+                        String targetPath = resonanceEffect.effect().getPath();
+                        if (effectPath.equals(targetPath)) {
+                            map.put(custom, new IconData(effect, null));
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -216,8 +238,9 @@ public class EffectRenderUtil {
     }
 
     private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize, MultiBufferSource buffers, Minecraft minecraft) {
-        // Try to get texture from MobEffect texture map (only for built-in types)
+        // Try to get texture from MobEffect texture map
         if (!type.isCustom()) {
+            // Built-in types: use hardcoded effect mapping
             Holder<MobEffect> effectHolder = getEffectHolderForElementType((com.auranite.abloom.util.ElementType) type);
             if (effectHolder != null) {
                 TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
@@ -230,7 +253,32 @@ public class EffectRenderUtil {
                     }
                 }
             }
+        } else {
+            // Custom types: use resonanceEffect.effect() from CustomElementRegistry
+            var resonanceEffectOpt = com.auranite.abloom.registries.CustomElementRegistry.getResonanceEffectConfig(type);
+            if (resonanceEffectOpt.isPresent()) {
+                var resonanceEffect = resonanceEffectOpt.get();
+                try {
+                    var effectRegistry = BuiltInRegistries.MOB_EFFECT;
+                    var effect = effectRegistry.getOptional(resonanceEffect.effect());
+                    if (effect.isPresent()) {
+                        Holder<MobEffect> effectHolder = effectRegistry.wrapAsHolder(effect.get());
+                        TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effectHolder);
+                        if (sprite != null) {
+                            try {
+                                drawSprite(poseStack, sprite, halfSize, buffers);
+                                return;
+                            } catch (Exception e) {
+                                // Fall through to colored square
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Fall through to colored square
+                }
+            }
         }
+        // Fallback: colored square
         int color = com.auranite.abloom.handler.ElementDamageHandler.getDamageColor(type);
         float r = ((color >> 16) & 0xFF) / 255.0F;
         float g = ((color >> 8) & 0xFF) / 255.0F;

@@ -26,6 +26,7 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
 
         try {
+            // Initialize built-in element types
             for (com.auranite.abloom.util.ElementType elementType : com.auranite.abloom.util.ElementType.values()) {
                 String tagName = elementType.name().toLowerCase();
 
@@ -42,6 +43,36 @@ public class ElementResistanceRegistry {
                         ElementResistanceManager.Resistance.WEAKNESS,
                         lookupProvider
                 );
+            }
+
+            // Initialize custom element types from datapacks
+            for (String customName : com.auranite.abloom.util.ElementType.getCustomTypeNames()) {
+                com.auranite.abloom.util.ElementType.CustomElementType customType = 
+                        com.auranite.abloom.util.ElementType.getCustomTypeByName(customName).orElse(null);
+                
+                if (customType != null) {
+                    String tagName = customType.damageTypeId().replace("_dmg", "").toLowerCase();
+
+                    try {
+                        ElementResistanceManager.loadFromTag(
+                                customType,
+                                createEntityTag(tagName, "resistance"),
+                                ElementResistanceManager.Resistance.HALF_RESIST,
+                                lookupProvider
+                        );
+
+                        ElementResistanceManager.loadFromTag(
+                                customType,
+                                createEntityTag(tagName, "weakness"),
+                                ElementResistanceManager.Resistance.WEAKNESS,
+                                lookupProvider
+                        );
+
+                        AbloomMod.LOGGER.debug("Loaded resistance tags for custom element: {}", customName);
+                    } catch (Exception e) {
+                        AbloomMod.LOGGER.warn("Failed to load resistance tags for custom element '{}': {}", customName, e.getMessage());
+                    }
+                }
             }
 
             AbloomMod.LOGGER.info("Element Resistance Registry initialized! Total: {} entities",

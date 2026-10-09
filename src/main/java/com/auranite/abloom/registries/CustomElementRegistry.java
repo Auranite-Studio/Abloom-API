@@ -92,14 +92,63 @@ public class CustomElementRegistry {
      * @return the color value, or 0xFFFFFF (white) if not found
      */
     public static int getColor(IElementalType type) {
-        if (type == null || type.isCustom()) {
-            String elementName = type.name();
-            CustomElementData data = ELEMENT_DATA_BY_NAME.get(elementName);
-            if (data != null) {
-                return data.color();
-            }
+        if (type == null || !type.isCustom()) {
+            return 0xFFFFFF;
+        }
+        String elementName = type.name();
+        CustomElementData data = ELEMENT_DATA_BY_NAME.get(elementName);
+        if (data != null) {
+            return data.color();
         }
         return 0xFFFFFF;
+    }
+
+    /**
+     * Gets the resonance damage multiplier for a custom element.
+     * 
+     * @param type the elemental type
+     * @return the resonance multiplier, or 1.0 if not found or custom element doesn't support resonance
+     */
+    public static float getResonanceMultiplier(IElementalType type) {
+        if (type == null || !type.isCustom()) {
+            return 1.0f;
+        }
+        String elementName = type.name();
+        CustomElementData data = ELEMENT_DATA_BY_NAME.get(elementName);
+        if (data != null) {
+            return (float) data.resonanceDmgMultiplier();
+        }
+        return 1.0f;
+    }
+
+    /**
+     * Gets the CustomElementData for a custom elemental type.
+     * 
+     * @param type the elemental type (must be custom)
+     * @return Optional containing the element data, or empty if not found
+     */
+    public static Optional<CustomElementData> getData(IElementalType type) {
+        if (type == null || !type.isCustom()) {
+            return Optional.empty();
+        }
+        String elementName = type.name();
+        return Optional.ofNullable(ELEMENT_DATA_BY_NAME.get(elementName));
+    }
+
+    /**
+     * Gets the resonance effect config for a custom elemental type.
+     * 
+     * @param type the elemental type (must be custom)
+     * @return Optional containing the resonance effect config, or empty if not found or no resonance effect
+     */
+    public static Optional<CustomElementData.ResonanceEffectConfig> getResonanceEffectConfig(IElementalType type) {
+        Optional<CustomElementData> data = getData(type);
+        return data.flatMap(elementData -> {
+            if (elementData.resonanceEffect() != null) {
+                return Optional.of(elementData.resonanceEffect());
+            }
+            return Optional.empty();
+        });
     }
 
     /**

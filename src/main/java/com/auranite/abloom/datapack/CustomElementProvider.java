@@ -1,6 +1,7 @@
 package com.auranite.abloom.datapack;
 
 import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.registries.CustomElementRegistry;
 import com.auranite.abloom.util.ElementType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -118,7 +119,9 @@ public class CustomElementProvider {
             boolean registered = ElementType.registerCustomElementType(
                     elementName,
                     damageTypeId,
-                    elementData.getDisplayName()
+                    elementData.getDisplayName(),
+                    elementData.getRawElementTranslationKey(),
+                    elementData.getRawResonanceTranslationKey()
             );
 
             if (!registered) {
@@ -126,6 +129,9 @@ public class CustomElementProvider {
                         elementName, sourcePath, modId);
                 return;
             }
+
+            // Register element data with CustomElementRegistry for runtime lookup
+            CustomElementRegistry.register(elementData);
 
             // Register override damage types if present
             ResourceLocation[] overrideDamageTypes = elementData.overrideDamageTypes();

@@ -262,6 +262,13 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
    public int getDamageColor(@Nullable IElementalType type) {
       if (type == null) return 0xFFFFFF;
       if (type.name().equals("PRISMATIC")) return -1;
+      
+      // Check custom element registry first
+      int customColor = com.auranite.abloom.registries.CustomElementRegistry.getColor(type);
+      if (customColor != 0xFFFFFF || type.isCustom()) {
+         return customColor;
+      }
+      
       return damageColors.getOrDefault(type.name(), 0xFFFFFF);
    }
 

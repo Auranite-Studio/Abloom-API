@@ -56,7 +56,9 @@ public enum ElementType implements IElementalType {
      * Custom types are not enum constants and cannot participate in switch statements,
      * but they can be referenced by name or damage type ID throughout the system.
      */
-    public record CustomElementType(String name, String damageTypeId, String displayName) implements IElementalType {
+    public record CustomElementType(String name, String damageTypeId, String displayName,
+            @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
+            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey) implements IElementalType {
         public CustomElementType {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("Name must not be null or empty");
             if (damageTypeId == null || damageTypeId.isEmpty()) throw new IllegalArgumentException("Damage type ID must not be null or empty");
@@ -70,6 +72,22 @@ public enum ElementType implements IElementalType {
         @Override
         public boolean isCustom() {
             return true;
+        }
+
+        /**
+         * Returns the raw element translation key for use with Component.translatable().
+         */
+        @org.jetbrains.annotations.Nullable
+        public String getRawElementTranslationKey() {
+            return rawElementTranslationKey;
+        }
+
+        /**
+         * Returns the raw resonance translation key for use with Component.translatable().
+         */
+        @org.jetbrains.annotations.Nullable
+        public String getRawResonanceTranslationKey() {
+            return rawResonanceTranslationKey;
         }
     }
 
@@ -87,10 +105,14 @@ public enum ElementType implements IElementalType {
      * @param name           the enum-style name (e.g. "PLASMA", "VOID_TEAR"); must be uppercase alphanumeric with underscores
      * @param damageTypeId   the damage type ID used in datapack JSON (e.g. "plasma_dmg")
      * @param displayName    human-readable display name (e.g. "Plasma"); if null or empty, falls back to name
+     * @param rawElementTranslationKey  the raw translation key for the element (e.g. "element.yourmod.custom")
+     * @param rawResonanceTranslationKey  the raw translation key for resonance text (e.g. "resonance.yourmod.custom")
      * @return true if the type was newly registered, false if a type with this name or damage type ID already exists
      * @throws IllegalArgumentException if name or damageTypeId is null, empty, or contains invalid characters
      */
-    public static boolean registerCustomElementType(String name, String damageTypeId, String displayName) {
+    public static boolean registerCustomElementType(String name, String damageTypeId, String displayName,
+            @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
+            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Element type name must not be null or empty");
         }
@@ -119,7 +141,8 @@ public enum ElementType implements IElementalType {
             return false;
         }
 
-        CustomElementType customType = new CustomElementType(normalizedName, damageTypeId, displayName);
+        CustomElementType customType = new CustomElementType(normalizedName, damageTypeId, displayName,
+                rawElementTranslationKey, rawResonanceTranslationKey);
         CUSTOM_TYPES_BY_NAME.put(normalizedName, customType);
         CUSTOM_TYPES_BY_DAMAGE_ID.put(damageTypeId, customType);
 
@@ -131,7 +154,7 @@ public enum ElementType implements IElementalType {
      * Convenience variant that uses the name as display name.
      */
     public static boolean registerCustomElementType(String name, String damageTypeId) {
-        return registerCustomElementType(name, damageTypeId, null);
+        return registerCustomElementType(name, damageTypeId, null, null, null);
     }
 
     /** Looks up a custom element type by its name. */

@@ -107,12 +107,12 @@ public class ElementalResistanceComponent {
 
         // Check custom types
         for (String customName : com.auranite.abloom.util.ElementType.getCustomTypeNames()) {
-            if (resistanceTag.contains(customName) && !resistanceTag.contains(customName)) {
-                // Only add if not already present (custom types don't overlap with built-in)
-                result.put(
-                    com.auranite.abloom.util.ElementType.getCustomTypeByName(customName).orElse(null),
-                    resistanceTag.getFloat(customName)
-                );
+            if (resistanceTag.contains(customName)) {
+                com.auranite.abloom.util.ElementType.CustomElementType customType = 
+                    com.auranite.abloom.util.ElementType.getCustomTypeByName(customName).orElse(null);
+                if (customType != null) {
+                    result.put(customType, resistanceTag.getFloat(customName));
+                }
             }
         }
 
