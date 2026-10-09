@@ -13,6 +13,7 @@ import com.auranite.abloom.network.SpawnDamageNumberPacket;
 import com.auranite.abloom.network.SpawnStatusTextPacket;
 import com.auranite.abloom.registries.ElementResistanceRegistry;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
+import com.auranite.abloom.registries.CustomElementRegistry;
 import com.auranite.abloom.util.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -123,10 +124,17 @@ public class AbloomMod {
 
     private void setup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
+            // Load custom elemental types from datapacks (must be done first)
+            AbloomMod.LOGGER.info("Loading custom elemental types from datapacks...");
+            CustomElementRegistry.loadFromDatapacks();
+            AbloomMod.LOGGER.info("Custom elemental types loading complete");
+            
+            // Load elemental weapons datapack
             AbloomMod.LOGGER.info("Loading elemental weapons datapack...");
             ElementalWeaponProvider.loadFromResources();
             AbloomMod.LOGGER.info("Elemental weapons datapack loaded");
             
+            // Load armor resistances datapack
             AbloomMod.LOGGER.info("Loading armor resistances datapack...");
             ArmorResistanceProvider.loadFromResources();
             AbloomMod.LOGGER.info("Armor resistances datapack loaded");
