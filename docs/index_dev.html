@@ -2032,6 +2032,313 @@ public class MyModElements {
                     <li>Entity type IDs must be valid (e.g., <code>minecraft:zombie</code>)</li>
                 </ul>
             </div>
+
+            <h3>Custom Elemental Types</h3>
+            <p>Abloom supports loading custom elemental types from datapacks. Custom elements extend the elemental system beyond the 14 built-in types, allowing mod developers and players to create new elements with unique properties, resonance effects, and visual representations.</p>
+
+            <h4>Directory Structure</h4>
+            <pre>your_mod_or_datapack/
+└── data
+    └── your_mod_id
+        └── elemental_types/     # Custom element definitions
+            └── your_element.json</pre>
+
+            <h4>JSON Format</h4>
+            <p>Each custom element is defined in a JSON file with the following structure:</p>
+            <pre><code>{
+  "element_id": "yourmod:custom_element",
+  "override_damage_types": ["yourmod:custom_element_damage", "minecraft:generic"],
+  "color": "0x2B004C",
+  "element_translation_key": "element.yourmod.custom",
+  "resonance_translation_key": "resonance.yourmod.custom",
+  "can_resonance_accumulation": true,
+  "resonance_dmg_multiplier": 2.0,
+  "resonance_effect": {
+    "effect": "yourmod:custom_resonance_effect",
+    "config": {
+      "duration": 100,
+      "amplifier": 0
+    }
+  }
+}</code></pre>
+
+            <h4>Fields Reference</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>element_id</code></td>
+                        <td>ResourceLocation</td>
+                        <td>Yes</td>
+                        <td>Unique identifier for the element (e.g., <code>yourmod:void</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><code>override_damage_types</code></td>
+                        <td>Array&lt;ResourceLocation&gt;</td>
+                        <td>No</td>
+                        <td>List of damage types to override when this element deals damage</td>
+                    </tr>
+                    <tr>
+                        <td><code>color</code></td>
+                        <td>Integer or Hex String</td>
+                        <td>No</td>
+                        <td>Element color in decimal (16777215) or hex format (0xFFFFFF). Defaults to white (0xFFFFFF)</td>
+                    </tr>
+                    <tr>
+                        <td><code>element_translation_key</code></td>
+                        <td>String</td>
+                        <td>No</td>
+                        <td>Translation key for element name (e.g., <code>element.yourmod.custom</code>). Falls back to element ID path if not provided</td>
+                    </tr>
+                    <tr>
+                        <td><code>resonance_translation_key</code></td>
+                        <td>String</td>
+                        <td>No</td>
+                        <td>Translation key for resonance status text. Falls back to default message if not provided</td>
+                    </tr>
+                    <tr>
+                        <td><code>can_resonance_accumulation</code></td>
+                        <td>Boolean</td>
+                        <td>No</td>
+                        <td>Whether this element can accumulate resonance points. Defaults to <code>true</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>resonance_dmg_multiplier</code></td>
+                        <td>Double</td>
+                        <td>No</td>
+                        <td>Multiplier for resonance explosion damage. Formula: <code>2.0 × resonance_dmg_multiplier + resonanceFrequency × 0.01</code>. Defaults to <code>1.0</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>resonance_effect</code></td>
+                        <td>Object</td>
+                        <td>No</td>
+                        <td>Resonance effect applied at 100 accumulation points. See below for structure</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Resonance Effect Configuration</h4>
+            <p>The <code>resonance_effect</code> field defines the MobEffect applied when the element reaches 100 accumulation points:</p>
+            <pre><code>"resonance_effect": {
+  "effect": "yourmod:custom_resonance_effect",
+  "config": {
+    "duration": 100,
+    "amplifier": 0
+  }
+}</code></pre>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>effect</code></td>
+                        <td>ResourceLocation</td>
+                        <td>MobEffect to apply (e.g., <code>yourmod:custom_effect</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><code>config.duration</code></td>
+                        <td>Integer</td>
+                        <td>Effect duration in ticks (must be positive)</td>
+                    </tr>
+                    <tr>
+                        <td><code>config.amplifier</code></td>
+                        <td>Integer</td>
+                        <td>Effect amplifier level (0 = level I, 1 = level II, etc.)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Translation Keys</h4>
+            <p>Custom elements support translation keys for localization. Add entries to your mod's language file:</p>
+            <pre><code># en_us.json
+"element.yourmod.custom": "Custom Element"
+"resonance.yourmod.custom": "Custom Resonance Explosion!"
+
+# ru_ru.json
+"element.yourmod.custom": "Специальный Элемент"
+"resonance.yourmod.custom": "Взрыв Резонанса!"</code></pre>
+
+            <h4>Using Custom Elements in Code</h4>
+            <p>Custom elements can be used through the <code>IElementalType</code> interface, which is implemented by both built-in <code>ElementType</code> enum values and custom <code>CustomElementType</code> records.</p>
+
+            <h5>Lookup by Name</h5>
+            <pre><code>import com.auranite.abloom.util.IElementalType;
+import com.auranite.abloom.util.ElementType;
+
+// Lookup any elemental type (built-in or custom)
+Optional&lt;? extends IElementalType&gt; customType = IElementalType.byName("VOID");
+if (customType.isPresent()) {
+    IElementalType type = customType.get();
+    // Use with elemental damage API
+    ElementDamageHandler.dealElementDamage(target, type, 10.0f);
+}</code></pre>
+
+            <h5>Lookup by Damage Type ID</h5>
+            <pre><code>// Lookup by damage type ID (e.g., "void_dmg")
+Optional&lt;? extends IElementalType&gt; type = IElementalType.byDamageTypeId("void_dmg");
+if (type.isPresent()) {
+    // Use with elemental API
+}</code></pre>
+
+            <h5>Checking Element Type</h5>
+            <pre><code>IElementalType type = ...;
+
+// Check if custom
+if (type.isCustom()) {
+    // Access custom element data
+    Optional&lt;CustomElementData&gt; data = CustomElementRegistry.getData(type);
+    if (data.isPresent()) {
+        CustomElementData elementData = data.get();
+        int color = elementData.color();
+        double multiplier = elementData.resonanceDmgMultiplier();
+        
+        // Access resonance effect config
+        if (elementData.resonanceEffect() != null) {
+            CustomElementData.ResonanceEffectConfig resonance = elementData.resonanceEffect();
+            ResourceLocation effectId = resonance.effect();
+            int duration = resonance.duration();
+        }
+    }
+}
+
+// Get display name (works for both built-in and custom)
+String displayName = type.getDisplayName();
+
+// Get damage type ID
+String damageTypeId = type.damageTypeId();</code></pre>
+
+            <h5>Dealing Custom Elemental Damage</h5>
+            <pre><code>import com.auranite.abloom.handler.ElementDamageHandler;
+import com.auranite.abloom.util.IElementalType;
+
+// Method 1: By name
+Optional&lt;? extends IElementalType&gt; voidType = IElementalType.byName("VOID");
+voidType.ifPresent(type -&gt; {
+    ElementDamageHandler.dealElementDamage(target, type, 15.0f, 2.0f, attacker);
+});
+
+// Method 2: From CustomElementRegistry
+Optional&lt;CustomElementData&gt; data = CustomElementRegistry.byElementId(ResourceLocation.tryParse("yourmod:void"));
+data.ifPresent(elementData -&gt; {
+    IElementalType type = ElementType.getCustomTypeByName(elementData.getElementName()).orElse(null);
+    if (type != null) {
+        ElementDamageHandler.dealElementDamage(target, type, 15.0f);
+    }
+});</code></pre>
+
+            <h5>Checking Custom Element Properties</h5>
+            <pre><code>import com.auranite.abloom.registries.CustomElementRegistry;
+import com.auranite.abloom.datapack.CustomElementData;
+
+// Get custom element data
+Optional&lt;CustomElementData&gt; data = CustomElementRegistry.getData(type);
+if (data.isPresent()) {
+    CustomElementData elementData = data.get();
+    
+    // Check if can accumulate resonance
+    if (elementData.canResonanceAccumulation()) {
+        // Element supports resonance
+    }
+    
+    // Get resonance multiplier
+    float multiplier = CustomElementRegistry.getResonanceMultiplier(type);
+    
+    // Get resonance effect config
+    Optional&lt;CustomElementData.ResonanceEffectConfig&gt; resonanceEffect = 
+        CustomElementRegistry.getResonanceEffectConfig(type);
+    if (resonanceEffect.isPresent()) {
+        CustomElementData.ResonanceEffectConfig config = resonanceEffect.get();
+        // Apply resonance effect to target
+        target.addEffect(new MobEffectInstance(
+            BuiltInRegistries.MOB_EFFECT.getOptional(config.effect()).orElse(null),
+            config.duration(),
+            config.amplifier(),
+            false,
+            true
+        ));
+    }
+}</code></pre>
+
+            <h4>Color Format</h4>
+            <p>Colors support both decimal and hex format:</p>
+            <pre><code>// Decimal format
+"color": 2891628
+
+// Hex format (recommended for readability)
+"color": "0x2B004C"</code></pre>
+
+            <h4>Important Notes</h4>
+            <div class="warning">
+                <strong>Limitations:</strong>
+                <ul>
+                    <li>Custom elements cannot participate in switch statements (they're records, not enum constants)</li>
+                    <li>Use <code>type.isCustom()</code> to check if an element is custom before accessing custom-specific APIs</li>
+                    <li>Resonance effects for custom elements are applied through <code>CustomElementRegistry.getResonanceEffectConfig()</code>, not through <code>RESONANCE_EFFECT_MAP</code></li>
+                    <li>Prismatic damage conversion works with custom elements — <code>getActiveResonanceType()</code> checks custom elements by their resonance effect instance</li>
+                </ul>
+            </div>
+
+            <div class="tip">
+                <strong>Best Practices:</strong>
+                <ol>
+                    <li>Always use <code>IElementalType.byName()</code> or <code>IElementalType.byDamageTypeId()</code> for lookup — these handle both built-in and custom types</li>
+                    <li>Check <code>type.isCustom()</code> before accessing custom element-specific methods</li>
+                    <li>Use translation keys for all user-facing text to support localization</li>
+                    <li>Validate custom element IDs follow the <code>namespace:name</code> format</li>
+                    <li>Test resonance effects with <code>/reload</code> during development to ensure they load correctly</li>
+                </ol>
+            </div>
+
+            <h4>Example: Void Element</h4>
+            <p>Complete example of a void element definition:</p>
+            <pre><code>{
+  "element_id": "yourmod:void",
+  "override_damage_types": ["yourmod:void_damage", "minecraft:generic"],
+  "color": "0x2B004C",
+  "element_translation_key": "element.yourmod.void",
+  "resonance_translation_key": "resonance.yourmod.void",
+  "can_resonance_accumulation": true,
+  "resonance_dmg_multiplier": 2.5,
+  "resonance_effect": {
+    "effect": "yourmod:void_resonance",
+    "config": {
+      "duration": 200,
+      "amplifier": 1
+    }
+  }
+}</code></pre>
+
+            <p>With corresponding translation entries:</p>
+            <pre><code>// en_us.json
+{
+  "element.yourmod.void": "Void",
+  "resonance.yourmod.void": "Void Resonance Explosion!",
+  "effect.yourmod.void_resonance": "Void Resonance"
+}
+
+// ru_ru.json
+{
+  "element.yourmod.void": "Пустота",
+  "resonance.yourmod.void": "Взрыв Пустоты!",
+  "effect.yourmod.void_resonance": "Резонанс Пустоты"
+}</code></pre>
+
+            <div class="note">
+                <strong>Registration:</strong> Custom elements are automatically loaded from datapacks during mod initialization via <code>CustomElementRegistry.loadFromDatapacks()</code> called from <code>AbloomMod.setup()</code>. No manual registration is required — just place your JSON files in the correct directory structure and they will be available at runtime.
+            </div>
         </section>
 
         <footer>
