@@ -1565,6 +1565,46 @@ public class ElementDamageHandler {
         }
     }
 
+    // ==================== Backward-compatible overloads for ElementType ====================
+
+    /**
+     * Backward-compatible overload: accepts ElementType directly instead of IElementalType.
+     * For mods compiled against older API versions that used ElementType as the parameter type.
+     */
+    public static void dealElementDamage(Entity target, ElementType type, float amount) {
+        dealElementDamage(target, (IElementalType) type, amount);
+    }
+
+    /**
+     * Backward-compatible overload: accepts ElementType directly with accumulation points.
+     */
+    public static void dealElementDamage(Entity target, ElementType type, float amount, int accumulationPoints) {
+        dealElementDamage(target, (IElementalType) type, amount, accumulationPoints);
+    }
+
+    /**
+     * Backward-compatible overload: accepts ElementType directly with accum multiplier.
+     */
+    public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier) {
+        dealElementDamage(target, (IElementalType) type, amount, accumMultiplier, null);
+    }
+
+    /**
+     * Backward-compatible overload: accepts ElementType with accum multiplier and attacker.
+     */
+    public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker) {
+        dealElementDamage(target, (IElementalType) type, amount, accumMultiplier, attacker);
+    }
+
+    /**
+     * Backward-compatible overload: accepts ElementType with all parameters.
+     */
+    public static void dealElementDamage(Entity target, ElementType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
+        dealElementDamage(target, (IElementalType) type, amount, accumMultiplier, attacker, bypassKnockback);
+    }
+
+    // ==================== End backward-compatible overloads ====================
+
     private static void processDealElementDamage(Entity target, IElementalType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
         if (!(target instanceof LivingEntity livingTarget)) return;
 

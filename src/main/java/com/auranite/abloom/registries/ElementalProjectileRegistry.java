@@ -1,6 +1,7 @@
 package com.auranite.abloom.registries;
 
 import com.auranite.abloom.AbloomMod;
+import com.auranite.abloom.util.ElementType;
 import com.auranite.abloom.util.IElementalType;
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.AbloomModAttachments;
@@ -49,6 +50,18 @@ public class ElementalProjectileRegistry {
      */
     public static void registerProjectile(EntityType<?> entityType, IElementalType element, float accumulationMultiplier) {
         registerProjectile(entityType, element, accumulationMultiplier, false);
+    }
+
+    /**
+     * Registers a projectile type with its built-in element type and accumulation multiplier.
+     * <p>Convenience overload for backward compatibility with mods compiled against older API versions
+     * that used {@code ElementType} directly instead of {@code IElementalType}.
+     * @param entityType the projectile entity type
+     * @param element the built-in element type (e.g. {@code ElementType.FIRE})
+     * @param accumulationMultiplier the accumulation multiplier
+     */
+    public static void registerProjectile(EntityType<?> entityType, ElementType element, float accumulationMultiplier) {
+        registerProjectile(entityType, (IElementalType) element, accumulationMultiplier, false);
     }
 
     /**
