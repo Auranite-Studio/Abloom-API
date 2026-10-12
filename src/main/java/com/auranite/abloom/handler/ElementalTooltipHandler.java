@@ -68,7 +68,7 @@ public class ElementalTooltipHandler {
     static {
         Map<String, Integer> map = new HashMap<>();
         map.put("FIRE", 0xFF5500);
-        map.put("PHYSICAL", 0xC0C0C0);
+        map.put("PHYSICAL", 0x696969);
         map.put("WIND", 0x00FFFF);
         map.put("WATER", 0x0080FF);
         map.put("EARTH", 0x8B4513);

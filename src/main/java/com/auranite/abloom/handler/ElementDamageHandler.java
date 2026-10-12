@@ -750,7 +750,7 @@ public class ElementDamageHandler {
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
 
-        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit, isMultiCrit);
+        if (canShowDamage(target)) spawnDamageNumber(target, finalDamage, type, isCrit, isMultiCrit, effectiveResist);
         updateLastDamageTime(target, type);
         return finalDamage;
     }
@@ -1012,14 +1012,19 @@ public class ElementDamageHandler {
     }
 
     private static void spawnDamageNumber(LivingEntity entity, float amount, IElementalType type, boolean isCrit, boolean isMultiCrit) {
+        spawnDamageNumber(entity, amount, type, isCrit, isMultiCrit, 0.0f);
+    }
+
+    private static void spawnDamageNumber(LivingEntity entity, float amount, IElementalType type, boolean isCrit, boolean isMultiCrit, float effectiveResist) {
         // Only send packet from server side
         if (entity.level().isClientSide) return;
         
         int color = getDamageColor(type);
         boolean hasBreak = entity.hasEffect(AbloomModEffects.BREAK);
+        float resistancePercent = effectiveResist * 100.0f;
         PacketDistributor.sendToPlayersTrackingEntity(
             entity,
-            new SpawnDamageNumberPacket(entity.getId(), amount, type, color, isCrit, hasBreak, isMultiCrit)
+            new SpawnDamageNumberPacket(entity.getId(), amount, type, color, isCrit, hasBreak, isMultiCrit, resistancePercent)
         );
     }
 
@@ -1312,7 +1317,7 @@ public class ElementDamageHandler {
             }
             case PHYSICAL -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 12 * durationMultiplier, 0, false, true));
-                spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
+                spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0x696969);
                 yield originalDamage * totalMultiplier;
             }
             case WIND -> {
@@ -1455,9 +1460,9 @@ public class ElementDamageHandler {
             return com.auranite.abloom.registries.CustomElementRegistry.getColor(type);
         }
         // Built-in element colors
-        return switch ((com.auranite.abloom.util.ElementType) type) {
+        return switch ((ElementType) type) {
             case FIRE -> 0xFF5500;
-            case PHYSICAL -> 0xC0C0C0;
+            case PHYSICAL -> 0x696969;
             case WIND -> 0x00FFFF;
             case WATER -> 0x0080FF;
             case EARTH -> 0x8B4513;
@@ -1691,7 +1696,7 @@ public class ElementDamageHandler {
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
 
-        if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type, isCrit, isMultiCrit);
+        if (canShowDamage(livingTarget)) spawnDamageNumber(livingTarget, finalDamage, type, isCrit, isMultiCrit, effectiveResist);
 
         if (target.level() instanceof ServerLevel serverLevel) {
             var damageTypeRegistry = serverLevel.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE);

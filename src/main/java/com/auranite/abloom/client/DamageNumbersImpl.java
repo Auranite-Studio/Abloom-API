@@ -32,7 +32,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
 
    private void initDefaultColors() {
       damageColors.put("FIRE", 0xFF5500);
-      damageColors.put("PHYSICAL", 0xC0C0C0);
+      damageColors.put("PHYSICAL", 0x696969);
       damageColors.put("WIND", 0x00FFFF);
       damageColors.put("WATER", 0x0080FF);
       damageColors.put("EARTH", 0x8B4513);
@@ -130,7 +130,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
    }
 
    @Override
-   public void spawnDamageNumber(int entityId, float damage, @Nullable IElementalType elementType, int color, boolean isCrit, boolean hasBreak, boolean isMultiCrit) {
+   public void spawnDamageNumber(int entityId, float damage, @Nullable IElementalType elementType, int color, boolean isCrit, boolean hasBreak, boolean isMultiCrit, float resistancePercent) {
       if (!AbloomConfig.areDamageNumbersEnabled()) {
          return;
       }
@@ -191,8 +191,20 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
       }
       particle.setText(text);
       
-      // Use color from packet (set by server based on element type)
-      if (color == -1 || (elementType != null && elementType.name().equals("PRISMATIC"))) {
+      // Set color based on resistance: pale (desaturated) if resistance >= 50%
+      if (resistancePercent >= 50.0f) {
+         // Pale/desaturated version of the element color
+         int r = (color >> 16) & 0xFF;
+         int g = (color >> 8) & 0xFF;
+         int b = color & 0xFF;
+         float pale = 0.35f;
+         particle.setColor(new Color(
+             r / 255.0F * pale + 0.65f * 1.0F,
+             g / 255.0F * pale + 0.65f * 1.0F,
+             b / 255.0F * pale + 0.65f * 1.0F,
+             1.0F
+         ));
+      } else if (color == -1 || (elementType != null && elementType.name().equals("PRISMATIC"))) {
          // Prismatic - rainbow effect handled in particle render
          particle.setColor(new Color(1.0F, 1.0F, 1.0F, 1.0F));
          particle.setPrismatic(true);

@@ -107,7 +107,8 @@ public class AbloomMod {
                 packet.color(),
                 packet.isCrit(),
                 packet.hasBreak(),
-                packet.isMultiCrit()
+                packet.isMultiCrit(),
+                packet.resistancePercent()
             );
         });
     }
