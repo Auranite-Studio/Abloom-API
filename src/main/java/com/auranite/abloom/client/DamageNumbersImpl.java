@@ -32,7 +32,7 @@ public class DamageNumbersImpl implements DamageNumbersHandler {
 
    private void initDefaultColors() {
       damageColors.put("FIRE", 0xFF5500);
-      damageColors.put("PHYSICAL", 0x696969);
+      damageColors.put("PHYSICAL", 0xC0C0C0);
       damageColors.put("WIND", 0x00FFFF);
       damageColors.put("WATER", 0x0080FF);
       damageColors.put("EARTH", 0x8B4513);

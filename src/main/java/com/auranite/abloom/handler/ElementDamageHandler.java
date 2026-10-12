@@ -1317,7 +1317,7 @@ public class ElementDamageHandler {
             }
             case PHYSICAL -> {
                 target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 12 * durationMultiplier, 0, false, true));
-                spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0x696969);
+                spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
                 yield originalDamage * totalMultiplier;
             }
             case WIND -> {
@@ -1462,7 +1462,7 @@ public class ElementDamageHandler {
         // Built-in element colors
         return switch ((ElementType) type) {
             case FIRE -> 0xFF5500;
-            case PHYSICAL -> 0x696969;
+            case PHYSICAL -> 0xC0C0C0;
             case WIND -> 0x00FFFF;
             case WATER -> 0x0080FF;
             case EARTH -> 0x8B4513;
