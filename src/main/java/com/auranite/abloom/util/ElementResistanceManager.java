@@ -8,6 +8,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.fml.ModList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -88,18 +89,23 @@ public class ElementResistanceManager {
 		TAG_CHECKED_ENTITIES.put(entityType, true);
 
 		String elementLower = elementType.name().toLowerCase();
-		String modid = AbloomMod.MODID;
 
-		TagKey<EntityType<?>> resistTag = createTag(modid, elementLower, "resistance");
-		if (entityType.is(resistTag)) {
-			registerResistance(entityType, Map.of(elementType, Resistance.HALF_RESIST));
-			return;
-		}
+		// Check tags from all mods, not just abloom
+		var modList = ModList.get();
+		for (var modInfo : modList.getMods()) {
+			String modid = modInfo.getModId();
 
-		TagKey<EntityType<?>> weaknessTag = createTag(modid, elementLower, "weakness");
-		if (entityType.is(weaknessTag)) {
-			registerResistance(entityType, Map.of(elementType, Resistance.WEAKNESS));
-			return;
+			TagKey<EntityType<?>> resistTag = createTag(modid, elementLower, "resistance");
+			if (entityType.is(resistTag)) {
+				registerResistance(entityType, Map.of(elementType, Resistance.HALF_RESIST));
+				return;
+			}
+
+			TagKey<EntityType<?>> weaknessTag = createTag(modid, elementLower, "weakness");
+			if (entityType.is(weaknessTag)) {
+				registerResistance(entityType, Map.of(elementType, Resistance.WEAKNESS));
+				return;
+			}
 		}
 	}
 

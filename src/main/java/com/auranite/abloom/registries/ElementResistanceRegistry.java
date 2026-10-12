@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.neoforged.fml.ModList;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,10 +27,11 @@ public class ElementResistanceRegistry {
         AbloomMod.LOGGER.info("Initializing Element Resistance Registry (Tag-based)...");
 
         try {
-            // Initialize built-in element types
+            // Initialize built-in element types from all mods
             for (com.auranite.abloom.util.ElementType elementType : com.auranite.abloom.util.ElementType.values()) {
                 String tagName = elementType.name().toLowerCase();
 
+                // Load from abloom mod (default)
                 ElementResistanceManager.loadFromTag(
                         elementType,
                         createEntityTag(tagName, "resistance"),
@@ -43,6 +45,9 @@ public class ElementResistanceRegistry {
                         ElementResistanceManager.Resistance.WEAKNESS,
                         lookupProvider
                 );
+
+                // Load from all other mods
+                loadTagsFromAllMods(elementType, tagName, lookupProvider);
             }
 
             // Initialize custom element types from datapacks
@@ -80,6 +85,54 @@ public class ElementResistanceRegistry {
 
         } catch (Exception e) {
             AbloomMod.LOGGER.error("Failed to initialize Element Resistance Registry!", e);
+        }
+    }
+
+    /**
+     * Loads resistance/weakness tags from all mods for a given element type.
+     * Scans for tags in format {modid}:element_resistance/{element}/{resistance|weakness}
+     */
+    private static void loadTagsFromAllMods(com.auranite.abloom.util.ElementType elementType,
+                                             String tagName,
+                                             net.minecraft.core.HolderLookup.Provider lookupProvider) {
+        var modList = ModList.get();
+        for (var modInfo : modList.getMods()) {
+            String modId = modInfo.getModId();
+            if (modId.equals(AbloomMod.MODID)) {
+                continue; // Already loaded above
+            }
+
+            try {
+                TagKey<EntityType<?>> resistTag = TagKey.create(
+                        Registries.ENTITY_TYPE,
+                        ResourceLocation.fromNamespaceAndPath(modId,
+                                "element_resistance/" + tagName + "/resistance")
+                );
+
+                ElementResistanceManager.loadFromTag(
+                        elementType,
+                        resistTag,
+                        ElementResistanceManager.Resistance.HALF_RESIST,
+                        lookupProvider
+                );
+
+                TagKey<EntityType<?>> weaknessTag = TagKey.create(
+                        Registries.ENTITY_TYPE,
+                        ResourceLocation.fromNamespaceAndPath(modId,
+                                "element_resistance/" + tagName + "/weakness")
+                );
+
+                ElementResistanceManager.loadFromTag(
+                        elementType,
+                        weaknessTag,
+                        ElementResistanceManager.Resistance.WEAKNESS,
+                        lookupProvider
+                );
+            } catch (Exception e) {
+                // Tag doesn't exist for this mod, skip silently
+                AbloomMod.LOGGER.debug("No resistance tags found for '{}' in mod '{}': {}",
+                        tagName, modId, e.getMessage());
+            }
         }
     }
 
