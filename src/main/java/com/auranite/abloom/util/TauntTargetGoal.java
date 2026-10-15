@@ -57,7 +57,7 @@ public class TauntTargetGoal extends Goal {
         AABB searchBox = this.mob.getBoundingBox().inflate(16.0, 4.0, 16.0);
         List<LivingEntity> candidates = this.mob.level().getEntitiesOfClass(
                 LivingEntity.class, searchBox,
-                e -> e.isAlive() && e.hasEffect(AbloomModEffects.TAUNT) && !e.isSpectator()
+                e -> e.isAlive() && e != this.mob && e.hasEffect(AbloomModEffects.TAUNT) && !e.isSpectator()
         );
 
         return candidates.stream()
