@@ -122,6 +122,24 @@ public class CustomElementRegistry {
     }
 
     /**
+     * Gets the dispersion bonus for a custom element.
+     * 
+     * @param type the elemental type
+     * @return the dispersion bonus, or 0.0f if not found or custom element doesn't define it
+     */
+    public static float getDispersionBonus(IElementalType type) {
+        if (type == null || !type.isCustom()) {
+            return 0.0f;
+        }
+        String elementName = type.name();
+        CustomElementData data = ELEMENT_DATA_BY_NAME.get(elementName);
+        if (data != null) {
+            return data.dispersionBonus();
+        }
+        return 0.0f;
+    }
+
+    /**
      * Gets the CustomElementData for a custom elemental type.
      * 
      * @param type the elemental type (must be custom)

@@ -58,7 +58,8 @@ public enum ElementType implements IElementalType {
      */
     public record CustomElementType(String name, String damageTypeId, String displayName,
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
-            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey) implements IElementalType {
+            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
+            float dispersionBonus) implements IElementalType {
         public CustomElementType {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("Name must not be null or empty");
             if (damageTypeId == null || damageTypeId.isEmpty()) throw new IllegalArgumentException("Damage type ID must not be null or empty");
@@ -80,6 +81,11 @@ public enum ElementType implements IElementalType {
         @org.jetbrains.annotations.Nullable
         public String getRawElementTranslationKey() {
             return rawElementTranslationKey;
+        }
+
+        @Override
+        public float getDispersionBonus() {
+            return dispersionBonus;
         }
 
         /**
@@ -112,7 +118,8 @@ public enum ElementType implements IElementalType {
      */
     public static boolean registerCustomElementType(String name, String damageTypeId, String displayName,
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
-            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey) {
+            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
+            float dispersionBonus) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Element type name must not be null or empty");
         }
@@ -142,7 +149,7 @@ public enum ElementType implements IElementalType {
         }
 
         CustomElementType customType = new CustomElementType(normalizedName, damageTypeId, displayName,
-                rawElementTranslationKey, rawResonanceTranslationKey);
+                rawElementTranslationKey, rawResonanceTranslationKey, dispersionBonus);
         CUSTOM_TYPES_BY_NAME.put(normalizedName, customType);
         CUSTOM_TYPES_BY_DAMAGE_ID.put(damageTypeId, customType);
 
@@ -154,7 +161,14 @@ public enum ElementType implements IElementalType {
      * Convenience variant that uses the name as display name.
      */
     public static boolean registerCustomElementType(String name, String damageTypeId) {
-        return registerCustomElementType(name, damageTypeId, null, null, null);
+        return registerCustomElementType(name, damageTypeId, null, null, null, 0.0f);
+    }
+
+    /**
+     * Convenience variant that uses the name as display name with a custom dispersion bonus.
+     */
+    public static boolean registerCustomElementType(String name, String damageTypeId, float dispersionBonus) {
+        return registerCustomElementType(name, damageTypeId, null, null, null, dispersionBonus);
     }
 
     /** Looks up a custom element type by its name. */

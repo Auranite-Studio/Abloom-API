@@ -32,6 +32,7 @@ import java.util.stream.Stream;
  *   "resonance_translation_key": "resonance_text.yourmod.custom",
  *   "can_resonance_accumulation": true,
  *   "resonance_dmg_multiplier": 2.0,
+ *   "dispersion_bonus": 0.25,
  *   "resonance_effect": {
  *     "effect": "yourmod:custom_resonance_effect",
  *     "config": {
@@ -121,7 +122,8 @@ public class CustomElementProvider {
                     damageTypeId,
                     elementData.getDisplayName(),
                     elementData.getRawElementTranslationKey(),
-                    elementData.getRawResonanceTranslationKey()
+                    elementData.getRawResonanceTranslationKey(),
+                    elementData.dispersionBonus()
             );
 
             if (!registered) {
@@ -144,11 +146,12 @@ public class CustomElementProvider {
             }
 
             // Log element configuration
-            AbloomMod.LOGGER.info("Loaded custom element '{}' (color: 0x{:06X}, resonance: {}, multiplier: {:.1f}) from mod {}",
+            AbloomMod.LOGGER.info("Loaded custom element '{}' (color: 0x{:06X}, resonance: {}, multiplier: {:.1f}, dispersion: {:.0f}%) from mod {}",
                     elementName,
                     elementData.color() & 0xFFFFFF,
                     elementData.canResonanceAccumulation(),
                     elementData.resonanceDmgMultiplier(),
+                    elementData.dispersionBonus() * 100.0f,
                     modId);
 
             // Log resonance effect if present

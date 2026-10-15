@@ -15,6 +15,13 @@ public interface IElementalType {
     String getDisplayName();
     /** True if this is a custom (non-builtin) element type */
     default boolean isCustom() { return false; }
+    /**
+     * Gets the dispersion bonus multiplier for this element type.
+     * This value determines the additional damage bonus when the target has the DISPERSION effect.
+     * Built-in elements have predefined values; custom elements can override this.
+     * @return the dispersion bonus (e.g., 0.15f for 15%%, 0.30f for 30%%)
+     */
+    default float getDispersionBonus() { return 0.0f; }
 
     /**
      * Looks up a built-in ElementType by its enum name.

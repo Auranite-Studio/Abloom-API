@@ -2053,6 +2053,7 @@ public class MyModElements {
   "resonance_translation_key": "resonance.yourmod.custom",
   "can_resonance_accumulation": true,
   "resonance_dmg_multiplier": 2.0,
+  "dispersion_bonus": 0.25,
   "resonance_effect": {
     "effect": "yourmod:custom_resonance_effect",
     "config": {
@@ -2114,6 +2115,12 @@ public class MyModElements {
                         <td>Double</td>
                         <td>No</td>
                         <td>Multiplier for resonance explosion damage. Formula: <code>2.0 × resonance_dmg_multiplier + resonanceFrequency × 0.01</code>. Defaults to <code>1.0</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>dispersion_bonus</code></td>
+                        <td>Float</td>
+                        <td>No</td>
+                        <td>Damage bonus multiplier when the target has the DISPERSION effect. Applied as <code>damageMultiplier *= 1.0f + dispersionBonus</code>. For example, <code>0.25</code> gives +25% damage. Defaults to <code>0.0</code> (no bonus)</td>
                     </tr>
                     <tr>
                         <td><code>resonance_effect</code></td>
@@ -2312,6 +2319,7 @@ if (data.isPresent()) {
   "resonance_translation_key": "resonance.yourmod.void",
   "can_resonance_accumulation": true,
   "resonance_dmg_multiplier": 2.5,
+  "dispersion_bonus": 0.30,
   "resonance_effect": {
     "effect": "yourmod:void_resonance",
     "config": {

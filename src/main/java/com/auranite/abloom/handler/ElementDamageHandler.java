@@ -6,6 +6,7 @@ import com.auranite.abloom.component.ElementalWeaponComponent;
 import com.auranite.abloom.network.SpawnDamageNumberPacket;
 import com.auranite.abloom.network.SpawnStatusTextPacket;
 import com.auranite.abloom.network.SyncResonanceAccumulationMessage;
+import com.auranite.abloom.registries.CustomElementRegistry;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
@@ -1480,7 +1481,9 @@ public class ElementDamageHandler {
     }
 
     private static float getDispersionBonus(IElementalType type) {
-        if (type.isCustom()) return 0.0f;
+        if (type.isCustom()) {
+            return CustomElementRegistry.getDispersionBonus(type);
+        }
         com.auranite.abloom.util.ElementType et = (com.auranite.abloom.util.ElementType) type;
         return switch (et) {
             case PHYSICAL -> 0.15f;
