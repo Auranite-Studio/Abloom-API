@@ -59,19 +59,10 @@ public enum ElementType implements IElementalType {
     public record CustomElementType(String name, String damageTypeId, String displayName,
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
             @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
-            float dispersionBonus,
-            String namespace) implements IElementalType {
+            float dispersionBonus) implements IElementalType {
         public CustomElementType {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("Name must not be null or empty");
             if (damageTypeId == null || damageTypeId.isEmpty()) throw new IllegalArgumentException("Damage type ID must not be null or empty");
-        }
-
-        /**
-         * Returns the attribute ID for a given suffix (e.g. "_dmg_bonus", "_resist_mod", "_res_shred").
-         * Uses the element's namespace so attributes can be found via BuiltInRegistries.ATTRIBUTE.
-         */
-        public ResourceLocation attributeId(String suffix) {
-            return ResourceLocation.fromNamespaceAndPath(namespace, name().toLowerCase(java.util.Locale.ROOT) + suffix);
         }
 
         @Override
@@ -122,16 +113,13 @@ public enum ElementType implements IElementalType {
      * @param displayName    human-readable display name (e.g. "Plasma"); if null or empty, falls back to name
      * @param rawElementTranslationKey  the raw translation key for the element (e.g. "element.yourmod.custom")
      * @param rawResonanceTranslationKey  the raw translation key for resonance text (e.g. "resonance.yourmod.custom")
-     * @param dispersionBonus the dispersion bonus multiplier
-     * @param namespace the namespace where attributes are registered (e.g. "yourmod")
      * @return true if the type was newly registered, false if a type with this name or damage type ID already exists
      * @throws IllegalArgumentException if name or damageTypeId is null, empty, or contains invalid characters
      */
     public static boolean registerCustomElementType(String name, String damageTypeId, String displayName,
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
             @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
-            float dispersionBonus,
-            @org.jetbrains.annotations.Nullable String namespace) {
+            float dispersionBonus) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Element type name must not be null or empty");
         }
@@ -160,15 +148,12 @@ public enum ElementType implements IElementalType {
             return false;
         }
 
-        // Use "abloom" as default namespace if not specified
-        String finalNamespace = namespace != null && !namespace.isEmpty() ? namespace : AbloomMod.MODID;
-
         CustomElementType customType = new CustomElementType(normalizedName, damageTypeId, displayName,
-                rawElementTranslationKey, rawResonanceTranslationKey, dispersionBonus, finalNamespace);
+                rawElementTranslationKey, rawResonanceTranslationKey, dispersionBonus);
         CUSTOM_TYPES_BY_NAME.put(normalizedName, customType);
         CUSTOM_TYPES_BY_DAMAGE_ID.put(damageTypeId, customType);
 
-        AbloomMod.LOGGER.info("Registered custom element type '{}' (damage ID: '{}', namespace: '{}')", normalizedName, damageTypeId, finalNamespace);
+        AbloomMod.LOGGER.info("Registered custom element type '{}' (damage ID: '{}')", normalizedName, damageTypeId);
         return true;
     }
 

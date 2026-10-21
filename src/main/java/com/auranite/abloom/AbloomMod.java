@@ -6,7 +6,7 @@ import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 import com.auranite.abloom.network.EffectDisplayNetworking;
-
+import com.auranite.abloom.registries.CustomElementAttributeRegistry;
 import com.auranite.abloom.util.TauntTargetGoal;
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.*;
@@ -76,6 +76,7 @@ public class AbloomMod {
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
         AbloomModAttributes.REGISTRY.register(modEventBus);
+        CustomElementAttributeRegistry.register(modEventBus);
 
         ElementDamageHandler.initDamageColors();
         NeoForge.EVENT_BUS.register(com.auranite.abloom.handler.ElementDamageHandler.class);

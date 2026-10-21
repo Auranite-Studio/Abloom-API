@@ -12,7 +12,7 @@ import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
 import com.auranite.abloom.init.AbloomModAttachments;
 import com.auranite.abloom.init.AbloomModEffects;
-
+import com.auranite.abloom.registries.CustomElementAttributeRegistry;
 import com.auranite.abloom.util.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -1077,8 +1077,8 @@ public class ElementDamageHandler {
      */
     private static double getElementResistMod(LivingEntity attacker, IElementalType type) {
         if (type.isCustom()) {
-            if (type instanceof ElementType.CustomElementType custom) {
-                var attrId = custom.attributeId("_resist_mod");
+            var attrId = CustomElementAttributeRegistry.getResistModId(type);
+            if (attrId != null) {
                 var holder = BuiltInRegistries.ATTRIBUTE.getHolder(attrId);
                 if (holder.isPresent()) {
                     var instance = attacker.getAttribute(holder.get());
@@ -1158,8 +1158,8 @@ public class ElementDamageHandler {
      */
     private static double getElementResShred(LivingEntity attacker, IElementalType type) {
         if (type.isCustom()) {
-            if (type instanceof ElementType.CustomElementType custom) {
-                var attrId = custom.attributeId("_res_shred");
+            var attrId = CustomElementAttributeRegistry.getResShredId(type);
+            if (attrId != null) {
                 var holder = BuiltInRegistries.ATTRIBUTE.getHolder(attrId);
                 if (holder.isPresent()) {
                     var instance = attacker.getAttribute(holder.get());
@@ -1240,8 +1240,8 @@ public class ElementDamageHandler {
      */
     private static float applyElementalDamageBonus(LivingEntity attacker, IElementalType type, float baseDamage) {
         if (type.isCustom()) {
-            if (type instanceof ElementType.CustomElementType custom) {
-                var attrId = custom.attributeId("_dmg_bonus");
+            var attrId = CustomElementAttributeRegistry.getDmgBonusId(type);
+            if (attrId != null) {
                 var holder = BuiltInRegistries.ATTRIBUTE.getHolder(attrId);
                 if (holder.isPresent()) {
                     var instance = attacker.getAttribute(holder.get());

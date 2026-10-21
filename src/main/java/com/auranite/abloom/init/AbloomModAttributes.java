@@ -4,7 +4,7 @@
 package com.auranite.abloom.init;
 
 import com.auranite.abloom.AbloomMod;
-
+import com.auranite.abloom.registries.CustomElementAttributeRegistry;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.event.entity.EntityAttributeModificationEvent;
@@ -121,6 +121,8 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, LIGHT_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, PRISMATIC_RES_SHRED));
-        // Custom element attributes are looked up by name in ElementDamageHandler
+        
+        // Add dynamically registered attributes for custom elemental types
+        CustomElementAttributeRegistry.addCustomElementAttributes(event);
     }
 }
