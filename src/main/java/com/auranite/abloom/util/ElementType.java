@@ -176,14 +176,21 @@ public enum ElementType implements IElementalType {
      * Convenience variant that uses the name as display name.
      */
     public static boolean registerCustomElementType(String name, String damageTypeId) {
-        return registerCustomElementType(name, damageTypeId, null, null, null, 0.0f);
+        return registerCustomElementType(name, damageTypeId, null, null, null, 0.0f, null);
     }
 
     /**
      * Convenience variant that uses the name as display name with a custom dispersion bonus.
      */
     public static boolean registerCustomElementType(String name, String damageTypeId, float dispersionBonus) {
-        return registerCustomElementType(name, damageTypeId, null, null, null, dispersionBonus);
+        return registerCustomElementType(name, damageTypeId, null, null, null, dispersionBonus, null);
+    }
+
+    /**
+     * Convenience variant with namespace.
+     */
+    public static boolean registerCustomElementType(String name, String damageTypeId, String displayName, float dispersionBonus, String namespace) {
+        return registerCustomElementType(name, damageTypeId, displayName, null, null, dispersionBonus, namespace);
     }
 
     /** Looks up a custom element type by its name. */

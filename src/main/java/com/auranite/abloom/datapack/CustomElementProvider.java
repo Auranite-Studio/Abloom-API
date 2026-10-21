@@ -117,16 +117,12 @@ public class CustomElementProvider {
             String damageTypeId = elementData.getDamageTypeId();
 
             // Register the custom element type with namespace from element_id
-            String elementName = elementData.getElementName();
-            String damageTypeId = elementData.getDamageTypeId();
             String namespace = elementData.elementId().getNamespace();
 
             boolean registered = ElementType.registerCustomElementType(
                     elementName,
                     damageTypeId,
                     elementData.getDisplayName(),
-                    elementData.getRawElementTranslationKey(),
-                    elementData.getRawResonanceTranslationKey(),
                     elementData.dispersionBonus(),
                     namespace
             );
