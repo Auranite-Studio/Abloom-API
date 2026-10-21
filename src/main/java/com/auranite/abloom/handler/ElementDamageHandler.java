@@ -12,7 +12,6 @@ import com.auranite.abloom.registries.ElementalWeaponRegistry;
 import com.auranite.abloom.init.AbloomModAttributes;
 import com.auranite.abloom.init.AbloomModAttachments;
 import com.auranite.abloom.init.AbloomModEffects;
-import com.auranite.abloom.registries.CustomElementAttributeRegistry;
 import com.auranite.abloom.util.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -1076,17 +1075,7 @@ public class ElementDamageHandler {
      * @return the resistance modifier value
      */
     private static double getElementResistMod(LivingEntity attacker, IElementalType type) {
-        if (type.isCustom()) {
-            var attrId = CustomElementAttributeRegistry.getResistModId(type);
-            if (attrId != null) {
-                var holder = BuiltInRegistries.ATTRIBUTE.getHolder(attrId);
-                if (holder.isPresent()) {
-                    var instance = attacker.getAttribute(holder.get());
-                    if (instance != null) return instance.getValue();
-                }
-            }
-            return 0.0;
-        }
+        if (type.isCustom()) return 0.0;
         return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RESIST_MOD.getKey()));
@@ -1157,17 +1146,7 @@ public class ElementDamageHandler {
      * @return the resistance shred value
      */
     private static double getElementResShred(LivingEntity attacker, IElementalType type) {
-        if (type.isCustom()) {
-            var attrId = CustomElementAttributeRegistry.getResShredId(type);
-            if (attrId != null) {
-                var holder = BuiltInRegistries.ATTRIBUTE.getHolder(attrId);
-                if (holder.isPresent()) {
-                    var instance = attacker.getAttribute(holder.get());
-                    if (instance != null) return instance.getValue();
-                }
-            }
-            return 0.0;
-        }
+        if (type.isCustom()) return 0.0;
         return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RES_SHRED.getKey()));
@@ -1239,19 +1218,7 @@ public class ElementDamageHandler {
      * @return the damage with elemental bonus applied
      */
     private static float applyElementalDamageBonus(LivingEntity attacker, IElementalType type, float baseDamage) {
-        if (type.isCustom()) {
-            var attrId = CustomElementAttributeRegistry.getDmgBonusId(type);
-            if (attrId != null) {
-                var holder = BuiltInRegistries.ATTRIBUTE.getHolder(attrId);
-                if (holder.isPresent()) {
-                    var instance = attacker.getAttribute(holder.get());
-                    if (instance != null && instance.getValue() != 0.0) {
-                        return Math.max(0.0f, baseDamage * (1.0f + (float) instance.getValue()));
-                    }
-                }
-            }
-            return baseDamage;
-        }
+        if (type.isCustom()) return baseDamage;
         double bonusValue = switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_DMG_BONUS.getKey()));
