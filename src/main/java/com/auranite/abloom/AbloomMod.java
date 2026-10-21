@@ -6,6 +6,7 @@ import com.auranite.abloom.datapack.ElementalWeaponProvider;
 import com.auranite.abloom.datapack.ArmorResistanceProvider;
 import com.auranite.abloom.network.ClientEntityEffectsStorage;
 import com.auranite.abloom.network.EffectDisplayNetworking;
+import com.auranite.abloom.registries.CustomElementAttributeRegistry;
 import com.auranite.abloom.util.TauntTargetGoal;
 import com.auranite.abloom.handler.ElementDamageHandler;
 import com.auranite.abloom.init.*;
@@ -15,15 +16,11 @@ import com.auranite.abloom.registries.ElementResistanceRegistry;
 import com.auranite.abloom.registries.ElementalProjectileRegistry;
 import com.auranite.abloom.registries.CustomElementRegistry;
 import com.auranite.abloom.util.*;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobCategory;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -79,6 +76,7 @@ public class AbloomMod {
         AbloomModItems.REGISTRY.register(modEventBus);
         AbloomModTabs.REGISTRY.register(modEventBus);
         AbloomModAttributes.REGISTRY.register(modEventBus);
+        CustomElementAttributeRegistry.register(modEventBus);
 
         ElementDamageHandler.initDamageColors();
         NeoForge.EVENT_BUS.register(com.auranite.abloom.handler.ElementDamageHandler.class);
@@ -125,17 +123,12 @@ public class AbloomMod {
 
     private void setup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
-            // Load custom elemental types from datapacks (must be done first)
-            AbloomMod.LOGGER.info("Loading custom elemental types from datapacks...");
-            CustomElementRegistry.loadFromDatapacks();
-            AbloomMod.LOGGER.info("Custom elemental types loading complete");
-            
-            // Load elemental weapons datapack
+            // Custom element types and attributes are already loaded via RegisterEvent.
+            // Only load elemental weapons and armor resistances here (they don't need attributes).
             AbloomMod.LOGGER.info("Loading elemental weapons datapack...");
             ElementalWeaponProvider.loadFromResources();
             AbloomMod.LOGGER.info("Elemental weapons datapack loaded");
             
-            // Load armor resistances datapack
             AbloomMod.LOGGER.info("Loading armor resistances datapack...");
             ArmorResistanceProvider.loadFromResources();
             AbloomMod.LOGGER.info("Armor resistances datapack loaded");
