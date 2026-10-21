@@ -1066,6 +1066,35 @@ public class ElementDamageHandler {
     }
 
     /**
+     * Gets the attribute value for a custom element by constructing the attribute name dynamically.
+     * Attribute names follow the pattern: "{namespace}:{element}_{suffix}"
+     * where {element} is the lowercase element name (e.g., "plasma").
+     *
+     * @param attacker the attacking entity
+     * @param type the custom elemental type
+     * @param suffix the attribute suffix ("dmg_bonus", "resist_mod", "res_shred")
+     * @return the attribute value, or 0.0 if the attribute is not found
+     */
+    private static double getCustomElementAttributeValue(LivingEntity attacker, IElementalType type, String suffix) {
+        var data = CustomElementRegistry.getData(type);
+        if (data.isEmpty()) return 0.0;
+
+        ResourceLocation elementId = data.get().elementId();
+        String namespace = elementId.getNamespace();
+        String elementName = type.name().toLowerCase(java.util.Locale.ROOT);
+        String attributeName = namespace + ":" + elementName + "_" + suffix;
+
+        ResourceLocation attrLocation = ResourceLocation.tryParse(attributeName);
+        if (attrLocation == null) return 0.0;
+
+        var attrHolder = BuiltInRegistries.ATTRIBUTE.getHolder(attrLocation);
+        if (attrHolder.isEmpty()) return 0.0;
+
+        var attr = attacker.getAttribute(attrHolder.get());
+        return attr != null ? attr.getValue() : 0.0;
+    }
+
+    /**
      * Applies elemental resistance modifier attributes from the attacker.
      * Each element has a dedicated attribute with range [-1, 1], representing ±100% resistance modifier.
      * Positive = more resistance (less damage), Negative = less resistance (more damage).
@@ -1075,7 +1104,7 @@ public class ElementDamageHandler {
      * @return the resistance modifier value
      */
     private static double getElementResistMod(LivingEntity attacker, IElementalType type) {
-        if (type.isCustom()) return 0.0;
+        if (type.isCustom()) return getCustomElementAttributeValue(attacker, type, "resist_mod");
         return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RESIST_MOD.getKey()));
@@ -1146,7 +1175,7 @@ public class ElementDamageHandler {
      * @return the resistance shred value
      */
     private static double getElementResShred(LivingEntity attacker, IElementalType type) {
-        if (type.isCustom()) return 0.0;
+        if (type.isCustom()) return getCustomElementAttributeValue(attacker, type, "res_shred");
         return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RES_SHRED.getKey()));
@@ -1218,7 +1247,11 @@ public class ElementDamageHandler {
      * @return the damage with elemental bonus applied
      */
     private static float applyElementalDamageBonus(LivingEntity attacker, IElementalType type, float baseDamage) {
-        if (type.isCustom()) return baseDamage;
+        if (type.isCustom()) {
+            double bonusValue = getCustomElementAttributeValue(attacker, type, "dmg_bonus");
+            if (bonusValue == 0.0) return baseDamage;
+            return Math.max(0.0f, baseDamage * (1.0f + (float) bonusValue));
+        }
         double bonusValue = switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_DMG_BONUS.getKey()));
