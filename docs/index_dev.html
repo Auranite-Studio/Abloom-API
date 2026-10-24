@@ -2051,6 +2051,7 @@ public class MyModElements {
   "color": "0x2B004C",
   "element_translation_key": "element.yourmod.custom",
   "resonance_translation_key": "resonance.yourmod.custom",
+  "base_element": "FIRE",
   "can_resonance_accumulation": true,
   "resonance_dmg_multiplier": 2.0,
   "dispersion_bonus": 0.25,
@@ -2121,6 +2122,12 @@ public class MyModElements {
                         <td>Float</td>
                         <td>No</td>
                         <td>Damage bonus multiplier when the target has the DISPERSION effect. Applied as <code>damageMultiplier *= 1.0f + dispersionBonus</code>. For example, <code>0.25</code> gives +25% damage. Defaults to <code>0.0</code> (no bonus)</td>
+                    </tr>
+                    <tr>
+                        <td><code>base_element</code></td>
+                        <td>String</td>
+                        <td>No</td>
+                        <td>Specifies the base element for damage bonus attributes and threshold multipliers. When set, the custom element uses the base element's attributes (<code>{element}_dmg_bonus</code>, <code>{element}_resist_mod</code>, <code>{element}_res_shred</code>). If <code>resonance_dmg_multiplier</code> is not specified, it defaults to the base element's threshold multiplier. For example, <code>"FIRE"</code> makes the custom element use <code>fire_dmg_bonus</code> and defaults <code>resonance_dmg_multiplier</code> to 2.0 (FIRE's threshold). Defaults to <code>null</code> (uses own attributes, <code>resonance_dmg_multiplier</code> defaults to 1.0)</td>
                     </tr>
                     <tr>
                         <td><code>resonance_effect</code></td>
@@ -2263,6 +2270,13 @@ if (data.isPresent()) {
     // Get resonance multiplier
     float multiplier = CustomElementRegistry.getResonanceMultiplier(type);
     
+    // Get base element (if set)
+    String baseElement = CustomElementRegistry.getBaseElement(type);
+    if (baseElement != null) {
+        // This element uses base element's attributes and threshold multiplier
+        // e.g., "FIRE" → uses fire_dmg_bonus, fire_resist_mod, FIRE threshold (2.0)
+    }
+    
     // Get resonance effect config
     Optional&lt;CustomElementData.ResonanceEffectConfig&gt; resonanceEffect = 
         CustomElementRegistry.getResonanceEffectConfig(type);
@@ -2309,7 +2323,7 @@ if (data.isPresent()) {
                 </ol>
             </div>
 
-            <h4>Example: Void Element</h4>
+            <h4>Example: Void Element (without base_element)</h4>
             <p>Complete example of a void element definition:</p>
             <pre><code>{
   "element_id": "yourmod:void",
@@ -2344,8 +2358,63 @@ if (data.isPresent()) {
   "effect.yourmod.void_resonance": "Резонанс Пустоты"
 }</code></pre>
 
+            <h4>Example: Blue Fire Element (with base_element)</h4>
+            <p>A themed "Blue Fire" element that uses FIRE's attributes, but has its own custom resonance effect:</p>
+            <pre><code>{
+  "element_id": "yourmod:blue_fire",
+  "color": "0x4488FF",
+  "element_translation_key": "element.yourmod.blue_fire",
+  "base_element": "FIRE",
+  "resonance_dmg_multiplier": 1.5,
+  "resonance_effect": {
+    "effect": "yourmod:blue_burn",
+    "config": {
+      "duration": 240,
+      "amplifier": 0
+    }
+  }
+}</code></pre>
+
+            <p><strong>What this does:</strong></p>
+            <ul>
+                <li><strong>Damage bonus:</strong> Uses <code>fire_dmg_bonus</code> attribute (not <code>blue_fire_dmg_bonus</code>)</li>
+                <li><strong>Resistance:</strong> Uses <code>fire_resist_mod</code> and <code>fire_res_shred</code> attributes</li>
+                <li><strong>Threshold multiplier:</strong> <code>resonance_dmg_multiplier</code> = 1.5 (custom, overrides FIRE's default 2.0)</li>
+                <li><strong>Custom properties:</strong> Own <code>resonance_dmg_multiplier</code> (1.5) and <code>resonance_effect</code> (blue_burn)</li>
+                <li><strong>Result:</strong> Resonance explosion damage = <code>1.5 (blue_fire) + frequencyBonus</code></li>
+            </ul>
+
+            <h4>Example: Blue Fire Element (without resonance_dmg_multiplier)</h4>
+            <p>If <code>resonance_dmg_multiplier</code> is omitted, it defaults to the base element's threshold multiplier:</p>
+            <pre><code>{
+  "element_id": "yourmod:blue_fire",
+  "color": "0x4488FF",
+  "element_translation_key": "element.yourmod.blue_fire",
+  "base_element": "FIRE",
+  "resonance_effect": {
+    "effect": "yourmod:blue_burn",
+    "config": {
+      "duration": 240,
+      "amplifier": 0
+    }
+  }
+}</code></pre>
+
+            <p><strong>What this does:</strong></p>
+            <ul>
+                <li><strong>Damage bonus:</strong> Uses <code>fire_dmg_bonus</code> attribute</li>
+                <li><strong>Resistance:</strong> Uses <code>fire_resist_mod</code> and <code>fire_res_shred</code> attributes</li>
+                <li><strong>Threshold multiplier:</strong> <code>resonance_dmg_multiplier</code> defaults to 2.0 (FIRE's threshold multiplier)</li>
+                <li><strong>Custom properties:</strong> Own <code>resonance_effect</code> (blue_burn)</li>
+                <li><strong>Result:</strong> Resonance explosion damage = <code>2.0 (FIRE default) + frequencyBonus</code></li>
+            </ul>
+
             <div class="note">
                 <strong>Registration:</strong> Custom elements are automatically loaded from datapacks during mod initialization via <code>CustomElementRegistry.loadFromDatapacks()</code> called from <code>AbloomMod.setup()</code>. No manual registration is required — just place your JSON files in the correct directory structure and they will be available at runtime.
+            </div>
+
+            <div class="tip">
+                <strong>Use Case:</strong> The <code>base_element</code> field is useful for themed elements that should share mechanics with an existing element. For example, "Blue Fire" (fire-themed but blue) uses fire attributes, while having its own visual appearance and custom resonance effect. If <code>resonance_dmg_multiplier</code> is not specified, it defaults to the base element's threshold multiplier, making it easy to create elements that share all mechanics except the resonance effect.
             </div>
         </section>
 

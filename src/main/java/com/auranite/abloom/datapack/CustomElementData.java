@@ -24,6 +24,7 @@ import java.lang.reflect.Type;
  *   "color": 2891628,
  *   "element_translation_key": "element.yourmod.custom",
  *   "resonance_translation_key": "resonance_text.yourmod.custom",
+ *   "base_element": "FIRE",
  *   "can_resonance_accumulation": true,
  *   "resonance_dmg_multiplier": 2.0,
  *   "dispersion_bonus": 0.25,
@@ -43,6 +44,7 @@ public record CustomElementData(
         int color,
         @Nullable String elementTranslationKey,
         @Nullable String resonanceTranslationKey,
+        @Nullable String baseElement,
         boolean canResonanceAccumulation,
         double resonanceDmgMultiplier,
         float dispersionBonus,
@@ -195,10 +197,26 @@ public record CustomElementData(
             canResonanceAccumulation = json.get("can_resonance_accumulation").getAsBoolean();
         }
 
-        // Parse resonance_dmg_multiplier (optional, defaults to 1.0)
-        double resonanceDmgMultiplier = 1.0;
+        // Parse base_element first (optional) - needed for default resonance_dmg_multiplier
+        String baseElement = null;
+        if (json.has("base_element") && !json.get("base_element").isJsonNull()) {
+            baseElement = json.get("base_element").getAsString();
+        }
+
+        // Parse resonance_dmg_multiplier (optional, defaults to base element's threshold multiplier)
+        double resonanceDmgMultiplier;
         if (json.has("resonance_dmg_multiplier") && !json.get("resonance_dmg_multiplier").isJsonNull()) {
             resonanceDmgMultiplier = json.get("resonance_dmg_multiplier").getAsDouble();
+        } else if (baseElement != null) {
+            // Use base element's threshold multiplier as default
+            ElementType baseType = ElementType.safeValueOf(baseElement);
+            if (baseType != null) {
+                resonanceDmgMultiplier = ElementType.getBaseThresholdMultiplier(baseType);
+            } else {
+                resonanceDmgMultiplier = 1.0;
+            }
+        } else {
+            resonanceDmgMultiplier = 1.0;
         }
 
         // Parse dispersion_bonus (optional, defaults to 0.0)
@@ -219,6 +237,7 @@ public record CustomElementData(
                 color,
                 elementTranslationKey,
                 resonanceTranslationKey,
+                baseElement,
                 canResonanceAccumulation,
                 resonanceDmgMultiplier,
                 dispersionBonus,
@@ -285,6 +304,7 @@ public record CustomElementData(
         private int color = 0xFFFFFF;
         private String elementTranslationKey = null;
         private String resonanceTranslationKey = null;
+        private String baseElement = null;
         private boolean canResonanceAccumulation = true;
         private double resonanceDmgMultiplier = 1.0;
         private float dispersionBonus = 0.0f;
@@ -330,6 +350,11 @@ public record CustomElementData(
             return this;
         }
 
+        public Builder baseElement(String baseElement) {
+            this.baseElement = baseElement;
+            return this;
+        }
+
         public Builder resonanceEffect(ResonanceEffectConfig resonanceEffect) {
             this.resonanceEffect = resonanceEffect;
             return this;
@@ -345,6 +370,7 @@ public record CustomElementData(
                     color,
                     elementTranslationKey,
                     resonanceTranslationKey,
+                    baseElement,
                     canResonanceAccumulation,
                     resonanceDmgMultiplier,
                     dispersionBonus,

@@ -30,6 +30,7 @@ import java.util.stream.Stream;
  *   "color": 2891628,
  *   "element_translation_key": "element.yourmod.custom",
  *   "resonance_translation_key": "resonance_text.yourmod.custom",
+ *   "base_element": "FIRE",
  *   "can_resonance_accumulation": true,
  *   "resonance_dmg_multiplier": 2.0,
  *   "dispersion_bonus": 0.25,
@@ -123,6 +124,7 @@ public class CustomElementProvider {
                     elementData.getDisplayName(),
                     elementData.getRawElementTranslationKey(),
                     elementData.getRawResonanceTranslationKey(),
+                    elementData.baseElement(),
                     elementData.dispersionBonus()
             );
 
@@ -146,9 +148,10 @@ public class CustomElementProvider {
             }
 
             // Log element configuration
-            AbloomMod.LOGGER.info("Loaded custom element '{}' (color: 0x{:06X}, resonance: {}, multiplier: {:.1f}, dispersion: {:.0f}%) from mod {}",
+            AbloomMod.LOGGER.info("Loaded custom element '{}' (color: 0x{:06X}, base_element: {}, resonance: {}, multiplier: {:.1f}, dispersion: {:.0f}%) from mod {}",
                     elementName,
                     elementData.color() & 0xFFFFFF,
+                    elementData.baseElement() != null ? elementData.baseElement() : "none",
                     elementData.canResonanceAccumulation(),
                     elementData.resonanceDmgMultiplier(),
                     elementData.dispersionBonus() * 100.0f,

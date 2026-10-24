@@ -7,6 +7,7 @@ import com.auranite.abloom.util.ElementType;
 import com.auranite.abloom.util.IElementalType;
 import net.minecraft.resources.ResourceLocation;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -154,8 +155,27 @@ public class CustomElementRegistry {
     }
 
     /**
+     * Gets the base element for a custom elemental type.
+     * The base element is used for damage bonus attributes and threshold multipliers.
+     *
+     * @param type the elemental type (must be custom)
+     * @return the base element name (e.g., "FIRE", "ICE"), or null if not set or type is not custom
+     */
+    public static @Nullable String getBaseElement(IElementalType type) {
+        if (type == null || !type.isCustom()) {
+            return null;
+        }
+        String elementName = type.name();
+        CustomElementData data = ELEMENT_DATA_BY_NAME.get(elementName);
+        if (data != null) {
+            return data.baseElement();
+        }
+        return null;
+    }
+
+    /**
      * Gets the resonance effect config for a custom elemental type.
-     * 
+     *
      * @param type the elemental type (must be custom)
      * @return Optional containing the resonance effect config, or empty if not found or no resonance effect
      */

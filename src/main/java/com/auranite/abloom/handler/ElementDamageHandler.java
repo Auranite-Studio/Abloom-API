@@ -1067,6 +1067,7 @@ public class ElementDamageHandler {
 
     /**
      * Gets the attribute value for a custom element by constructing the attribute name dynamically.
+     * If the element has a base_element set, attributes are looked up from the base element instead.
      * Attribute names follow the pattern: "{namespace}:{element}_{suffix}"
      * where {element} is the lowercase element name (e.g., "plasma").
      *
@@ -1082,6 +1083,28 @@ public class ElementDamageHandler {
         ResourceLocation elementId = data.get().elementId();
         String namespace = elementId.getNamespace();
         String elementName = type.name().toLowerCase(java.util.Locale.ROOT);
+
+        // Check if this element has a base_element set
+        String baseElement = CustomElementRegistry.getBaseElement(type);
+        if (baseElement != null && !baseElement.isEmpty()) {
+            if (baseElement.contains(":")) {
+                // Custom base element with namespace
+                ResourceLocation baseRl = ResourceLocation.tryParse(baseElement);
+                if (baseRl != null) {
+                    namespace = baseRl.getNamespace();
+                    elementName = baseRl.getPath().toLowerCase(java.util.Locale.ROOT);
+                }
+            } else {
+                // Built-in base element (e.g., "FIRE", "ICE")
+                // Use the built-in element's damage type ID for attribute lookup
+                com.auranite.abloom.util.ElementType baseType = com.auranite.abloom.util.ElementType.safeValueOf(baseElement);
+                if (baseType != null) {
+                    namespace = "abloom";
+                    elementName = baseType.damageTypeId().replace("_dmg", "");
+                }
+            }
+        }
+
         String attributeName = namespace + ":" + elementName + "_" + suffix;
 
         ResourceLocation attrLocation = ResourceLocation.tryParse(attributeName);
@@ -1435,11 +1458,12 @@ public class ElementDamageHandler {
             return originalDamage;
         }
 
-        // Calculate total threshold damage multiplier: base (2.0) * resonance_dmg_multiplier + frequencyBonus
-        float baseMultiplier = 2.0f;
+        // resonanceDmgMultiplier already contains the resolved base multiplier:
+        // - If specified in JSON: uses that value
+        // - If not specified: defaults to base_element's threshold multiplier (or 1.0 if no base_element)
         float resonanceMultiplier = (float) data.resonanceDmgMultiplier();
         float frequencyBonus = resonanceFrequency * 0.01f; // 1 unit = 0.01 multiplier (same as built-in)
-        float totalMultiplier = baseMultiplier * resonanceMultiplier + frequencyBonus;
+        float totalMultiplier = resonanceMultiplier + frequencyBonus;
 
         // Apply resonance effect if configured
         if (data.resonanceEffect() != null) {
