@@ -1,0 +1,9 @@
+{
+  "sources": [
+    {
+      "type": "directory",
+      "prefix": "resonance_effects/",
+      "resource": "abloom:textures/resonance_effects"
+    }
+  ]
+}

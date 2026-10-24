@@ -38,6 +38,10 @@ import java.lang.reflect.Type;
  *   }
  * }
  * }</pre>
+ * <p><b>Icon texture:</b> for custom elements, place an icon at
+ * {@code assets/{namespace}/textures/resonance_effects/{element_id_path}.png}
+ * (e.g. {@code assets/yourmod/textures/resonance_effects/custom_element.png}).
+ * The mod must also register a {@code data/{namespace}/atlases/resonance_effects.json} atlas.
  */
 public record CustomElementData(
         ResourceLocation elementId,
