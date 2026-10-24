@@ -13,9 +13,20 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent.Stage;
+import net.neoforged.neoforge.client.event.ClientReloadResourcesEvent;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientEventHandler {
+
+    /**
+     * Resonance icon sprites are loaded as standalone textures outside of the vanilla atlas
+     * lifecycle, so they must be released and re-read when resources are reloaded (F3+T or
+     * datapack changes), otherwise updated icons would never take effect.
+     */
+    @SubscribeEvent
+    public void onClientReloadResources(ClientReloadResourcesEvent event) {
+        ResonanceIconTextures.clearCache();
+    }
 
     @SubscribeEvent
     public void onRenderLevel(RenderLevelStageEvent event) {

@@ -18,7 +18,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Font.DisplayMode;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.RenderType.CompositeState;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -239,35 +238,17 @@ public class EffectRenderUtil {
     }
 
     private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize, MultiBufferSource buffers, Minecraft minecraft) {
-        ResourceLocation spriteLocation;
-        if (!type.isCustom()) {
-            // Built-in elements: always from abloom
-            spriteLocation = ResourceLocation.fromNamespaceAndPath("abloom", "textures/resonance_effects/" + type.name().toLowerCase(java.util.Locale.ROOT) + ".png");
-        } else {
-            // Custom elements: namespace from elementId (e.g. "yourmod" -> assets/yourmod/textures/resonance_effects/...)
-            String elementName = type.name().toLowerCase(java.util.Locale.ROOT);
-            String namespace = "abloom";
-            var dataOpt = com.auranite.abloom.registries.CustomElementRegistry.getData(type);
-            if (dataOpt.isPresent()) {
-                namespace = dataOpt.get().elementId().getNamespace();
+        // Load the icon directly from assets/<namespace>/textures/resonance_effects/<name>.png.
+        // NOTE: these textures are NOT part of the blocks atlas, so requesting them via
+        // minecraft.getTextureAtlas(LOCATION_BLOCKS) used to return the missing-texture sprite.
+        TextureAtlasSprite sprite = com.auranite.abloom.client.ResonanceIconTextures.getSprite(minecraft, type);
+        if (sprite != null) {
+            try {
+                drawSprite(poseStack, sprite, halfSize, buffers);
+                return;
+            } catch (Exception e) {
+                // Fall through to colored square
             }
-            spriteLocation = ResourceLocation.fromNamespaceAndPath(namespace, "textures/resonance_effects/" + elementName + ".png");
-        }
-
-        // Try to get sprite from blocks atlas (contains all assets/*/textures/*.png)
-        try {
-            java.util.function.Function<net.minecraft.resources.ResourceLocation, TextureAtlasSprite> spriteGetter = minecraft.getTextureAtlas(net.minecraft.client.renderer.texture.TextureAtlas.LOCATION_BLOCKS);
-            TextureAtlasSprite sprite = spriteGetter.apply(spriteLocation);
-            if (sprite != null && (sprite.getU0() != 0.0F || sprite.getU1() != 1.0F)) {
-                try {
-                    drawSprite(poseStack, sprite, halfSize, buffers);
-                    return;
-                } catch (Exception e) {
-                    // Fall through to colored square
-                }
-            }
-        } catch (Exception e) {
-            // blocks atlas not available
         }
 
         // Fallback: colored square
