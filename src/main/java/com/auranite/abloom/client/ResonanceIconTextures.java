@@ -4,14 +4,13 @@ import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.datapack.CustomElementData;
 import com.auranite.abloom.registries.CustomElementRegistry;
 import com.auranite.abloom.util.IElementalType;
-import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.SpriteContents;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.metadata.animation.AnimationSectionsMetadata;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.world.inventory.InventoryMenu;
 
@@ -31,10 +30,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * actually uploaded at runtime. As a result every lookup returned the missing-texture sprite, which
  * produced "missing texture" errors on icon load.
  *
- * <p>This utility loads each PNG directly as an individual OpenGL texture and wraps it into a
- * {@link TextureAtlasSprite} bound to {@link InventoryMenu#BLOC_PARTICLES_ATLAS_LOCATION}, so the
- * icons can be rendered reliably without depending on atlas stitching. Sprites are cached per
- * location; failed loads are also cached (as {@code null}) to avoid repeated IO and log spam.
+ * <p><b>The fix:</b> these textures ARE stitched into the vanilla inventory/particles atlas at
+ * runtime, because NeoForge installs a resource-{@code lister} for every folder declared in the
+ * mod's {@code assets/<namespace>/textures/atlases.json} file (see
+ * {@code neoforge.assets.<pack_id>.textures.atlases.json} generated from
+ * {@code src/main/resources/assets/abloom/textures/atlases.json}, which lists
+ * {@code resonance_effects}). The atlas JSONs ({@code data/abloom/atlases/*.json}) then merge those
+ * loose sprites into the corresponding atlases. So the correct way to obtain an icon sprite is
+ * {@code minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)} — exactly what vanilla does for GUI
+ * items. This class keeps that lookup but adds:
+ * <ul>
+ *   <li>a proper path resolver honoring the datapack contract for custom elements
+ *       ({@code element_id} based namespace/path instead of the raw enum name);</li>
+ *   <li>a missing-sprite check via {@link MissingTextureAtlasSprite#isMissingSprite}, so callers get
+ *       {@code null} and fall back to the colored square instead of rendering the purple-black
+ *       checker;</li>
+ *   <li>a cache, avoiding repeated atlas lookups and duplicate error logs.</li>
+ * </ul>
+ * No reflection or internal {@code SpriteContents} construction is used, so this compiles cleanly
+ * against the NeoForge 21.1 (MC 1.21.1) development artifact.
  */
 public final class ResonanceIconTextures {
 
