@@ -127,7 +127,7 @@ public class ElementalTooltipHandler {
         float weaponCritDamage = ElementalWeaponUtils.getCritDamage(stack);
         float resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(stack);
 
-        if (type != null && (type.name().equals("PRISMATIC") || accumPoints > 1.0f)) {
+        if (type != null && (type.isPrismatic() || accumPoints > 1.0f)) {
             MutableComponent elementText = getElementText(type);
             event.getToolTip().add(1, elementText);
         }
@@ -183,7 +183,7 @@ public class ElementalTooltipHandler {
         }
 
         // Show resonance frequency if present
-        if (resonanceFrequency > 0.0f && accumPoints > 1.0f && !type.name().equals("PRISMATIC")) {
+        if (resonanceFrequency > 0.0f && accumPoints > 1.0f && !type.isPrismatic()) {
             MutableComponent resonanceText = Component.translatable(
                     KEY_RESONANCE_FREQUENCY,
                     Math.round(resonanceFrequency)
@@ -192,7 +192,7 @@ public class ElementalTooltipHandler {
             event.getToolTip().add(Component.literal(" ").append(resonanceText));
         }
 
-        if (accumPoints > 1.0f && !type.name().equals("PRISMATIC") ) {
+        if (accumPoints > 1.0f && !type.isPrismatic()) {
             MutableComponent accumText = Component.translatable(
                     KEY_ACCUM_POINTS,
                     String.format("%d", Math.round(accumPoints))

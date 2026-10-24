@@ -23,7 +23,12 @@ public enum ElementType implements IElementalType {
     ETHER("ether_dmg"),
     LIGHT("light_dmg"),
     SHADOW("shadow_dmg"),
-    PRISMATIC("prismatic_dmg");
+    PRISMATIC("prismatic_dmg") {
+        @Override
+        public boolean isPrismatic() {
+            return true;
+        }
+    };
 
     private final String damageTypeId;
 
@@ -97,6 +102,11 @@ public enum ElementType implements IElementalType {
         @org.jetbrains.annotations.Nullable
         public String getBaseElement() {
             return baseElement;
+        }
+
+        @Override
+        public boolean isPrismatic() {
+            return "PRISMATIC".equalsIgnoreCase(baseElement);
         }
 
         /**

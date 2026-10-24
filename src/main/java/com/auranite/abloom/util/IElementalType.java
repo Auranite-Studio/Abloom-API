@@ -24,6 +24,12 @@ public interface IElementalType {
     default float getDispersionBonus() { return 0.0f; }
 
     /**
+     * Returns true if this element type is PRISMATIC (either built-in or via base_element).
+     * Used to gate Prismatic conversion mechanics in ElementDamageHandler.
+     */
+    default boolean isPrismatic() { return false; }
+
+    /**
      * Looks up a built-in ElementType by its enum name.
      * @return Optional containing the ElementType, or empty if not found
      */

@@ -36,8 +36,6 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> ETHER_DMG_BONUS = REGISTRY.register("ether_dmg_bonus", () -> new RangedAttribute("attribute.power.ether_dmg_bonus", 0, -1, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> LIGHT_DMG_BONUS = REGISTRY.register("light_dmg_bonus", () -> new RangedAttribute("attribute.power.light_dmg_bonus", 0, -1, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> SHADOW_DMG_BONUS = REGISTRY.register("shadow_dmg_bonus", () -> new RangedAttribute("attribute.power.shadow_dmg_bonus", 0, -1, 1).setSyncable(true));
-    public static final DeferredHolder<Attribute, Attribute> PRISMATIC_DMG_BONUS = REGISTRY.register("prismatic_dmg_bonus", () -> new RangedAttribute("attribute.power.prismatic_dmg_bonus", 0, -1, 1).setSyncable(true));
-
     // Elemental resistance modifier attributes: range -1 to 1 (±100% resistance modifier)
     // Positive = more resistance (less damage), Negative = less resistance (more damage)
     public static final DeferredHolder<Attribute, Attribute> FIRE_RESIST_MOD = REGISTRY.register("fire_resist_mod", () -> new RangedAttribute("attribute.power.fire_resist_mod", 0, -1, 1).setSyncable(true));
@@ -53,8 +51,6 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> ETHER_RESIST_MOD = REGISTRY.register("ether_resist_mod", () -> new RangedAttribute("attribute.power.ether_resist_mod", 0, -1, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> LIGHT_RESIST_MOD = REGISTRY.register("light_resist_mod", () -> new RangedAttribute("attribute.power.light_resist_mod", 0, -1, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> SHADOW_RESIST_MOD = REGISTRY.register("shadow_resist_mod", () -> new RangedAttribute("attribute.power.shadow_resist_mod", 0, -1, 1).setSyncable(true));
-    public static final DeferredHolder<Attribute, Attribute> PRISMATIC_RESIST_MOD = REGISTRY.register("prismatic_resist_mod", () -> new RangedAttribute("attribute.power.prismatic_resist_mod", 0, -1, 1).setSyncable(true));
-
     // Elemental resistance shred attributes: range 0 to 1 (0-100% resistance shred)
     // Positive = shreds target resistance (reduces effectiveResist)
     public static final DeferredHolder<Attribute, Attribute> FIRE_RES_SHRED = REGISTRY.register("fire_res_shred", () -> new RangedAttribute("attribute.power.fire_res_shred", 0, 0, 1).setSyncable(true));
@@ -70,7 +66,6 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> ETHER_RES_SHRED = REGISTRY.register("ether_res_shred", () -> new RangedAttribute("attribute.power.ether_res_shred", 0, 0, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> LIGHT_RES_SHRED = REGISTRY.register("light_res_shred", () -> new RangedAttribute("attribute.power.light_res_shred", 0, 0, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> SHADOW_RES_SHRED = REGISTRY.register("shadow_res_shred", () -> new RangedAttribute("attribute.power.shadow_res_shred", 0, 0, 1).setSyncable(true));
-    public static final DeferredHolder<Attribute, Attribute> PRISMATIC_RES_SHRED = REGISTRY.register("prismatic_res_shred", () -> new RangedAttribute("attribute.power.prismatic_res_shred", 0, 0, 1).setSyncable(true));
 
     @SubscribeEvent
     public static void addAttributes(EntityAttributeModificationEvent event) {
@@ -91,7 +86,6 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, ETHER_DMG_BONUS));
         event.getTypes().forEach(entity -> event.add(entity, LIGHT_DMG_BONUS));
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_DMG_BONUS));
-        event.getTypes().forEach(entity -> event.add(entity, PRISMATIC_DMG_BONUS));
         event.getTypes().forEach(entity -> event.add(entity, FIRE_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, PHYSICAL_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, WIND_RESIST_MOD));
@@ -105,7 +99,6 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, ETHER_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, LIGHT_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_RESIST_MOD));
-        event.getTypes().forEach(entity -> event.add(entity, PRISMATIC_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, FIRE_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, PHYSICAL_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, WIND_RES_SHRED));
@@ -119,6 +112,5 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, ETHER_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, LIGHT_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_RES_SHRED));
-        event.getTypes().forEach(entity -> event.add(entity, PRISMATIC_RES_SHRED));
     }
 }

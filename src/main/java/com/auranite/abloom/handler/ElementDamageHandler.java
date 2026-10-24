@@ -544,11 +544,9 @@ public class ElementDamageHandler {
             return currentDamage;
         }
 
-        boolean isCustomType = type.isCustom();
-
-        // Handle Prism damage conversion (only for built-in PRISMATIC type)
+        // Handle Prism damage conversion (for PRISMATIC type, built-in or via base_element)
         IElementalType originalType = type;
-        if (!isCustomType && type.name().equals("PRISMATIC")) {
+        if (type.isPrismatic()) {
             if (target.hasEffect(AbloomModEffects.PRISM)) {
                 // PRISM is active: check if a new resonance has appeared
                 IElementalType storedType = getConvertedPrismType(target);
@@ -576,7 +574,7 @@ public class ElementDamageHandler {
             } else {
                 // No Prism effect active — activate it from current resonance
                 IElementalType resonanceType = getActiveResonanceType(target);
-                if (resonanceType != null && !resonanceType.name().equals("PRISMATIC")) {
+                if (resonanceType != null && !resonanceType.isPrismatic()) {
                     target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
                     setPrismConversionType(target, resonanceType);
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
@@ -587,7 +585,7 @@ public class ElementDamageHandler {
         }
 
         // Check if this is converted prism damage - if so, don't accumulate resonance
-        boolean isConvertedPrism = (originalType == ElementType.PRISMATIC && type != ElementType.PRISMATIC);
+        boolean isConvertedPrism = (originalType.isPrismatic() && !type.isPrismatic());
 
         float damageMultiplier = 1.0f;
 
@@ -650,15 +648,21 @@ public class ElementDamageHandler {
         float armorResistanceBonus = getArmorResistanceBonus(target, type);
 
         // Apply effective resistance (base + attribute modifier + armor)
-        float effectiveResist = ElementResistanceManager.getResistance(target, type).getValue();
-        if (target != null) {
-            effectiveResist += getElementResistMod(target, type);
+        float effectiveResist;
+        // Pure PRISMATIC damage (before conversion) ignores resistance
+        if (originalType != null && originalType.isPrismatic() && type.isPrismatic()) {
+            effectiveResist = 0.0f;
+        } else {
+            effectiveResist = ElementResistanceManager.getResistance(target, type).getValue();
+            if (target != null) {
+                effectiveResist += getElementResistMod(target, type);
+            }
+            effectiveResist += armorResistanceBonus;
+            if (attacker != null) {
+                effectiveResist -= getElementResShred(attacker, type);
+            }
+            effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
         }
-        effectiveResist += armorResistanceBonus;
-        if (attacker != null) {
-            effectiveResist -= getElementResShred(attacker, type);
-        }
-        effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
 
         int basePoints = (int) baseAccumulation;
         int pointsToAdd = Math.round(basePoints + effectiveAccumMultiplier);
@@ -689,8 +693,8 @@ public class ElementDamageHandler {
 
         // Prism damage that is converted does NOT accumulate resonance points
         // Also, pure prism damage without conversion doesn't accumulate
-        boolean isConvertedPrismDamage = (originalType != null && originalType.name().equals("PRISMATIC") && !type.name().equals(originalType.name()));
-        if (!isConvertedPrismDamage && originalType != null && !originalType.name().equals("PRISMATIC")) {
+        boolean isConvertedPrismDamage = (originalType != null && originalType.isPrismatic() && !type.isPrismatic());
+        if (!isConvertedPrismDamage && originalType != null && !originalType.isPrismatic()) {
             AbloomModAttachments.addPoints(target, type, pointsToAdd);
             // Sync only if below threshold (threshold sync happens after reset)
             int currentPoints = AbloomModAttachments.getPoints(target, type);
@@ -701,7 +705,7 @@ public class ElementDamageHandler {
             AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
         }
 
-        int pointsAfter = isConvertedPrism || (originalType != null && originalType.name().equals("PRISMATIC"))
+        int pointsAfter = isConvertedPrism || (originalType != null && originalType.isPrismatic())
                 ? AbloomModAttachments.getPoints(target, type)
                 : AbloomModAttachments.getPoints(target, type);
         boolean thresholdReached = pointsAfter >= THRESHOLD;
@@ -1200,10 +1204,6 @@ public class ElementDamageHandler {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.SHADOW_RESIST_MOD.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
             }
-            case PRISMATIC -> {
-                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PRISMATIC_RESIST_MOD.getKey()));
-                yield attr != null ? attr.getValue() : 0.0;
-            }
             default -> 0.0;
         };
     }
@@ -1269,10 +1269,6 @@ public class ElementDamageHandler {
             }
             case SHADOW -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.SHADOW_RES_SHRED.getKey()));
-                yield attr != null ? attr.getValue() : 0.0;
-            }
-            case PRISMATIC -> {
-                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PRISMATIC_RES_SHRED.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
             }
             default -> 0.0;
@@ -1345,10 +1341,6 @@ public class ElementDamageHandler {
             }
             case SHADOW -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.SHADOW_DMG_BONUS.getKey()));
-                yield attr != null ? attr.getValue() : 0.0;
-            }
-            case PRISMATIC -> {
-                var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.PRISMATIC_DMG_BONUS.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
             }
             default -> 0.0;
