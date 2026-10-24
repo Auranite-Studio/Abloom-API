@@ -1114,7 +1114,26 @@ public class ElementDamageHandler {
         if (attrHolder.isEmpty()) return 0.0;
 
         var attr = attacker.getAttribute(attrHolder.get());
-        return attr != null ? attr.getValue() : 0.0;
+        double baseValue = attr != null ? attr.getValue() : 0.0;
+
+        // Apply CorruptionEffect resistance reduction to custom elements
+        double corruptionReduction = getCorruptionResistReduction(attacker);
+        if (corruptionReduction != 0.0 && "resist_mod".equals(suffix)) {
+            baseValue += corruptionReduction;
+        }
+
+        return baseValue;
+    }
+
+    /**
+     * Gets the corruption resistance reduction for an entity with active CorruptionEffect.
+     * Returns -0.20 if CorruptionEffect is active, 0.0 otherwise.
+     */
+    private static double getCorruptionResistReduction(LivingEntity entity) {
+        if (entity.hasEffect(AbloomModEffects.CORRUPTION)) {
+            return -0.20;
+        }
+        return 0.0;
     }
 
     /**
