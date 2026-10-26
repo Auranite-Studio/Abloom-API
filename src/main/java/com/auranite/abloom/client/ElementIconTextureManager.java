@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.util.IElementalType;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -22,10 +21,10 @@ import net.minecraft.resources.ResourceLocation;
 public class ElementIconTextureManager {
 
     /** Cache keyed by texture location; the MISSING sentinel marks "checked, file not found". */
-    private static final Map<ResourceLocation, TextureAtlasSprite> CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, ElementIconSprite> CACHE = new ConcurrentHashMap<>();
 
     /** Sentinel used only for negative caching (never returned to callers). */
-    private static final TextureAtlasSprite MISSING = new ElementIconSprite(
+    private static final ElementIconSprite MISSING = new ElementIconSprite(
             ResourceLocation.fromNamespaceAndPath("abloom", "gui/element_icons/_missing_"));
 
     /**
@@ -34,22 +33,22 @@ public class ElementIconTextureManager {
      * "{namespace}:gui/element_icons/{name_lowercase}" ->
      * "{namespace}/textures/gui/element_icons/{name_lowercase}.png".
      * <p>
-     * Note: the returned sprite's {@code atlasLocation()} points at the raw PNG itself
+     * Note: the returned handle's {@code textureLocation()} points at the raw PNG itself
      * (not a stitched atlas), so it must be rendered via {@code drawCustomSprite} in the
      * render utilities, which binds it with {@code RenderSystem.setShaderTexture}.
      */
-    public static TextureAtlasSprite getIcon(IElementalType type) {
+    public static ElementIconSprite getIcon(IElementalType type) {
         if (type == null) return null;
         return getIcon(type.getElementIconTexture());
     }
 
     /** Convenience overload: resolves an icon for any explicit texture location. */
-    public static TextureAtlasSprite getIcon(ResourceLocation textureLocation) {
+    public static ElementIconSprite getIcon(ResourceLocation textureLocation) {
         if (textureLocation == null) return null;
-        TextureAtlasSprite cached = CACHE.get(textureLocation);
+        ElementIconSprite cached = CACHE.get(textureLocation);
         if (cached != null) return cached;
         if (CACHE.containsKey(textureLocation)) return null; // negative cache hit
-        TextureAtlasSprite sprite = load(textureLocation);
+        ElementIconSprite sprite = load(textureLocation);
         if (sprite != null) {
             CACHE.put(textureLocation, sprite);
         } else {
@@ -58,7 +57,7 @@ public class ElementIconTextureManager {
         return sprite;
     }
 
-    private static TextureAtlasSprite load(ResourceLocation loc) {
+    private static ElementIconSprite load(ResourceLocation loc) {
         try {
             var resources = Minecraft.getInstance().getResourceManager();
             // loc is already a texture-path ResourceLocation, e.g. abloom:gui/element_icons/fire

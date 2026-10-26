@@ -24,6 +24,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -199,18 +200,26 @@ public class EffectRenderUtil {
 
     /**
      * Draws a convention-based element icon ({@link com.auranite.abloom.client.ElementIconSprite}).
-     * Unlike atlas sprites, its "atlas" is the raw PNG itself, so it must be bound directly as a
-     * plain texture via {@code setShaderTexture} and drawn with GUI-style UVs (0..1) instead of
-     * the NEW_ENTITY atlas pipeline.
+     * The icon is NOT part of any stitched atlas: its texture location points at the raw PNG, so we
+     * bind it directly as a plain GUI texture and draw a full-UV (0..1) quad. Uses only API
+     * available on NeoForge 1.21.1 (Gui.BLOCK_TEXTURE render type + setShaderTexture).
      */
-    private static void drawCustomSprite(PoseStack poseStack, TextureAtlasSprite sprite, float halfSize, MultiBufferSource buffers) {
-        com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, sprite.atlasLocation());
-        VertexConsumer buffer = buffers.getBuffer(RenderType.guiTexture(sprite.atlasLocation()));
+    private static void drawCustomSprite(PoseStack poseStack, com.auranite.abloom.client.ElementIconSprite sprite, float halfSize, MultiBufferSource buffers) {
+        ResourceLocation loc = sprite.textureLocation();
+        // On 1.21.1 Gui.BLOCK_TEXTURE is "minecraft:textures/misc/enchanted_glint_item.png" —
+        // an arbitrary texture can be swapped in via setShaderTexture(0, loc) right before
+        // requesting the buffer, exactly like vanilla's blit() pipeline does.
+        RenderType renderType = RenderType.guiOverlay();
+        // bindForSetup loads the PNG on demand (and caches it in TextureManager), then we
+        // point shader slot 0 at it.
+        Minecraft.getInstance().getTextureManager().bindForSetup(loc);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, loc);
+        VertexConsumer buffer = buffers.getBuffer(renderType);
         Matrix4f matrix = poseStack.last().pose();
-        buffer.addVertex(matrix, -halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 0.0F);
-        buffer.addVertex(matrix, -halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 1.0F);
-        buffer.addVertex(matrix, halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 1.0F);
-        buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 0.0F);
+        buffer.addVertex(matrix, -halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 0.0F).setLight(15728880);
+        buffer.addVertex(matrix, -halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 1.0F).setLight(15728880);
+        buffer.addVertex(matrix, halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 1.0F).setLight(15728880);
+        buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 0.0F).setLight(15728880);
     }
 
     private static void drawFallbackText(PoseStack poseStack, Font font, MultiBufferSource buffers, String text) {
@@ -258,7 +267,7 @@ public class EffectRenderUtil {
         // element's own namespace (e.g. abloom:textures/gui/element_icons/fire.png or
         // yourmod:textures/gui/element_icons/plasma.png for custom elements).
         com.auranite.abloom.client.ElementIconTextureManager.clearCacheIfReloaded();
-        TextureAtlasSprite customIcon = com.auranite.abloom.client.ElementIconTextureManager.getIcon(type);
+        com.auranite.abloom.client.ElementIconSprite customIcon = com.auranite.abloom.client.ElementIconTextureManager.getIcon(type);
         if (customIcon != null) {
             try {
                 drawCustomSprite(poseStack, customIcon, halfSize, buffers);

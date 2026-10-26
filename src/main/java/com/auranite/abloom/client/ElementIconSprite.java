@@ -1,38 +1,25 @@
 package com.auranite.abloom.client;
 
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 
 /**
- * A lightweight {@link TextureAtlasSprite} stand-in that carries the UV coordinates of a
- * single full-size texture located at an arbitrary {@link ResourceLocation} (not necessarily
- * stitched into an atlas).
+ * Lightweight handle for a convention-based element icon texture that lives OUTSIDE any
+ * stitched atlas (a raw PNG at an arbitrary {@link ResourceLocation}).
  * <p>
- * The icon is rendered by binding the sprite's own {@code atlasLocation()} as a regular
- * texture ({@code RenderSystem.setShaderTexture(0, atlas)}) and drawing a quad with these
- * UVs — see {@code EffectRenderUtil#drawCustomSprite}. Because the "atlas" contains exactly
- * one image, the UVs span the whole 0..1 range.
+ * This intentionally does NOT extend {@code TextureAtlasSprite}: on NeoForge 1.21.1 the
+ * sprite constructor requires a {@code SpriteContents}, which would force us to stitch or
+ * manually upload the texture. Instead the render utilities bind {@link #textureLocation()}
+ * directly as a plain GUI texture ({@code RenderSystem.setShaderTexture}) and draw a full-UV
+ * (0..1) quad with the {@code Gui.BLOCK_TEXTURE} render type.
  */
-public class ElementIconSprite extends TextureAtlasSprite {
+public record ElementIconSprite(ResourceLocation textureLocation) {
 
-    /** Vanilla's missing-texture sprite name — triggers NEAREST_STEF (crisp) filtering. */
-    private static final String MISSING_NO_TEXTURE = "missingno";
-
-    public ElementIconSprite(ResourceLocation textureLocation) {
-        // name, width, height, pixelsPerUnit: vanilla defaults for a plain sprite
-        super(MISSING_NO_TEXTURE, textureLocation, 64, 64, 64, 64, false);
-    }
-
-    /** Full-texture UV corners. */
-    @Override
+    /** Full-texture UV corners (the PNG itself is the whole "atlas"). */
     public float getU0() { return 0.0F; }
 
-    @Override
     public float getU1() { return 1.0F; }
 
-    @Override
     public float getV0() { return 0.0F; }
 
-    @Override
     public float getV1() { return 1.0F; }
 }

@@ -109,7 +109,7 @@ public class ResonanceDisplayUtil {
         // element's own namespace (e.g. abloom:textures/gui/element_icons/fire.png or
         // yourmod:textures/gui/element_icons/plasma.png for custom elements).
         com.auranite.abloom.client.ElementIconTextureManager.clearCacheIfReloaded();
-        TextureAtlasSprite customIcon = com.auranite.abloom.client.ElementIconTextureManager.getIcon(type);
+        com.auranite.abloom.client.ElementIconSprite customIcon = com.auranite.abloom.client.ElementIconTextureManager.getIcon(type);
         if (customIcon != null) {
             try {
                 drawCustomSprite(poseStack, customIcon, halfSize, buffers);
@@ -199,19 +199,24 @@ public class ResonanceDisplayUtil {
     }
 
     /**
-     * Draws a convention-based element icon ({@link ElementIconSprite}). Unlike atlas sprites,
-     * its "atlas" is the raw PNG itself, so it must be bound directly as a plain texture via
-     * {@code setShaderTexture} and drawn with GUI-style UVs (0..1) instead of the entity atlas
-     * pipeline.
+     * Draws a convention-based element icon ({@link ElementIconSprite}). The icon is NOT part of
+     * any stitched atlas: its texture location points at the raw PNG, so we bind it directly as a
+     * plain GUI texture and draw a full-UV (0..1) quad. Uses only API available on 1.21.1
+     * (Gui.BLOCK_TEXTURE render type + setShaderTexture).
      */
-    private static void drawCustomSprite(PoseStack poseStack, TextureAtlasSprite sprite, float halfSize, MultiBufferSource buffers) {
-        com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, sprite.atlasLocation());
-        VertexConsumer buffer = buffers.getBuffer(RenderType.guiTexture(sprite.atlasLocation()));
+    private static void drawCustomSprite(PoseStack poseStack, ElementIconSprite sprite, float halfSize, MultiBufferSource buffers) {
+        net.minecraft.resources.ResourceLocation loc = sprite.textureLocation();
+        RenderType renderType = RenderType.guiOverlay();
+        // Ensure the raw PNG is loaded into GPU memory, then swap it into slot 0 — exactly what
+        // vanilla's blit() does for arbitrary GUI textures on 1.21.1.
+        Minecraft.getInstance().getTextureManager().bindForSetup(loc);
+        com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, loc);
+        VertexConsumer buffer = buffers.getBuffer(renderType);
         Matrix4f matrix = poseStack.last().pose();
-        buffer.addVertex(matrix, -halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 0.0F);
-        buffer.addVertex(matrix, -halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 1.0F);
-        buffer.addVertex(matrix, halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 1.0F);
-        buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 0.0F);
+        buffer.addVertex(matrix, -halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 0.0F).setLight(15728880);
+        buffer.addVertex(matrix, -halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 1.0F).setLight(15728880);
+        buffer.addVertex(matrix, halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 1.0F).setLight(15728880);
+        buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 0.0F).setLight(15728880);
     }
 
     private static void drawColoredSquare(PoseStack poseStack, float halfSize, IElementalType type,
