@@ -144,20 +144,7 @@ public class ElementDamageHandler {
         // Check if current damage differs from base damage
         // If it does, another mod has already modified it
         if (modifiedDamage != baseDamage) {
-            // Another mod modified the damage, we need to:
-            // 1. Track accumulation based on the modified damage
-            // 2. Call doProcessLivingHurt to process elemental calculations
-            // 3. Then apply low-priority modifiers
-            IElementalType type = getElementTypeFromSource(source);
-            if (type != null) {
-                // Add accumulation points based on the modified damage (not just 1 point)
-                int pointsToAdd = ElementResistanceManager.calculateAccumulationPoints(target, type, 1);
-                if (pointsToAdd > 0) {
-                    AbloomModAttachments.addPoints(target, type, pointsToAdd);
-                    updateLastDamageTime(target, type);
-                }
-            }
-
+            // Another mod modified the damage; processLivingHurtInternal handles accumulation internally
             // Process damage through doProcessLivingHurt with the modified damage
             // This ensures elemental calculations and display manager are called
             float processedDamage = processLivingHurtInternal(target, source, baseDamage, modifiedDamage);
@@ -791,23 +778,25 @@ public class ElementDamageHandler {
         AbloomModAttachments.clearFluorescenceType(entity);
 
         // If entity dies with PRISM_CONVERSION_TYPE, give Fluorescence to attacker
-        if (attacker != null && attacker.isAlive()) {
-            IElementalType fluorescenceType = AbloomModAttachments.getPrismConversionType(entity);
+        // Read BEFORE clearing to prevent state leak on DoT death
+        IElementalType fluorescenceType = AbloomModAttachments.getPrismConversionType(entity);
+        AbloomModAttachments.clearPrismConversionType(entity);
 
-            if (fluorescenceType != null) {
-                AbloomModAttachments.setFluorescenceType(attacker, fluorescenceType);
-                attacker.addEffect(new MobEffectInstance(AbloomModEffects.FLUORESCENCE, 1200, 0, false, true));
-                if (AbloomMod.LOGGER.isDebugEnabled()) {
-                    AbloomMod.LOGGER.debug("Entity {} died, attacker {} gets Fluorescence with type {}",
-                            entity.getName().getString(), attacker.getName().getString(), fluorescenceType);
-                }
-            } else if (AbloomMod.LOGGER.isDebugEnabled()) {
+        if (attacker != null && attacker.isAlive() && fluorescenceType != null) {
+            AbloomModAttachments.setFluorescenceType(attacker, fluorescenceType);
+            attacker.addEffect(new MobEffectInstance(AbloomModEffects.FLUORESCENCE, 1200, 0, false, true));
+            if (AbloomMod.LOGGER.isDebugEnabled()) {
+                AbloomMod.LOGGER.debug("Entity {} died, attacker {} gets Fluorescence with type {}",
+                        entity.getName().getString(), attacker.getName().getString(), fluorescenceType);
+            }
+        } else if (AbloomMod.LOGGER.isDebugEnabled()) {
+            if (attacker == null || !attacker.isAlive()) {
+                AbloomMod.LOGGER.debug("Entity {} died, no valid attacker found (attacker={}, alive={}), skipping Fluorescence",
+                        entity.getName().getString(), attacker != null ? attacker.getName().getString() : "null", attacker != null && attacker.isAlive());
+            } else if (fluorescenceType == null) {
                 AbloomMod.LOGGER.debug("Entity {} died, no PRISM_CONVERSION_TYPE found, skipping Fluorescence",
                         entity.getName().getString());
             }
-        } else if (AbloomMod.LOGGER.isDebugEnabled()) {
-            AbloomMod.LOGGER.debug("Entity {} died, no valid attacker found (attacker={}, alive={}), skipping Fluorescence",
-                    entity.getName().getString(), attacker != null ? attacker.getName().getString() : "null", attacker != null && attacker.isAlive());
         }
     }
 
@@ -1052,6 +1041,8 @@ public class ElementDamageHandler {
     }
 
     public static void setThreshold(int threshold) {
+        throw new UnsupportedOperationException(
+                "THRESHOLD is a compile-time constant. Change the THRESHOLD field in ElementDamageHandler and rebuild.");
     }
 
     private static float getArmorResistanceBonus(LivingEntity entity, IElementalType type) {
@@ -1348,13 +1339,6 @@ public class ElementDamageHandler {
 
         if (bonusValue == 0.0) return baseDamage;
         return Math.max(0.0f, baseDamage * (1.0f + (float) bonusValue));
-    }
-
-    private static float applyArmorResistance(float damage, float resistanceBonus) {
-        float multiplier = 1.0f - resistanceBonus;
-        // multiplier > 1.0 when resistanceBonus < 0 (penetration increases damage)
-        // multiplier < 1.0 when resistanceBonus > 0 (resistance decreases damage)
-        return Math.max(0.0f, damage * multiplier);
     }
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage) {
@@ -1708,15 +1692,13 @@ public class ElementDamageHandler {
         // Multiply finalDamage by accumulated damageMultiplier
         finalDamage *= damageMultiplier;
 
-        finalDamage = ElementResistanceManager.calculateReducedDamage(livingTarget, type, finalDamage);
-
         // Apply effective resistance (base + attribute modifier + armor)
         float effectiveResist = ElementResistanceManager.getResistance(livingTarget, type).getValue();
-        effectiveResist += getElementResistMod(livingTarget, type);
         float armorResistanceBonus = getArmorResistanceBonus(livingTarget, type);
         effectiveResist += armorResistanceBonus;
         if (attacker instanceof LivingEntity livingAttacker) {
-            effectiveResist *= (1.0f - (float) getElementResShred(livingAttacker, type));
+            effectiveResist += getElementResistMod(livingAttacker, type);
+            effectiveResist -= (float) getElementResShred(livingAttacker, type);
         }
         effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
         finalDamage = Math.max(0.001f, finalDamage * (1.0f - effectiveResist));

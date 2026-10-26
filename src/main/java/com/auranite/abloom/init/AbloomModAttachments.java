@@ -51,6 +51,8 @@ public class AbloomModAttachments {
 
     public static void resetPoints(LivingEntity entity, IElementalType type) {
         getAccumulator(entity).put(type, 0);
+        // Clear prism conversion type to prevent state leak between entity lifetimes
+        clearPrismConversionType(entity);
     }
 
     public static boolean hasReachedThreshold(LivingEntity entity, IElementalType type, int threshold) {
