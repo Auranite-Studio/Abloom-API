@@ -197,6 +197,22 @@ public class EffectRenderUtil {
         buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(u1, v0).setUv1(0, 10).setUv2(240, 240).setNormal(0.0F, 0.0F, 1.0F);
     }
 
+    /**
+     * Draws a convention-based element icon ({@link com.auranite.abloom.client.ElementIconSprite}).
+     * Unlike atlas sprites, its "atlas" is the raw PNG itself, so it must be bound directly as a
+     * plain texture via {@code setShaderTexture} and drawn with GUI-style UVs (0..1) instead of
+     * the NEW_ENTITY atlas pipeline.
+     */
+    private static void drawCustomSprite(PoseStack poseStack, TextureAtlasSprite sprite, float halfSize, MultiBufferSource buffers) {
+        com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, sprite.atlasLocation());
+        VertexConsumer buffer = buffers.getBuffer(RenderType.guiTexture(sprite.atlasLocation()));
+        Matrix4f matrix = poseStack.last().pose();
+        buffer.addVertex(matrix, -halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 0.0F);
+        buffer.addVertex(matrix, -halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(0.0F, 1.0F);
+        buffer.addVertex(matrix, halfSize, halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 1.0F);
+        buffer.addVertex(matrix, halfSize, -halfSize, 0.0F).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(1.0F, 0.0F);
+    }
+
     private static void drawFallbackText(PoseStack poseStack, Font font, MultiBufferSource buffers, String text) {
         float width = font.width(text);
         font.drawInBatch(text, -width / 2.0F, 0.0F, Float.floatToIntBits(BACKGROUND_OPACITY) << 24, false, poseStack.last().pose(), buffers, DisplayMode.SEE_THROUGH, 0, 15728880);
@@ -245,7 +261,7 @@ public class EffectRenderUtil {
         TextureAtlasSprite customIcon = com.auranite.abloom.client.ElementIconTextureManager.getIcon(type);
         if (customIcon != null) {
             try {
-                drawSprite(poseStack, customIcon, halfSize, buffers);
+                drawCustomSprite(poseStack, customIcon, halfSize, buffers);
                 return;
             } catch (Exception e) {
                 // Fall through to effect-texture lookup

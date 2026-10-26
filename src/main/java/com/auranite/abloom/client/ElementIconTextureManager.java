@@ -5,12 +5,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.auranite.abloom.AbloomMod;
 import com.auranite.abloom.util.IElementalType;
-import com.mojang.blaze3d.platform.NativeImage;
-import com.mojang.blaze3d.textures.FilterMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.Resource;
 
 /**
  * Resolves element icon textures by naming convention: an element named {@code FIRE} maps to
@@ -24,14 +21,22 @@ import net.minecraft.server.packs.resources.Resource;
  */
 public class ElementIconTextureManager {
 
-    /** Cache keyed by texture location; a null value means "checked, file not found". */
+    /** Cache keyed by texture location; the MISSING sentinel marks "checked, file not found". */
     private static final Map<ResourceLocation, TextureAtlasSprite> CACHE = new ConcurrentHashMap<>();
+
+    /** Sentinel used only for negative caching (never returned to callers). */
+    private static final TextureAtlasSprite MISSING = new ElementIconSprite(
+            ResourceLocation.fromNamespaceAndPath("abloom", "gui/element_icons/_missing_"));
 
     /**
      * Returns the icon sprite for the given elemental type, or null if no texture exists.
      * The lookup path is derived from {@link IElementalType#getElementIconTexture()}:
      * "{namespace}:gui/element_icons/{name_lowercase}" ->
      * "{namespace}/textures/gui/element_icons/{name_lowercase}.png".
+     * <p>
+     * Note: the returned sprite's {@code atlasLocation()} points at the raw PNG itself
+     * (not a stitched atlas), so it must be rendered via {@code drawCustomSprite} in the
+     * render utilities, which binds it with {@code RenderSystem.setShaderTexture}.
      */
     public static TextureAtlasSprite getIcon(IElementalType type) {
         if (type == null) return null;
@@ -45,28 +50,27 @@ public class ElementIconTextureManager {
         if (cached != null) return cached;
         if (CACHE.containsKey(textureLocation)) return null; // negative cache hit
         TextureAtlasSprite sprite = load(textureLocation);
-        CACHE.put(textureLocation, sprite);
+        if (sprite != null) {
+            CACHE.put(textureLocation, sprite);
+        } else {
+            CACHE.put(textureLocation, MISSING);
+        }
         return sprite;
     }
 
     private static TextureAtlasSprite load(ResourceLocation loc) {
-        Minecraft minecraft = Minecraft.getInstance();
         try {
-            var resources = minecraft.getResourceManager();
-            var optional = resources.getResource(loc.withPrefix("textures/").withSuffix(".png"));
-            if (optional.isEmpty()) return null;
-            Resource resource = optional.get();
-            NativeImage image;
-            try (var in = resource.open()) {
-                image = NativeImage.read(in);
+            var resources = Minecraft.getInstance().getResourceManager();
+            // loc is already a texture-path ResourceLocation, e.g. abloom:gui/element_icons/fire
+            // -> check abloom:textures/gui/element_icons/fire.png exists in ANY active pack.
+            if (resources.getResource(loc.withPrefix("textures/").withSuffix(".png")).isEmpty()) {
+                return null;
             }
-            String name = loc.getPath().replace('/', '_');
-            TextureAtlasSprite sprite = new TextureAtlasSprite(name, image.getWidth(), image.getHeight(),
-                    false, 1, 1, FilterMode.NEAREST, FilterMode.NEAREST);
-            sprite.upload(0, 0, 0, image);
-            return sprite;
+            // No GPU upload needed: rendering binds this location directly as a plain texture,
+            // and vanilla's TextureManager loads the PNG on demand.
+            return new ElementIconSprite(loc);
         } catch (Exception e) {
-            AbloomMod.LOGGER.debug("Failed to load element icon texture '{}': {}", loc, e.getMessage());
+            AbloomMod.LOGGER.debug("Failed to resolve element icon texture '{}': {}", loc, e.getMessage());
             return null;
         }
     }
