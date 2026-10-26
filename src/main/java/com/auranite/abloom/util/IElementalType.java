@@ -2,6 +2,8 @@ package com.auranite.abloom.util;
 
 import java.util.Optional;
 
+import net.minecraft.resources.ResourceLocation;
+
 /**
  * Common interface for all elemental types (built-in enum + custom datapack types).
  * Enables unified handling of element types throughout the API.
@@ -15,6 +17,32 @@ public interface IElementalType {
     String getDisplayName();
     /** True if this is a custom (non-builtin) element type */
     default boolean isCustom() { return false; }
+
+    /**
+     * Namespace used to look up this element's icon texture.
+     * <p>
+     * Built-in elements resolve under the {@code abloom} namespace; custom elements can
+     * override it (derived from their namespaced damage type id, e.g.
+     * {@code "yourmod:plasma_dmg"} -> {@code "yourmod"}) so that mods can ship icons for
+     * their own elements without touching Abloom resources.
+     * @return the texture namespace, or null to fall back to "abloom"
+     */
+    @org.jetbrains.annotations.Nullable
+    default String getTextureNamespace() { return null; }
+
+    /**
+     * Resolves the conventional icon texture location for this element:
+     * {@code {namespace}:gui/element_icons/{name_lowercase}}.
+     * <p>
+     * Example: FIRE -> {@code abloom:gui/element_icons/fire},
+     * custom PLASMA from yourmod -> {@code yourmod:gui/element_icons/plasma}.
+     * @return the ResourceLocation of the icon texture (may not exist; check before use)
+     */
+    default ResourceLocation getElementIconTexture() {
+        String ns = getTextureNamespace();
+        if (ns == null || ns.isEmpty()) ns = "abloom";
+        return ResourceLocation.fromNamespaceAndPath(ns, "gui/element_icons/" + name().toLowerCase(java.util.Locale.ROOT));
+    }
     /**
      * Gets the dispersion bonus multiplier for this element type.
      * This value determines the additional damage bonus when the target has the DISPERSION effect.

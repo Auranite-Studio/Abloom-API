@@ -105,7 +105,21 @@ public class ResonanceDisplayUtil {
 
     private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize,
             MultiBufferSource buffers, Minecraft minecraft) {
-        // Try to get texture from MobEffect texture map
+        // Priority 1: convention-based element icon texture, resolved by element name in the
+        // element's own namespace (e.g. abloom:textures/gui/element_icons/fire.png or
+        // yourmod:textures/gui/element_icons/plasma.png for custom elements).
+        com.auranite.abloom.client.ElementIconTextureManager.clearCacheIfReloaded();
+        TextureAtlasSprite customIcon = com.auranite.abloom.client.ElementIconTextureManager.getIcon(type);
+        if (customIcon != null) {
+            try {
+                drawSprite(poseStack, customIcon, halfSize, buffers);
+                return;
+            } catch (Exception e) {
+                // Fall through to effect-texture lookup
+            }
+        }
+
+        // Priority 2: Try to get texture from MobEffect texture map
         if (!type.isCustom()) {
             // Built-in types: use hardcoded effect mapping
             Holder<MobEffect> effectHolder = getEffectForElementType((com.auranite.abloom.util.ElementType) type);

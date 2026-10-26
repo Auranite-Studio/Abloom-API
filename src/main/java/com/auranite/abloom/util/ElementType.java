@@ -65,7 +65,18 @@ public enum ElementType implements IElementalType {
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
             @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
             @org.jetbrains.annotations.Nullable String baseElement,
-            float dispersionBonus) implements IElementalType {
+            float dispersionBonus,
+            @org.jetbrains.annotations.Nullable String textureNamespace) implements IElementalType {
+
+        /** Backwards-compatible constructor without an explicit texture namespace. */
+        public CustomElementType(String name, String damageTypeId, String displayName,
+                @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
+                @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
+                @org.jetbrains.annotations.Nullable String baseElement,
+                float dispersionBonus) {
+            this(name, damageTypeId, displayName, rawElementTranslationKey, rawResonanceTranslationKey,
+                    baseElement, dispersionBonus, null);
+        }
         public CustomElementType {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("Name must not be null or empty");
             if (damageTypeId == null || damageTypeId.isEmpty()) throw new IllegalArgumentException("Damage type ID must not be null or empty");
@@ -79,6 +90,11 @@ public enum ElementType implements IElementalType {
         @Override
         public boolean isCustom() {
             return true;
+        }
+
+        @Override
+        public String getTextureNamespace() {
+            return textureNamespace;
         }
 
         /**
@@ -142,6 +158,21 @@ public enum ElementType implements IElementalType {
             @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
             @org.jetbrains.annotations.Nullable String baseElement,
             float dispersionBonus) {
+        return registerCustomElementType(name, damageTypeId, displayName, rawElementTranslationKey,
+                rawResonanceTranslationKey, baseElement, dispersionBonus, null);
+    }
+
+    /**
+     * Full registration variant with an explicit texture namespace for element icon lookup.
+     * If {@code textureNamespace} is null it is derived from a namespaced damage type id
+     * (e.g. "yourmod:plasma_dmg" -> "yourmod"); otherwise icons fall back to "abloom".
+     */
+    public static boolean registerCustomElementType(String name, String damageTypeId, String displayName,
+            @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
+            @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
+            @org.jetbrains.annotations.Nullable String baseElement,
+            float dispersionBonus,
+            @org.jetbrains.annotations.Nullable String textureNamespace) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Element type name must not be null or empty");
         }
@@ -170,8 +201,15 @@ public enum ElementType implements IElementalType {
             return false;
         }
 
+        // If not explicitly provided, derive texture namespace from the damage type ID when it is
+        // namespaced (e.g. "yourmod:plasma_dmg" -> "yourmod").
+        // This allows element icons to be resolved as "{namespace}:textures/gui/element_icons/{name_lowercase}.png".
+        if (textureNamespace == null && damageTypeId.contains(":")) {
+            textureNamespace = damageTypeId.substring(0, damageTypeId.indexOf(':'));
+        }
+
         CustomElementType customType = new CustomElementType(normalizedName, damageTypeId, displayName,
-                rawElementTranslationKey, rawResonanceTranslationKey, baseElement, dispersionBonus);
+                rawElementTranslationKey, rawResonanceTranslationKey, baseElement, dispersionBonus, textureNamespace);
         CUSTOM_TYPES_BY_NAME.put(normalizedName, customType);
         CUSTOM_TYPES_BY_DAMAGE_ID.put(damageTypeId, customType);
 
