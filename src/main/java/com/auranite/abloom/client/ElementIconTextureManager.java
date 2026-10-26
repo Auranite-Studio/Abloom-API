@@ -28,6 +28,12 @@ public class ElementIconTextureManager {
             ResourceLocation.fromNamespaceAndPath("abloom", "gui/element_icons/_missing_"));
 
     /**
+     * Number of recent failed lookups logged at INFO level. A handful is enough to diagnose
+     * a wrong path/namespace convention without spamming the log every frame.
+     */
+    private static int loggedMisses = 0;
+
+    /**
      * Returns the icon sprite for the given elemental type, or null if no texture exists.
      * The lookup path is derived from {@link IElementalType#getElementIconTexture()}:
      * "{namespace}:gui/element_icons/{name_lowercase}" ->
@@ -62,7 +68,12 @@ public class ElementIconTextureManager {
             var resources = Minecraft.getInstance().getResourceManager();
             // loc is already a texture-path ResourceLocation, e.g. abloom:gui/element_icons/fire
             // -> check abloom:textures/gui/element_icons/fire.png exists in ANY active pack.
-            if (resources.getResource(loc.withPrefix("textures/").withSuffix(".png")).isEmpty()) {
+            ResourceLocation png = loc.withPrefix("textures/").withSuffix(".png");
+            if (resources.getResource(png).isEmpty()) {
+                if (loggedMisses < 16) {
+                    loggedMisses++;
+                    AbloomMod.LOGGER.info("[Abloom] No element icon texture found at '{}' (expected in any active resource pack)", png);
+                }
                 return null;
             }
             // No GPU upload needed: rendering binds this location directly as a plain texture,

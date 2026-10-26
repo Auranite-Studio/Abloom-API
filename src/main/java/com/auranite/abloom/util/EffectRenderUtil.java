@@ -206,13 +206,11 @@ public class EffectRenderUtil {
      */
     private static void drawCustomSprite(PoseStack poseStack, com.auranite.abloom.client.ElementIconSprite sprite, float halfSize, MultiBufferSource buffers) {
         ResourceLocation loc = sprite.textureLocation();
-        // On 1.21.1 Gui.BLOCK_TEXTURE is "minecraft:textures/misc/enchanted_glint_item.png" —
-        // an arbitrary texture can be swapped in via setShaderTexture(0, loc) right before
-        // requesting the buffer, exactly like vanilla's blit() pipeline does.
+        // Force the TextureManager to load/upload the raw PNG BEFORE requesting the buffer:
+        // guiOverlay() binds its texture during prepare(), so binding afterwards would be
+        // overwritten by the batch flush. This mirrors what GuiGraphics.blit() does internally.
+        Minecraft.getInstance().getTextureManager().getTexture(loc, net.minecraft.client.renderer.texture.TextureManager.UnitTexture::new);
         RenderType renderType = RenderType.guiOverlay();
-        // bindForSetup loads the PNG on demand (and caches it in TextureManager), then we
-        // point shader slot 0 at it.
-        Minecraft.getInstance().getTextureManager().bindForSetup(loc);
         com.mojang.blaze3d.systems.RenderSystem.setShaderTexture(0, loc);
         VertexConsumer buffer = buffers.getBuffer(renderType);
         Matrix4f matrix = poseStack.last().pose();
