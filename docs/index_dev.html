@@ -2061,7 +2061,8 @@ public class MyModElements {
       "duration": 100,
       "amplifier": 0
     }
-  }
+  },
+  "resonance_display_effect": "yourmod:custom_effect"
 }</code></pre>
 
             <h4>Fields Reference</h4>
@@ -2134,6 +2135,12 @@ public class MyModElements {
                         <td>Object</td>
                         <td>No</td>
                         <td>Resonance effect applied at 100 accumulation points. See below for structure</td>
+                    </tr>
+                    <tr>
+                        <td><code>resonance_display_effect</code></td>
+                        <td>ResourceLocation</td>
+                        <td>No</td>
+                        <td>MobEffect ID used for resonance icon rendering in the UI (e.g., <code>yourmod:custom_effect</code>). If not set, the <code>resonance_effect.effect</code> is used as the display icon. Defaults to <code>null</code></td>
                     </tr>
                 </tbody>
             </table>
@@ -2340,7 +2347,8 @@ if (data.isPresent()) {
       "duration": 200,
       "amplifier": 1
     }
-  }
+  },
+  "resonance_display_effect": "yourmod:void_resonance"
 }</code></pre>
 
             <p>With corresponding translation entries:</p>
@@ -2372,7 +2380,8 @@ if (data.isPresent()) {
       "duration": 240,
       "amplifier": 0
     }
-  }
+  },
+  "resonance_display_effect": "yourmod:blue_burn"
 }</code></pre>
 
             <p><strong>What this does:</strong></p>
