@@ -41,6 +41,23 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> BLEEDING = REGISTRY.register("bleeding", () -> new BleedingEffect(0xCC0033));
     public static final DeferredHolder<MobEffect, MobEffect> REINFORCEMENT = REGISTRY.register("reinforcement", () -> new ReinforcementEffect(0x6B8BA4));
 
+    // ==================== Auto-generated resonance display effects ====================
+    // These effects are used solely for rendering resonance icons (textures)
+    public static final DeferredHolder<MobEffect, MobEffect> FIRE_RESONANCE = REGISTRY.register("fire_resonance", () -> new PlaceholderResonanceEffect(0xFF5500));
+    public static final DeferredHolder<MobEffect, MobEffect> WIND_RESONANCE = REGISTRY.register("wind_resonance", () -> new PlaceholderResonanceEffect(0x00FFFF));
+    public static final DeferredHolder<MobEffect, MobEffect> EARTH_RESONANCE = REGISTRY.register("earth_resonance", () -> new PlaceholderResonanceEffect(0x8B4513));
+    public static final DeferredHolder<MobEffect, MobEffect> WATER_RESONANCE = REGISTRY.register("water_resonance", () -> new PlaceholderResonanceEffect(0x0080FF));
+    public static final DeferredHolder<MobEffect, MobEffect> ICE_RESONANCE = REGISTRY.register("ice_resonance", () -> new PlaceholderResonanceEffect(0x00BFFF));
+    public static final DeferredHolder<MobEffect, MobEffect> ELECTRIC_RESONANCE = REGISTRY.register("electric_resonance", () -> new PlaceholderResonanceEffect(0xFF19FF));
+    public static final DeferredHolder<MobEffect, MobEffect> ENERGY_RESONANCE = REGISTRY.register("energy_resonance", () -> new PlaceholderResonanceEffect(0xFF00FF));
+    public static final DeferredHolder<MobEffect, MobEffect> NATURAL_RESONANCE = REGISTRY.register("natural_resonance", () -> new PlaceholderResonanceEffect(0x32CD32));
+    public static final DeferredHolder<MobEffect, MobEffect> QUANTUM_RESONANCE = REGISTRY.register("quantum_resonance", () -> new PlaceholderResonanceEffect(0x9400D3));
+    public static final DeferredHolder<MobEffect, MobEffect> ETHER_RESONANCE = REGISTRY.register("ether_resonance", () -> new PlaceholderResonanceEffect(0x24B3A7));
+    public static final DeferredHolder<MobEffect, MobEffect> LIGHT_RESONANCE = REGISTRY.register("light_resonance", () -> new PlaceholderResonanceEffect(0xFFFFE0));
+    public static final DeferredHolder<MobEffect, MobEffect> SHADOW_RESONANCE = REGISTRY.register("shadow_resonance", () -> new PlaceholderResonanceEffect(0x4B0082));
+    public static final DeferredHolder<MobEffect, MobEffect> PHYSICAL_RESONANCE = REGISTRY.register("physical_resonance", () -> new PlaceholderResonanceEffect(0xC0C0C0));
+    public static final DeferredHolder<MobEffect, MobEffect> PRISMATIC_RESONANCE = REGISTRY.register("prismatic_resonance", () -> new PlaceholderResonanceEffect(0xFFFFFF));
+
     @SubscribeEvent
     public static void onEffectRemoved(MobEffectEvent.Remove event) {
         MobEffectInstance effectInstance = event.getEffectInstance();

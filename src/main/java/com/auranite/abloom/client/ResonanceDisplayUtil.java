@@ -105,7 +105,40 @@ public class ResonanceDisplayUtil {
 
     private static void drawElementIcon(PoseStack poseStack, IElementalType type, float halfSize,
             MultiBufferSource buffers, Minecraft minecraft) {
-        // Try to get texture from MobEffect texture map
+        // Priority 1: Built-in auto-generated resonance display effect (e.g., wind_resonance)
+        if (!type.isCustom()) {
+            var displayEffectOpt = com.auranite.abloom.registries.CustomElementRegistry.getBuiltInResonanceDisplayEffect(
+                    (com.auranite.abloom.util.ElementType) type);
+            if (displayEffectOpt.isPresent()) {
+                TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(displayEffectOpt.get());
+                if (sprite != null) {
+                    try {
+                        drawSprite(poseStack, sprite, halfSize, buffers);
+                        return;
+                    } catch (Exception e) {
+                        // Fall through to next priority
+                    }
+                }
+            }
+        }
+
+        // Priority 2: Custom resonance_display_effect from JSON
+        if (type.isCustom()) {
+            var displayEffectOpt = com.auranite.abloom.registries.CustomElementRegistry.getResonanceDisplayEffect(type);
+            if (displayEffectOpt.isPresent()) {
+                TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(displayEffectOpt.get());
+                if (sprite != null) {
+                    try {
+                        drawSprite(poseStack, sprite, halfSize, buffers);
+                        return;
+                    } catch (Exception e) {
+                        // Fall through to next priority
+                    }
+                }
+            }
+        }
+
+        // Priority 3: Existing effect mapping (fallback)
         if (!type.isCustom()) {
             // Built-in types: use hardcoded effect mapping
             Holder<MobEffect> effectHolder = getEffectForElementType((com.auranite.abloom.util.ElementType) type);

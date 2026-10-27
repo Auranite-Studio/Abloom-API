@@ -49,7 +49,8 @@ public record CustomElementData(
         boolean canResonanceAccumulation,
         double resonanceDmgMultiplier,
         float dispersionBonus,
-        @Nullable ResonanceEffectConfig resonanceEffect
+        @Nullable ResonanceEffectConfig resonanceEffect,
+        @Nullable ResourceLocation resonanceDisplayEffect
 ) {
     /**
      * Configuration for the resonance effect triggered at 100 accumulation points.
@@ -232,6 +233,13 @@ public record CustomElementData(
             resonanceEffect = parseResonanceEffect(json.get("resonance_effect").getAsJsonObject());
         }
 
+        // Parse resonance_display_effect (optional)
+        ResourceLocation resonanceDisplayEffect = null;
+        if (json.has("resonance_display_effect") && !json.get("resonance_display_effect").isJsonNull()) {
+            String displayEffectStr = json.get("resonance_display_effect").getAsString();
+            resonanceDisplayEffect = ResourceLocation.tryParse(displayEffectStr);
+        }
+
         return new CustomElementData(
                 elementId,
                 overrideDamageTypes,
@@ -242,7 +250,8 @@ public record CustomElementData(
                 canResonanceAccumulation,
                 resonanceDmgMultiplier,
                 dispersionBonus,
-                resonanceEffect
+                resonanceEffect,
+                resonanceDisplayEffect
         );
     }
 
@@ -310,6 +319,7 @@ public record CustomElementData(
         private double resonanceDmgMultiplier = 1.0;
         private float dispersionBonus = 0.0f;
         private ResonanceEffectConfig resonanceEffect = null;
+        private ResourceLocation resonanceDisplayEffect = null;
 
         public Builder elementId(ResourceLocation elementId) {
             this.elementId = elementId;
@@ -361,6 +371,11 @@ public record CustomElementData(
             return this;
         }
 
+        public Builder resonanceDisplayEffect(ResourceLocation resonanceDisplayEffect) {
+            this.resonanceDisplayEffect = resonanceDisplayEffect;
+            return this;
+        }
+
         public CustomElementData build() {
             if (elementId == null) {
                 throw new IllegalArgumentException("elementId must not be null");
@@ -375,7 +390,8 @@ public record CustomElementData(
                     canResonanceAccumulation,
                     resonanceDmgMultiplier,
                     dispersionBonus,
-                    resonanceEffect
+                    resonanceEffect,
+                    resonanceDisplayEffect
             );
         }
     }
