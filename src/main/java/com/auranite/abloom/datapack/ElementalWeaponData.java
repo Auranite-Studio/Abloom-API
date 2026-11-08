@@ -287,6 +287,30 @@ public class ElementalWeaponData {
             stageList = stageList.subList(0, MAX_STAGES);
         }
 
+        // Validate sequential stages (1, 2, 3... without gaps)
+        if (!stageList.isEmpty()) {
+            int expectedNumber = 0;
+            List<WeaponStage> validStages = new ArrayList<>();
+            boolean hasGaps = false;
+
+            for (WeaponStage stage : stageList) {
+                if (stage.getStageNumber() == expectedNumber) {
+                    validStages.add(stage);
+                    expectedNumber++;
+                } else {
+                    hasGaps = true;
+                    AbloomMod.LOGGER.warn("Missing stage {} for weapon (expected after stage {}), " +
+                            "gaps in stage sequence may cause unexpected behavior", expectedNumber, stage.getStageNumber() - 1);
+                }
+            }
+
+            if (hasGaps) {
+                AbloomMod.LOGGER.info("Weapon has non-sequential stages, keeping {} of {} defined stages",
+                        validStages.size(), stageList.size());
+                return validStages;
+            }
+        }
+
         return stageList;
     }
 }
