@@ -1825,6 +1825,150 @@ public class ElementDamageHandler {
     }
 
     /**
+     * Checks if the given crit result represents a critical hit.
+     *
+     * @param critResult the CritResult to check
+     * @return true if the damage is critical, false otherwise
+     */
+    public static boolean isCritical(CritResult critResult) {
+        return critResult != null && critResult.isCrit();
+    }
+
+    /**
+     * Checks if the given crit result represents a double critical hit.
+     * A double critical occurs when crit chance exceeds 100% and an additional
+     * random check passes, dealing double the critical damage.
+     *
+     * @param critResult the CritResult to check
+     * @return true if the damage is a double critical, false otherwise
+     */
+    public static boolean isDoubleCritical(CritResult critResult) {
+        return critResult != null && critResult.isMultiCrit();
+    }
+
+    /**
+     * Triggers a "shattered" resonance explosion on the target without resetting accumulated points.
+     * This method applies the same threshold effect (status text, effect instance, damage multiplier)
+     * as a normal resonance trigger, but leaves the current accumulation points unchanged.
+     * <p>
+     * Useful for abilities, items, or effects that want to trigger a resonance explosion
+     * independently of the normal accumulation threshold.
+     *
+     * @param target the living entity to trigger the explosion on
+     * @param type the elemental type for the resonance
+     * @param baseDamage the base damage to apply (multiplied by the resonance multiplier)
+     * @return the final damage after applying the resonance multiplier
+     */
+    public static float triggerShatteredResonanceExplosion(LivingEntity target, IElementalType type, float baseDamage) {
+        return triggerShatteredResonanceExplosion(target, type, baseDamage, 0.0f);
+    }
+
+    /**
+     * Triggers a "shattered" resonance explosion on the target without resetting accumulated points.
+     * This method applies the same threshold effect (status text, effect instance, damage multiplier)
+     * as a normal resonance trigger, but leaves the current accumulation points unchanged.
+     * <p>
+     * Useful for abilities, items, or effects that want to trigger a resonance explosion
+     * independently of the normal accumulation threshold.
+     *
+     * @param target the living entity to trigger the explosion on
+     * @param type the elemental type for the resonance
+     * @param baseDamage the base damage to apply (multiplied by the resonance multiplier)
+     * @param resonanceFrequency the resonance frequency from the attacker's weapon (affects damage multiplier)
+     * @return the final damage after applying the resonance multiplier
+     */
+    public static float triggerShatteredResonanceExplosion(LivingEntity target, IElementalType type, float baseDamage, float resonanceFrequency) {
+        if (target == null || type == null) return baseDamage;
+        if (target.level().isClientSide) return baseDamage;
+
+        // Apply the threshold effect (effect + status text + damage multiplier)
+        // without resetting points
+        float totalMultiplier;
+        if (type.isCustom()) {
+            var customData = CustomElementRegistry.getData(type);
+            if (customData.isEmpty()) {
+                AbloomMod.LOGGER.warn("Custom element {} has no CustomElementData, skipping shattered resonance", type.name());
+                return baseDamage;
+            }
+            var data = customData.get();
+            if (!data.canResonanceAccumulation()) {
+                AbloomMod.LOGGER.debug("Custom element {} does not support resonance accumulation", type.name());
+                return baseDamage;
+            }
+            float resonanceMultiplier = (float) data.resonanceDmgMultiplier();
+            float frequencyBonus = resonanceFrequency * 0.01f;
+            totalMultiplier = resonanceMultiplier + frequencyBonus;
+
+            // Apply resonance effect if configured
+            if (data.resonanceEffect() != null) {
+                var resonanceEffect = data.resonanceEffect();
+                try {
+                    var effectRegistry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
+                    var effect = effectRegistry.getOptional(net.minecraft.resources.ResourceLocation.tryParse(resonanceEffect.effect().toString()));
+                    if (effect.isPresent()) {
+                        target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                                net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect.get()),
+                                resonanceEffect.duration(),
+                                resonanceEffect.amplifier(),
+                                false,
+                                true
+                        ));
+                    }
+                } catch (Exception e) {
+                    AbloomMod.LOGGER.error("Failed to apply resonance effect for shattered resonance on custom element {}", type.name(), e);
+                }
+            }
+
+            // Spawn status text
+            int color = CustomElementRegistry.getColor(type);
+            Component resonanceMsg;
+            if (type instanceof com.auranite.abloom.util.ElementType.CustomElementType customType) {
+                String rawKey = customType.getRawResonanceTranslationKey();
+                if (rawKey != null && !rawKey.isEmpty()) {
+                    resonanceMsg = Component.translatable(rawKey);
+                } else {
+                    resonanceMsg = Component.translatable("elemental.tooltip.resonance", type.getDisplayName());
+                }
+            } else {
+                resonanceMsg = Component.translatable("elemental.tooltip.resonance", type.getDisplayName());
+            }
+            spawnStatusText(target, resonanceMsg, color);
+        } else {
+            com.auranite.abloom.util.ElementType elementType = (com.auranite.abloom.util.ElementType) type;
+            totalMultiplier = getThresholdResonanceMultiplier(elementType, resonanceFrequency);
+
+            // Apply the resonance effect with full duration
+            target.addEffect(new MobEffectInstance(
+                    RESONANCE_EFFECT_MAP.get((com.auranite.abloom.util.ElementType) type),
+                    12 * 20, // 12 seconds (standard duration, not erosion half)
+                    0, false, true
+            ));
+
+            // Spawn status text
+            int color = getDamageColor(type);
+            String statusTextKey = switch ((com.auranite.abloom.util.ElementType) type) {
+                case FIRE -> "elemental.tooltip.overheating";
+                case PHYSICAL -> "elemental.tooltip.rupture";
+                case WIND -> "elemental.tooltip.wind_whirlwind";
+                case WATER -> "elemental.tooltip.water_flood";
+                case EARTH -> "elemental.tooltip.earth_petrify";
+                case ICE -> "elemental.tooltip.ice_freeze";
+                case ELECTRIC -> "elemental.tooltip.electric_shock";
+                case ENERGY -> "elemental.tooltip.energy_overload";
+                case NATURAL -> "elemental.tooltip.natural_bloom";
+                case QUANTUM -> "elemental.tooltip.quantum_flux";
+                case ETHER -> "elemental.tooltip.ether_resonance";
+                case LIGHT -> "elemental.tooltip.light_dispersion";
+                case SHADOW -> "elemental.tooltip.shadow_eclipse";
+                default -> "elemental.tooltip.resonance";
+            };
+            spawnStatusText(target, Component.translatable(statusTextKey), color);
+        }
+
+        return baseDamage * totalMultiplier;
+    }
+
+    /**
      * Gets the stored prism conversion type from the target's attachment.
      * This is the element type that prism damage should be converted to.
      */
