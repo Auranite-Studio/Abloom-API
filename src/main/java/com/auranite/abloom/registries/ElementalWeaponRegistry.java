@@ -108,19 +108,20 @@ public class ElementalWeaponRegistry {
 
 	/**
 	 * Register a multi-stage elemental weapon.
-	 * Each stage has its own element type and accumulation multiplier.
+	 * Each stage has its own element type, accumulation multiplier, and damage percentage.
 	 *
 	 * @param itemLocation The item resource location
 	 * @param stageNumber The stage number (0-based, max 6, i.e. 0-5)
 	 * @param stageElement The element type for this stage
 	 * @param stageAccumulation The accumulation multiplier for this stage
+	 * @param stageDamageMultiplier The damage multiplier for this stage (e.g., 0.2f = 20%, 1.0f = 100%)
 	 * @param critChance Critical hit chance (shared across all stages)
 	 * @param critDamage Critical hit damage multiplier (shared across all stages)
 	 */
 	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber,
-			IElementalType stageElement, float stageAccumulation,
+			IElementalType stageElement, float stageAccumulation, float stageDamageMultiplier,
 			float critChance, float critDamage) {
-		registerBuiltinWeaponWithStage(itemLocation, stageNumber, stageElement, stageAccumulation, critChance, critDamage, 0.0f);
+		registerBuiltinWeaponWithStage(itemLocation, stageNumber, stageElement, stageAccumulation, stageDamageMultiplier, critChance, critDamage, 0.0f);
 	}
 
 	/**
@@ -130,12 +131,13 @@ public class ElementalWeaponRegistry {
 	 * @param stageNumber The stage number (0-based, max 6, i.e. 0-5)
 	 * @param stageElement The element type for this stage
 	 * @param stageAccumulation The accumulation multiplier for this stage
+	 * @param stageDamageMultiplier The damage multiplier for this stage (e.g., 0.2f = 20%, 1.0f = 100%)
 	 * @param critChance Critical hit chance (shared across all stages)
 	 * @param critDamage Critical hit damage multiplier (shared across all stages)
 	 * @param resonanceFrequency Resonance frequency that adds to threshold damage multiplier
 	 */
 	public static void registerBuiltinWeaponWithStage(ResourceLocation itemLocation, int stageNumber,
-			IElementalType stageElement, float stageAccumulation,
+			IElementalType stageElement, float stageAccumulation, float stageDamageMultiplier,
 			float critChance, float critDamage, float resonanceFrequency) {
 		if (itemLocation == null || stageElement == null) return;
 		if (stageNumber < 0 || stageNumber >= ElementalWeaponData.MAX_STAGES) {
@@ -147,7 +149,7 @@ public class ElementalWeaponRegistry {
 		// Skip duplicate check - stages can be registered multiple times
 		// We only want to add to BUILTIN_REGISTRATIONS once after all stages are registered
 
-		StageData stageData = new StageData(stageNumber, stageElement, stageAccumulation);
+		StageData stageData = new StageData(stageNumber, stageElement, stageAccumulation, stageDamageMultiplier);
 
 		// Get or create stages list
 		List<StageData> stages = WEAPON_STAGES.computeIfAbsent(itemLocation, k -> new ArrayList<>());
@@ -370,10 +372,10 @@ public class ElementalWeaponRegistry {
 	/**
 	 * Represents a single stage of a multi-stage elemental weapon.
 	 */
-	public record StageData(int stageNumber, IElementalType element, float accumulation) {
+	public record StageData(int stageNumber, IElementalType element, float accumulation, float damageMultiplier) {
 		@Override
 		public String toString() {
-			return String.format("Stage%d{%s, accum=x%.2f}", stageNumber, element.getDisplayName(), accumulation);
+			return String.format("Stage%d{%s, accum=x%.2f, dmg=%.0f%%}", stageNumber, element.getDisplayName(), accumulation, damageMultiplier * 100f);
 		}
 	}
 

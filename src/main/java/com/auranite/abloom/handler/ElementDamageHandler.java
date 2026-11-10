@@ -422,6 +422,7 @@ public class ElementDamageHandler {
 
         IElementalType type = getElementTypeFromSource(source);
         float currentAccumMultiplier = 1.0f;
+        float stageDamageMultiplier = 1.0f;
 
         // Check if element was overridden by enchantments (skip stage progression for these)
         boolean elementOverriddenByEnchantment = false;
@@ -439,7 +440,8 @@ public class ElementDamageHandler {
         // Check for multi-stage weapon: update stage progression and apply stage element in one pass
         // Only apply stage elements if the damage is NOT projectile-driven and NOT enchantment-overridden
         // (projectiles with allowOverride=true should keep their attached element priority)
-        if (attacker != null && source.getEntity() == attacker && type != null && !projectileDriven && !elementOverriddenByEnchantment) {
+        // Note: type can be null here for multi-stage weapons - it will be set from the stage data
+        if (attacker != null && source.getEntity() == attacker && !projectileDriven && !elementOverriddenByEnchantment) {
             ItemStack weapon = attacker.getMainHandItem();
             ResourceLocation weaponId = BuiltInRegistries.ITEM.getKey(weapon.getItem());
 
@@ -498,11 +500,9 @@ public class ElementDamageHandler {
                     if (stageData != null) {
                         type = stageData.element();
                         currentAccumMultiplier = stageData.accumulation();
+                        stageDamageMultiplier = stageData.damageMultiplier();
 
-                        if (AbloomMod.LOGGER.isDebugEnabled()) {
-                            AbloomMod.LOGGER.debug("Multi-stage weapon: {} using stage {} ({}) with accum x{}",
-                                    weaponId, stageIndex + 1, type, currentAccumMultiplier);
-                        }
+
                     }
                 }
             }
@@ -579,7 +579,7 @@ public class ElementDamageHandler {
             damageMultiplier *= 1.0f + dispersionBonus;
         }
 
-        float damage = currentDamage * damageMultiplier;
+        float damage = baseDamage * stageDamageMultiplier * damageMultiplier;
 
         float effectiveAccumMultiplier = 0.0f;
         if (source.getDirectEntity() != null) {

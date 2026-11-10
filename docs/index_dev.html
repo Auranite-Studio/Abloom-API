@@ -478,7 +478,7 @@
                 <li><strong>14 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW, PRISMATIC</li>
                 <li><strong>Resonance System:</strong> Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
                 <li><strong>20 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Fluorescence, Suppression, Bleeding, Reinforcement</li>
-                <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 4 attack stages with different elements and accumulation multipliers</li>
+                <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 6 attack stages with different elements, accumulation multipliers, and damage percentages</li>
                 <li><strong>Critical Hit System:</strong> Custom CRIT_CHANCE and CRIT_DMG attributes with weapon-specific bonuses</li>
                 <li><strong>Armor Resistances:</strong> Armor pieces can provide resistance or weakness to specific elements (-0.99 to 0.99)</li>
                 <li><strong>Elemental Projectiles:</strong> Arrows and projectiles can inherit element from shooter's weapon or be forced to specific element</li>
@@ -627,8 +627,9 @@
 
             <div class="note">
                 <strong>Damage Formula:</strong><br>
-                <code>finalDamage = currentDamage × M_effect × (1 − effectiveResist) × (1 + B_element) × C_crit × M_threshold</code><br><br>
+                <code>finalDamage = baseDamage × M_stage × M_effect × (1 − effectiveResist) × (1 + B_element) × C_crit × M_threshold</code><br><br>
                 <strong>Where:</strong><br>
+                <code>M_stage</code> = stage damage multiplier (per-stage percentage of base damage, e.g. 0.20 = 20%)<br>
                 <code>M_effect</code> = SHOCK × OVERLOAD × BLOOM × DISPERSION &nbsp;|&nbsp; <code>effectiveResist</code> = (R_resist + R_mod + R_armor) − P_shred<br>
                 <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD (−1 to 1)<br>
                 <code>B_element</code> = {ELEMENT}_DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED (0 to 1)<br>
@@ -788,28 +789,41 @@
             <h2>Weapon System</h2>
 
             <h3>Weapons Registration</h3>
-            <p>Weapons can be registered with elemental properties. Multi-stage weapons can have up to 4 attack stages, each with its own element type and accumulation multiplier. Stages reset after cooldown based on attack speed.</p>
+            <p>Weapons can be registered with elemental properties. Multi-stage weapons can have up to 6 attack stages, each with its own element type, accumulation multiplier, and damage percentage. Stages reset after cooldown based on attack speed.</p>
 
             <h4>Multi-Stage Registration Example:</h4>
-            <pre><code>// Register a 2-stage weapon
+            <pre><code>// Register a 3-stage weapon
 ResourceLocation swordId = ResourceLocation.fromNamespaceAndPath("mymod", "dragon_sword");
 
-// Stage 1: Fire element with 2x accumulation
+// Stage 1: Fire element with 2x accumulation, 20% base damage
 ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
     swordId,
-    1,                              // stage number (1-4)
+    0,                              // stage number (0-5)
     ElementType.FIRE,
     2.0f,                           // accumulation multiplier
+    0.2f,                           // damage multiplier (20% of base)
     0.15f,                          // crit chance (shared)
     0.5f                            // crit damage (shared)
 );
 
-// Stage 2: Physical element with 3x accumulation
+// Stage 2: Physical element with 3x accumulation, 60% base damage
+ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
+    swordId,
+    1,
+    ElementType.PHYSICAL,
+    3.0f,
+    0.6f,                           // damage multiplier (60% of base)
+    0.15f,
+    0.5f
+);
+
+// Stage 3: Fire element with 5x accumulation, 100% base damage
 ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
     swordId,
     2,
-    ElementType.PHYSICAL,
-    3.0f,
+    ElementType.FIRE,
+    5.0f,
+    1.0f,                           // damage multiplier (100% of base)
     0.15f,
     0.5f
 );</code></pre>
@@ -1901,25 +1915,29 @@ public class MyModElements {
             <p>Weapons can be configured with or without attack stages. Multi-stage weapons deal different element types and accumulation values per hit, while single-element weapons maintain consistent behavior.</p>
 
             <h4>Multi-Stage Weapon Example</h4>
-            <p>Weapons can have multiple attack stages with different elements and accumulation multipliers:</p>
+            <p>Weapons can have multiple attack stages with different elements, accumulation multipliers, and damage percentages:</p>
             <pre><code>{
   "item": "abloom:fire_stick",
   "stages": {
     "1": {
       "element": "PHYSICAL",
-      "accumulation_multiplier": 10.0
+      "accumulation_multiplier": 10.0,
+      "damage_multiplier": 0.20
     },
     "2": {
       "element": "PHYSICAL",
-      "accumulation_multiplier": 10.0
+      "accumulation_multiplier": 10.0,
+      "damage_multiplier": 0.60
     },
     "3": {
       "element": "FIRE",
-      "accumulation_multiplier": 15.0
+      "accumulation_multiplier": 15.0,
+      "damage_multiplier": 0.85
     },
     "4": {
       "element": "FIRE",
-      "accumulation_multiplier": 35.0
+      "accumulation_multiplier": 35.0,
+      "damage_multiplier": 1.00
     }
   },
   "base_element": "FIRE",
@@ -1931,11 +1949,12 @@ public class MyModElements {
             <p><strong>Fields:</strong></p>
             <ul>
                 <li><code>item</code>: Item ID (namespace:item_id)</li>
-                <li><code>stages</code>: Attack stages with element type and accumulation multiplier
+                <li><code>stages</code>: Attack stages with element type, accumulation multiplier, and damage percentage
                     <ul>
                         <li>Stage numbers must be sequential (1, 2, 3, 4...)</li>
                         <li><code>element</code>: Element type for this stage (FIRE, WATER, ICE, etc.)</li>
                         <li><code>accumulation_multiplier</code>: How much resonance points this stage adds</li>
+                        <li><code>damage_multiplier</code>: Percentage of base weapon damage dealt (0.20 = 20%, 1.00 = 100%). Optional, defaults to 1.0 if omitted</li>
                     </ul>
                 </li>
                 <li><code>base_element</code>: Default element type of the weapon</li>
@@ -1946,13 +1965,18 @@ public class MyModElements {
 
             <p><strong>Example Breakdown:</strong> The <code>fire_stick</code> example shows a 4-stage weapon:</p>
             <ul>
-                <li>Stages 1-2: PHYSICAL damage with low accumulation (10.0 each)</li>
-                <li>Stage 3: FIRE damage with medium accumulation (15.0)</li>
-                <li>Stage 4: FIRE damage with high accumulation (35.0)</li>
+                <li>Stage 1: PHYSICAL damage, 20% of base weapon damage, 10.0 accumulation</li>
+                <li>Stage 2: PHYSICAL damage, 60% of base weapon damage, 10.0 accumulation</li>
+                <li>Stage 3: FIRE damage, 85% of base weapon damage, 15.0 accumulation</li>
+                <li>Stage 4: FIRE damage, 100% of base weapon damage, 35.0 accumulation</li>
                 <li>50% crit chance with 100% extra crit damage</li>
                 <li>Base element is FIRE for resistance calculations</li>
                 <li>resonance_frequency: 125 (adds +125% to FIRE resonance explosion damage multiplier, FIRE: 2.0 + 1.25 = 3.25 = 325%)</li>
             </ul>
+
+            <div class="tip">
+                <strong>Damage Multiplier:</strong> The <code>damage_multiplier</code> field controls what percentage of the weapon's base damage is dealt on each stage. This allows for progressive damage scaling — early stages deal less damage (e.g., 20-40%) while later stages deal full damage (100%). If omitted, defaults to 1.0 (100%).
+            </div>
 
             <h4>Single-Element Weapon Example (No Stages)</h4>
             <p>For simpler weapons that always deal the same element type without stage progression:</p>

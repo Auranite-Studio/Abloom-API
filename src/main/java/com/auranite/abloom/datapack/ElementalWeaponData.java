@@ -41,18 +41,24 @@ public class ElementalWeaponData {
     private final List<WeaponStage> stages;
 
     /**
-     * Represents a single attack stage with its element and accumulation multiplier.
+     * Represents a single attack stage with its element, accumulation multiplier, and damage percentage.
      * Stage numbers are 0-based (0-5). Displayed as 1-6 to users.
      */
     public static class WeaponStage {
         private final int stageNumber; // 0-based (0-5)
         private final String stageElement; // element for damage calculation of this stage
         private final float accumulationMultiplier;
+        private final float damageMultiplier; // percentage of base weapon damage (e.g., 0.2f = 20%, 1.0f = 100%)
 
         public WeaponStage(int stageNumber, String stageElement, float accumulationMultiplier) {
+            this(stageNumber, stageElement, accumulationMultiplier, 1.0f);
+        }
+
+        public WeaponStage(int stageNumber, String stageElement, float accumulationMultiplier, float damageMultiplier) {
             this.stageNumber = stageNumber;
             this.stageElement = stageElement;
             this.accumulationMultiplier = accumulationMultiplier;
+            this.damageMultiplier = damageMultiplier;
         }
 
         public int getStageNumber() {
@@ -75,6 +81,15 @@ public class ElementalWeaponData {
 
         public float getAccumulationMultiplier() {
             return accumulationMultiplier;
+        }
+
+        /**
+         * Gets the damage multiplier for this stage.
+         * Represents the percentage of base weapon damage dealt at this stage.
+         * @return damage multiplier (e.g., 0.2f = 20%, 1.0f = 100%)
+         */
+        public float getDamageMultiplier() {
+            return damageMultiplier;
         }
     }
 
@@ -247,8 +262,9 @@ public class ElementalWeaponData {
             JsonObject stageData = stagesArray.get(i).getAsJsonObject();
             String stageElement = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
             float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
+            float damageMultiplier = GsonHelper.getAsFloat(stageData, "damage_multiplier", 1.0f);
             // 0-based stage number
-            stageList.add(new WeaponStage(i, stageElement, accumMultiplier));
+            stageList.add(new WeaponStage(i, stageElement, accumMultiplier, damageMultiplier));
         }
         return stageList;
     }
@@ -268,13 +284,14 @@ public class ElementalWeaponData {
                 JsonObject stageData = stagesObj.getAsJsonObject(stageKey);
                 String stageElement = GsonHelper.getAsString(stageData, "element", "PHYSICAL");
                 float accumMultiplier = GsonHelper.getAsFloat(stageData, "accumulation_multiplier", 1.0f);
+                float damageMultiplier = GsonHelper.getAsFloat(stageData, "damage_multiplier", 1.0f);
 
                 if (IElementalType.byName(stageElement).isEmpty()) {
                     AbloomMod.LOGGER.warn("Unknown element type '{}' for stage {} of weapon, defaulting to PHYSICAL", stageElement, stageKeyNumber);
                 }
 
                 // Store as 0-based
-                stageList.add(new WeaponStage(stageKeyNumber - 1, stageElement, accumMultiplier));
+                stageList.add(new WeaponStage(stageKeyNumber - 1, stageElement, accumMultiplier, damageMultiplier));
             } catch (NumberFormatException e) {
                 AbloomMod.LOGGER.warn("Invalid stage key '{}' in stages object, skipping", stageKey);
             }

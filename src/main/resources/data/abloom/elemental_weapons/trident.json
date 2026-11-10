@@ -3,14 +3,17 @@
   "stages": {
     "1": {
       "element": "PHYSICAL",
+      "damage_multiplier": 0.40,
       "accumulation_multiplier": 2.0
     },
     "2": {
       "element": "PHYSICAL",
+      "damage_multiplier": 0.85,
       "accumulation_multiplier": 2.0
     },
     "3": {
       "element": "WATER",
+      "damage_multiplier": 1.0,
       "accumulation_multiplier": 4.0
     },
     "base_element": "WATER",

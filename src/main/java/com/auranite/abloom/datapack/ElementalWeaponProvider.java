@@ -122,12 +122,13 @@ public class ElementalWeaponProvider {
                     }
                     IElementalType stageElement = stageElementOpt.get();
 
-                    // Register each stage separately with its element and accumulation
+                    // Register each stage separately with its element, accumulation, and damage multiplier
                     ElementalWeaponRegistry.registerBuiltinWeaponWithStage(
                             location,
                             stage.getStageNumber(),
                             stageElement,
                             stage.getAccumulationMultiplier(),
+                            dmgMult,
                             weaponData.getCritChance(),
                             weaponData.getCritDamage(),
                             weaponData.getResonanceFrequency()
