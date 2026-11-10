@@ -128,7 +128,7 @@ public class ElementalWeaponProvider {
                             stage.getStageNumber(),
                             stageElement,
                             stage.getAccumulationMultiplier(),
-                            dmgMult,
+                            stage.getDamageMultiplier(),
                             weaponData.getCritChance(),
                             weaponData.getCritDamage(),
                             weaponData.getResonanceFrequency()

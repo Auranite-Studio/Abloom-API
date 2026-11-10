@@ -718,8 +718,10 @@ public class ElementDamageHandler {
             isThresholdDamage = true;
         }
 
-        // Apply critical hit only to non-threshold damage (resonance explosion does not crit)
-        CritResult critResult = isThresholdDamage ? new CritResult(finalDamage, false, false) : applyCriticalHit(attacker, finalDamage);
+        // Apply critical hit - threshold damage uses resonance-specific crit attributes
+        CritResult critResult = isThresholdDamage
+                ? applyResonanceCriticalHit(attacker, finalDamage)
+                : applyCriticalHit(attacker, finalDamage);
         finalDamage = critResult.damage();
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
@@ -971,6 +973,52 @@ public class ElementDamageHandler {
         double totalCritDamage = Math.max(0.0, Math.min(10.0, entityCritDamage + weaponCritDamage));
 
         // Random check for normal crit (always triggers if chance >= 1.0)
+        if (attacker.level().random.nextFloat() < totalCritChance) {
+            float critDamage = baseDamage * (1.0f + (float) totalCritDamage);
+            boolean isMultiCrit = totalCritChance > 1.0f && attacker.level().random.nextFloat() < (totalCritChance - 1.0f);
+            if (isMultiCrit) {
+                critDamage *= 2.0f;
+            }
+            return new CritResult(critDamage, true, isMultiCrit);
+        }
+
+        return new CritResult(baseDamage, false, false);
+    }
+
+    /**
+     * Applies critical hit logic specifically for resonance threshold explosions.
+     * Uses separate entity attributes (RESONANCE_CRIT_CHANCE / RESONANCE_CRIT_DMG) independent
+     * from regular weapon crit values. By default, resonance explosions cannot crit (0 chance).
+     *
+     * @param attacker the attacking entity (can be null)
+     * @param baseDamage the damage before crit application
+     * @return CritResult with modified damage and crit flag
+     */
+    private static CritResult applyResonanceCriticalHit(LivingEntity attacker, float baseDamage) {
+        if (attacker == null) {
+            return new CritResult(baseDamage, false, false);
+        }
+
+        // Get resonance crit chance from entity attributes only
+        ResourceKey<Attribute> resCritChanceKey = AbloomModAttributes.RESONANCE_CRIT_CHANCE.getKey();
+        AttributeInstance resCritChanceAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(resCritChanceKey));
+        double resonanceCritChance = resCritChanceAttr != null ? resCritChanceAttr.getValue() : 0.0;
+
+        // Get resonance crit damage from entity attributes only
+        ResourceKey<Attribute> resCritDamageKey = AbloomModAttributes.RESONANCE_CRIT_DMG.getKey();
+        AttributeInstance resCritDamageAttr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(resCritDamageKey));
+        double resonanceCritDamage = resCritDamageAttr != null ? resCritDamageAttr.getValue() : 0.0;
+
+        // Clamp to valid ranges
+        double totalCritChance = Math.max(0.0, Math.min(2.0, resonanceCritChance));
+        double totalCritDamage = Math.max(0.0, Math.min(10.0, resonanceCritDamage));
+
+        // If no crit chance, resonance explosion cannot crit
+        if (totalCritChance <= 0) {
+            return new CritResult(baseDamage, false, false);
+        }
+
+        // Random check for crit (same formula as regular crit)
         if (attacker.level().random.nextFloat() < totalCritChance) {
             float critDamage = baseDamage * (1.0f + (float) totalCritDamage);
             boolean isMultiCrit = totalCritChance > 1.0f && attacker.level().random.nextFloat() < (totalCritChance - 1.0f);
@@ -1723,10 +1771,11 @@ public class ElementDamageHandler {
             }
         }
 
-        // Apply critical hit only to non-threshold damage (resonance explosion does not crit)
+        // Apply critical hit - threshold damage uses resonance-specific crit attributes
+        LivingEntity livingAttacker = attacker instanceof LivingEntity le ? le : null;
         CritResult critResult = isThresholdDamage
-                ? new CritResult(finalDamage, false, false)
-                : applyCriticalHit(attacker instanceof LivingEntity le ? le : null, finalDamage);
+                ? applyResonanceCriticalHit(livingAttacker, finalDamage)
+                : applyCriticalHit(livingAttacker, finalDamage);
         finalDamage = critResult.damage();
         boolean isCrit = critResult.isCrit();
         boolean isMultiCrit = critResult.isMultiCrit();
@@ -1860,7 +1909,24 @@ public class ElementDamageHandler {
      * @return the final damage after applying the resonance multiplier
      */
     public static float triggerShatteredResonanceExplosion(LivingEntity target, IElementalType type, float baseDamage) {
-        return triggerShatteredResonanceExplosion(target, type, baseDamage, 0.0f);
+        return triggerShatteredResonanceExplosion(target, type, baseDamage, 0.0f, null);
+    }
+
+    /**
+     * Triggers a "shattered" resonance explosion on the target without resetting accumulated points.
+     * This method applies the same threshold effect (status text, effect instance, damage multiplier)
+     * as a normal resonance trigger, but leaves the current accumulation points unchanged.
+     * <p>
+     * Useful for abilities, items, or effects that want to trigger a resonance explosion
+     * independently of the normal accumulation threshold.
+     *
+     * @param target the living entity to trigger the explosion on
+     * @param type the elemental type for the resonance
+     * @param baseDamage the base damage to apply (multiplied by the resonance multiplier)
+     * @return the final damage after applying the resonance multiplier
+     */
+    public static float triggerShatteredResonanceExplosion(LivingEntity target, IElementalType type, float baseDamage, float resonanceFrequency) {
+        return triggerShatteredResonanceExplosion(target, type, baseDamage, resonanceFrequency, null);
     }
 
     /**
@@ -1875,9 +1941,10 @@ public class ElementDamageHandler {
      * @param type the elemental type for the resonance
      * @param baseDamage the base damage to apply (multiplied by the resonance multiplier)
      * @param resonanceFrequency the resonance frequency from the attacker's weapon (affects damage multiplier)
-     * @return the final damage after applying the resonance multiplier
+     * @param attacker the entity attacking (used for resonance crit attributes, can be null)
+     * @return the final damage after applying the resonance multiplier and crit
      */
-    public static float triggerShatteredResonanceExplosion(LivingEntity target, IElementalType type, float baseDamage, float resonanceFrequency) {
+    public static float triggerShatteredResonanceExplosion(LivingEntity target, IElementalType type, float baseDamage, float resonanceFrequency, LivingEntity attacker) {
         if (target == null || type == null) return baseDamage;
         if (target.level().isClientSide) return baseDamage;
 
@@ -1965,7 +2032,10 @@ public class ElementDamageHandler {
             spawnStatusText(target, Component.translatable(statusTextKey), color);
         }
 
-        return baseDamage * totalMultiplier;
+        // Apply resonance crit to the threshold damage
+        float damageAfterMultiplier = baseDamage * totalMultiplier;
+        CritResult critResult = applyResonanceCriticalHit(attacker, damageAfterMultiplier);
+        return critResult.damage();
     }
 
     /**
