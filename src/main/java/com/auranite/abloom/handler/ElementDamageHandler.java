@@ -644,13 +644,15 @@ public class ElementDamageHandler {
             AbloomMod.LOGGER.debug("Final accumulation points after resistance: {} (entity: {}, type: {})", pointsToAdd, target.getName().getString(), type);
         }
 
+        // Erosion triggers shattered resonance directly (bypasses normal accumulation)
+        boolean isErosionTriggered = false;
         if (erosionActive && !type.name().equals("WIND")) {
             long currentTime = target.level().getGameTime();
             long lastErosionTime = EROSION_COOLDOWNS.getOrDefault(target.getId(), 0L);
 
             if (currentTime - lastErosionTime >= EROSION_COOLDOWN_TICKS) {
+                isErosionTriggered = true;
                 spawnStatusText(target, Component.translatable("elemental.tooltip.vortex_convert"), 0x00FFFF);
-                pointsToAdd = 100;
                 EROSION_COOLDOWNS.put(target.getId(), currentTime);
 
                 // Clean up old erosion cooldowns for entities that no longer have WINDSWEPT
@@ -662,8 +664,9 @@ public class ElementDamageHandler {
 
         // Prism damage that is converted does NOT accumulate resonance points
         // Also, pure prism damage without conversion doesn't accumulate
+        // Erosion bypasses normal accumulation (triggers shattered resonance directly)
         boolean isConvertedPrismDamage = (originalType != null && originalType.isPrismatic() && !type.isPrismatic());
-        if (!isConvertedPrismDamage && originalType != null && !originalType.isPrismatic()) {
+        if (!isConvertedPrismDamage && originalType != null && !originalType.isPrismatic() && !isErosionTriggered) {
             AbloomModAttachments.addPoints(target, type, pointsToAdd);
             // Sync only if below threshold (threshold sync happens after reset)
             int currentPoints = AbloomModAttachments.getPoints(target, type);
@@ -671,15 +674,15 @@ public class ElementDamageHandler {
                 syncAccumulationToClients(target);
             }
         } else if (AbloomMod.LOGGER.isDebugEnabled()) {
-            AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage or pure prism damage");
+            AbloomMod.LOGGER.debug("Skipping accumulation for converted prism damage, pure prism damage, or erosion trigger");
         }
 
-        int pointsAfter = isConvertedPrism || (originalType != null && originalType.isPrismatic())
+        int pointsAfter = isConvertedPrism || (originalType != null && originalType.isPrismatic()) || isErosionTriggered
                 ? AbloomModAttachments.getPoints(target, type)
                 : AbloomModAttachments.getPoints(target, type);
-        boolean thresholdReached = pointsAfter >= THRESHOLD;
+        boolean thresholdReached = !isErosionTriggered && pointsAfter >= THRESHOLD;
         if (AbloomMod.LOGGER.isDebugEnabled()) {
-            AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {}", pointsAfter, THRESHOLD, thresholdReached);
+            AbloomMod.LOGGER.debug("Accumulation threshold check: {}/{} points. Threshold reached: {} (erosion: {})", pointsAfter, THRESHOLD, thresholdReached, isErosionTriggered);
         }
 
         float finalDamage = damage;
@@ -707,12 +710,19 @@ public class ElementDamageHandler {
 
         // Apply threshold effect BEFORE critical hit - resonance explosion does not crit
         boolean isThresholdDamage = false;
-        if (thresholdReached) {
+        if (isErosionTriggered) {
+            // Erosion: trigger shattered resonance directly (no point accumulation, 50% duration)
+            if (AbloomMod.LOGGER.isDebugEnabled()) {
+                AbloomMod.LOGGER.debug("Erosion triggered shattered resonance for {} (type: {})", target.getName().getString(), type);
+            }
+            finalDamage = triggerShatteredResonanceExplosion(target, type, finalDamage, resonanceFrequency, attacker);
+            isThresholdDamage = true;
+        } else if (thresholdReached) {
+            // Normal threshold: accumulate points and trigger resonance
             if (AbloomMod.LOGGER.isDebugEnabled()) {
                 AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
             }
-            boolean isErosionTrigger = (erosionActive && type != ElementType.WIND);
-            finalDamage = applyThresholdEffect(target, type, finalDamage, isErosionTrigger, resonanceFrequency);
+            finalDamage = applyThresholdEffect(target, type, finalDamage, false, resonanceFrequency);
             AbloomModAttachments.resetPoints(target, type);
             syncAccumulationToClients(target);
             isThresholdDamage = true;
@@ -1382,7 +1392,7 @@ public class ElementDamageHandler {
     private static float applyThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency) {
         // Handle custom element types with CustomElementData
         if (type.isCustom()) {
-            return applyCustomThresholdEffect(target, type, originalDamage, resonanceFrequency);
+            return applyCustomThresholdEffect(target, type, originalDamage, resonanceFrequency, isErosionTrigger);
         }
 
         // Erosion triggers apply effects at half duration
@@ -1391,69 +1401,72 @@ public class ElementDamageHandler {
         // Calculate total threshold damage multiplier: Rdm = Rem + Rf
         float totalMultiplier = getThresholdResonanceMultiplier((com.auranite.abloom.util.ElementType) type, resonanceFrequency);
 
+        int baseDuration = getResonanceEffectDuration((com.auranite.abloom.util.ElementType) type);
+        int duration = baseDuration * durationMultiplier / 20;
+
         return switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, 12 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BURN, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.overheating"), 0xFF5500);
                 yield originalDamage * totalMultiplier;
             }
             case PHYSICAL -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, 12 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.RUPTURE, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.rupture"), 0xC0C0C0);
                 yield originalDamage * totalMultiplier;
             }
             case WIND -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, 15 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.WINDSWEPT, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.wind_whirlwind"), 0x00FFFF);
                 yield originalDamage * totalMultiplier;
             }
             case WATER -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, 15 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.WETNESS, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.water_flood"), 0x0080FF);
                 yield originalDamage * totalMultiplier;
             }
             case EARTH -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, 5 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.STUN, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.earth_petrify"), 0x8B4513);
                 yield originalDamage * totalMultiplier;
             }
             case ICE -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, 14 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.FREEZE, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ice_freeze"), 0x00BFFF);
                 yield originalDamage * totalMultiplier;
             }
             case ELECTRIC -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, 14 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.SHOCK, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.electric_shock"), 0xFF19FF);
                 yield originalDamage * totalMultiplier;
             }
             case ENERGY -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, 14 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.OVERLOAD, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.energy_overload"), 0xFFFF00);
                 yield originalDamage * totalMultiplier;
             }
             case NATURAL -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, 12 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BLOOM, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.natural_bloom"), 0x32CD32);
                 yield originalDamage * totalMultiplier;
             }
             case QUANTUM -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, 8 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.BREAK, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.quantum_flux"), 0xFF00FF);
                 yield originalDamage * totalMultiplier;
             }
             case ETHER -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, 12 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.CORRUPTION, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.ether_resonance"), 0x24B3A7);
                 yield originalDamage * totalMultiplier;
             }
             case LIGHT -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, 14 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
                 yield originalDamage * totalMultiplier;
             }
             case SHADOW -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, 14 * durationMultiplier, 0, false, true));
+                target.addEffect(new MobEffectInstance(AbloomModEffects.ECLIPSE, duration, 0, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.shadow_eclipse"), 0x4B0082);
                 yield originalDamage * totalMultiplier;
             }
@@ -1469,6 +1482,10 @@ public class ElementDamageHandler {
      * Applies threshold effect for custom element types using CustomElementData.
      */
     private static float applyCustomThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, float resonanceFrequency) {
+        return applyCustomThresholdEffect(target, type, originalDamage, resonanceFrequency, false);
+    }
+
+    private static float applyCustomThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, float resonanceFrequency, boolean isErosionTrigger) {
         var customData = com.auranite.abloom.registries.CustomElementRegistry.getData(type);
         if (customData.isEmpty()) {
             AbloomMod.LOGGER.warn("Custom element {} has no CustomElementData, skipping threshold effect", type.name());
@@ -1476,7 +1493,7 @@ public class ElementDamageHandler {
         }
 
         var data = customData.get();
-        
+
         // Check if resonance is enabled for this element
         if (!data.canResonanceAccumulation()) {
             AbloomMod.LOGGER.debug("Custom element {} does not support resonance accumulation", type.name());
@@ -1497,9 +1514,14 @@ public class ElementDamageHandler {
                 var effectRegistry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
                 var effect = effectRegistry.getOptional(net.minecraft.resources.ResourceLocation.tryParse(resonanceEffect.effect().toString()));
                 if (effect.isPresent()) {
+                    int duration = resonanceEffect.duration();
+                    // Erosion triggers apply effects at half duration
+                    if (isErosionTrigger) {
+                        duration = (int) (duration * 0.5);
+                    }
                     target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
                             net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect.get()),
-                            resonanceEffect.duration(),
+                            duration,
                             resonanceEffect.amplifier(),
                             false,
                             true
@@ -1606,6 +1628,29 @@ public class ElementDamageHandler {
             case LIGHT -> 2.25f;
             case SHADOW -> 2.25f;
             default -> 1.0f;
+        };
+    }
+
+    /**
+     * Returns the base duration (in ticks) for a resonance effect of the given element type.
+     * This is the same duration used by applyThresholdEffect with isErosionTrigger=false.
+     */
+    private static int getResonanceEffectDuration(com.auranite.abloom.util.ElementType type) {
+        return switch (type) {
+            case FIRE -> 12 * 20;       // 12 seconds
+            case PHYSICAL -> 12 * 20;
+            case WIND -> 15 * 20;
+            case WATER -> 15 * 20;
+            case EARTH -> 5 * 20;
+            case ICE -> 14 * 20;
+            case ELECTRIC -> 14 * 20;
+            case ENERGY -> 14 * 20;
+            case NATURAL -> 12 * 20;
+            case QUANTUM -> 8 * 20;
+            case ETHER -> 12 * 20;
+            case LIGHT -> 14 * 20;
+            case SHADOW -> 14 * 20;
+            default -> 12 * 20;
         };
     }
 
@@ -1966,16 +2011,17 @@ public class ElementDamageHandler {
             float frequencyBonus = resonanceFrequency * 0.01f;
             totalMultiplier = resonanceMultiplier + frequencyBonus;
 
-            // Apply resonance effect if configured
+            // Apply resonance effect if configured (50% of configured duration)
             if (data.resonanceEffect() != null) {
                 var resonanceEffect = data.resonanceEffect();
                 try {
                     var effectRegistry = net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT;
                     var effect = effectRegistry.getOptional(net.minecraft.resources.ResourceLocation.tryParse(resonanceEffect.effect().toString()));
                     if (effect.isPresent()) {
+                        int duration = (int) (resonanceEffect.duration() * 0.5);
                         target.addEffect(new net.minecraft.world.effect.MobEffectInstance(
                                 net.minecraft.core.registries.BuiltInRegistries.MOB_EFFECT.wrapAsHolder(effect.get()),
-                                resonanceEffect.duration(),
+                                duration,
                                 resonanceEffect.amplifier(),
                                 false,
                                 true
@@ -2004,10 +2050,12 @@ public class ElementDamageHandler {
             com.auranite.abloom.util.ElementType elementType = (com.auranite.abloom.util.ElementType) type;
             totalMultiplier = getThresholdResonanceMultiplier(elementType, resonanceFrequency);
 
-            // Apply the resonance effect with full duration
+            // Apply the resonance effect with 50% of the standard duration (same as applyThresholdEffect)
+            int baseDuration = getResonanceEffectDuration(elementType);
+            int duration = (int) (baseDuration * 0.5);
             target.addEffect(new MobEffectInstance(
-                    RESONANCE_EFFECT_MAP.get((com.auranite.abloom.util.ElementType) type),
-                    12 * 20, // 12 seconds (standard duration, not erosion half)
+                    RESONANCE_EFFECT_MAP.get(elementType),
+                    duration, // 50% of standard resonance duration
                     0, false, true
             ));
 
