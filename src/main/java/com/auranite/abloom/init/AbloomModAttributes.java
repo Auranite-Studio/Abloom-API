@@ -69,6 +69,11 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> ETHER_RES_SHRED = REGISTRY.register("ether_res_shred", () -> new RangedAttribute("attribute.power.ether_res_shred", 0, 0, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> LIGHT_RES_SHRED = REGISTRY.register("light_res_shred", () -> new RangedAttribute("attribute.power.light_res_shred", 0, 0, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> SHADOW_RES_SHRED = REGISTRY.register("shadow_res_shred", () -> new RangedAttribute("attribute.power.shadow_res_shred", 0, 0, 1).setSyncable(true));
+    // Global resistance modifier/shred attributes: apply to ALL elements (including custom)
+    public static final DeferredHolder<Attribute, Attribute> ALL_RESIST_MOD = REGISTRY.register("all_resist_mod", () -> new RangedAttribute("attribute.power.all_resist_mod", 0, -1, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> ALL_RES_SHRED = REGISTRY.register("all_res_shred", () -> new RangedAttribute("attribute.power.all_res_shred", 0, 0, 1).setSyncable(true));
+    // Global elemental damage bonus: applies to ALL elements (including custom)
+    public static final DeferredHolder<Attribute, Attribute> ELEMENTAL_DMG_BONUS = REGISTRY.register("all_dmg_bonus", () -> new RangedAttribute("attribute.power.all_dmg_bonus", 0, -1, 1).setSyncable(true));
 
     @SubscribeEvent
     public static void addAttributes(EntityAttributeModificationEvent event) {
@@ -117,5 +122,8 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, ETHER_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, LIGHT_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, ALL_RESIST_MOD));
+        event.getTypes().forEach(entity -> event.add(entity, ALL_RES_SHRED));
+        event.getTypes().forEach(entity -> event.add(entity, ELEMENTAL_DMG_BONUS));
     }
 }

@@ -17,19 +17,7 @@ public class CorruptionEffect extends MobEffect {
     public CorruptionEffect(int color) {
         super(MobEffectCategory.HARMFUL, color);
         float resistModValue = -0.20f;
-        this.addAttributeModifier(AbloomModAttributes.FIRE_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.PHYSICAL_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.WIND_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.EARTH_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.WATER_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.ICE_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.ELECTRIC_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.ENERGY_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.NATURAL_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.QUANTUM_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.ETHER_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.LIGHT_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
-        this.addAttributeModifier(AbloomModAttributes.SHADOW_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
+        this.addAttributeModifier(AbloomModAttributes.ALL_RESIST_MOD, ResourceLocation.fromNamespaceAndPath(AbloomMod.MODID, "effect.corruption_resist"), resistModValue, AttributeModifier.Operation.ADD_VALUE);
     }
 
     @Override

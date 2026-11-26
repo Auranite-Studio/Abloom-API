@@ -1151,24 +1151,19 @@ public class ElementDamageHandler {
         var attr = attacker.getAttribute(attrHolder.get());
         double baseValue = attr != null ? attr.getValue() : 0.0;
 
-        // Apply CorruptionEffect resistance reduction to custom elements
-        double corruptionReduction = getCorruptionResistReduction(attacker);
-        if (corruptionReduction != 0.0 && "resist_mod".equals(suffix)) {
-            baseValue += corruptionReduction;
+        // Add global resistance modifier/shred (e.g. from Corruption)
+        if ("resist_mod".equals(suffix)) {
+            var allResistMod = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ALL_RESIST_MOD.getKey()));
+            baseValue += allResistMod != null ? allResistMod.getValue() : 0.0;
+        } else if ("res_shred".equals(suffix)) {
+            var allResShred = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ALL_RES_SHRED.getKey()));
+            baseValue += allResShred != null ? allResShred.getValue() : 0.0;
+        } else if ("dmg_bonus".equals(suffix)) {
+            var allDmgBonus = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELEMENTAL_DMG_BONUS.getKey()));
+            baseValue += allDmgBonus != null ? allDmgBonus.getValue() : 0.0;
         }
 
         return baseValue;
-    }
-
-    /**
-     * Gets the corruption resistance reduction for an entity with active CorruptionEffect.
-     * Returns -0.20 if CorruptionEffect is active, 0.0 otherwise.
-     */
-    private static double getCorruptionResistReduction(LivingEntity entity) {
-        if (entity.hasEffect(AbloomModEffects.CORRUPTION)) {
-            return -0.20;
-        }
-        return 0.0;
     }
 
     /**
@@ -1182,7 +1177,7 @@ public class ElementDamageHandler {
      */
     private static double getElementResistMod(LivingEntity attacker, IElementalType type) {
         if (type.isCustom()) return getCustomElementAttributeValue(attacker, type, "resist_mod");
-        return switch ((com.auranite.abloom.util.ElementType) type) {
+        double total = switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RESIST_MOD.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
@@ -1237,6 +1232,10 @@ public class ElementDamageHandler {
             }
             default -> 0.0;
         };
+        // Add global resistance modifier (e.g. from Corruption)
+        var allResistMod = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ALL_RESIST_MOD.getKey()));
+        total += allResistMod != null ? allResistMod.getValue() : 0.0;
+        return total;
     }
 
     /**
@@ -1249,7 +1248,7 @@ public class ElementDamageHandler {
      */
     private static double getElementResShred(LivingEntity attacker, IElementalType type) {
         if (type.isCustom()) return getCustomElementAttributeValue(attacker, type, "res_shred");
-        return switch ((com.auranite.abloom.util.ElementType) type) {
+        double total = switch ((com.auranite.abloom.util.ElementType) type) {
             case FIRE -> {
                 var attr = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.FIRE_RES_SHRED.getKey()));
                 yield attr != null ? attr.getValue() : 0.0;
@@ -1304,6 +1303,10 @@ public class ElementDamageHandler {
             }
             default -> 0.0;
         };
+        // Add global resistance shred (e.g. from items or effects)
+        var allResShred = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ALL_RES_SHRED.getKey()));
+        total += allResShred != null ? allResShred.getValue() : 0.0;
+        return total;
     }
 
     /**
@@ -1376,6 +1379,9 @@ public class ElementDamageHandler {
             }
             default -> 0.0;
         };
+        // Add global elemental damage bonus (e.g. from items or effects)
+        var allDmgBonus = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELEMENTAL_DMG_BONUS.getKey()));
+        bonusValue += allDmgBonus != null ? allDmgBonus.getValue() : 0.0;
 
         if (bonusValue == 0.0) return baseDamage;
         return Math.max(0.0f, baseDamage * (1.0f + (float) bonusValue));

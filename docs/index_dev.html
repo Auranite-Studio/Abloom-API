@@ -462,7 +462,6 @@
                 <li><a href="#mechanics">Mechanics</a></li>
                 <li><a href="#effects">Status Effects</a></li>
                 <li><a href="#weapons">Weapon System</a></li>
-                <li><a href="#attributes">Attributes</a></li>
                 <li><a href="#combat">Combat API</a></li>
                 <li><a href="#integration">Mod Integration</a></li>
                 <li><a href="#configuration">Datapacks</a></li>
@@ -631,8 +630,8 @@
                 <strong>Where:</strong><br>
                 <code>M_stage</code> = stage damage multiplier (per-stage percentage of base damage, e.g. 0.20 = 20%)<br>
                 <code>M_effect</code> = SHOCK × OVERLOAD × BLOOM × DISPERSION &nbsp;|&nbsp; <code>effectiveResist</code> = (R_resist + R_mod + R_armor) − P_shred<br>
-                <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD (−1 to 1)<br>
-                <code>B_element</code> = {ELEMENT}_DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED (0 to 1)<br>
+                <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD + ALL_RESIST_MOD (−1 to 1)<br>
+                <code>B_element</code> = {ELEMENT}_DMG_BONUS + ELEMENTAL_DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED + ALL_RES_SHRED (0 to 1)<br>
                 <code>R_armor</code> = sum of armor resistance components (−0.99 to 0.99) &nbsp;|&nbsp; <code>C_crit</code> = 1.0 or (1.0 + totalCritDamage) × 2.0 (multi-crit)<br>
                 <code>M_threshold</code> = baseMultiplier + resonanceFrequency × 0.01, where baseMultiplier = 2.00 / 2.25 / 2.50 (when triggered resonance explosion)<br><br>
                 <strong>Resonance Points:</strong> <code>pointsToAdd = round((baseAccum + effectiveAccumMultiplier) × (1 − effectiveResist))</code><br>
@@ -1543,6 +1542,89 @@ if (iceShred != null) {
 
             <div class="tip">
                 <strong>Use Case:</strong> These attributes reduce the target's effective resistance by a flat amount. Unlike RESIST_MOD (which adds to base resistance), RES_SHRED directly subtracts from the final effective resistance. For example, a fire arrow with <code>FIRE_RES_SHRED = 0.3</code> reduces any fire resistance the target has by 0.3.
+            </div>
+
+            <h3>Global Elemental Attributes</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>ID</th>
+                        <th>Range</th>
+                        <th>Default</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>ALL_RESIST_MOD</strong></td>
+                        <td><code>abloom:all_resist_mod</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td>Global resistance modifier applied to ALL elements. Added to per-element RESIST_MOD. Negative values reduce resistance (more damage taken). Used by Corruption effect (-0.20).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ALL_RES_SHRED</strong></td>
+                        <td><code>abloom:all_res_shred</code></td>
+                        <td>0 to 1</td>
+                        <td>0</td>
+                        <td>Global resistance shred applied to ALL elements. Subtracted from effective resistance for all elements.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ELEMENTAL_DMG_BONUS</strong></td>
+                        <td><code>abloom:all_dmg_bonus</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td>Global elemental damage bonus applied to ALL elements. Added to per-element DMG_BONUS. Positive values increase damage dealt.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>How It Works</h4>
+            <p>Global attributes are added to per-element attributes. The formulas are:</p>
+            <pre><code>// Resistance modifier: element-specific + global
+effectiveResistMod = FIRE_RESIST_MOD + ALL_RESIST_MOD;
+// Example: FIRE_RESIST_MOD = 0.30, ALL_RESIST_MOD = -0.20 → effectiveResistMod = 0.10
+
+// Resistance shred: element-specific + global
+effectiveResistShred = FIRE_RES_SHRED + ALL_RES_SHRED;
+// Example: FIRE_RES_SHRED = 0.3, ALL_RES_SHRED = 0.2 → effectiveResistShred = 0.5
+
+// Damage bonus: element-specific + global
+finalDamage *= (1.0f + FIRE_DMG_BONUS + ELEMENTAL_DMG_BONUS);
+// Example: FIRE_DMG_BONUS = 0.30, ELEMENTAL_DMG_BONUS = 0.20 → finalDamage *= 1.50 (+50%)</code></pre>
+
+            <h4>Setting the Attribute</h4>
+            <pre><code>import com.auranite.abloom.init.AbloomModAttributes;
+
+// Set global resistance modifier (e.g. for a debuff)
+Entity entity = ...;
+AttributeInstance allResist = entity.getAttribute(
+    AbloomModAttributes.ALL_RESIST_MOD
+);
+if (allResist != null) {
+    allResist.setBaseValue(-0.20);  // -20% resistance to ALL elements
+}
+
+// Set global damage bonus (e.g. for a buff)
+AttributeInstance allDmg = entity.getAttribute(
+    AbloomModAttributes.ELEMENTAL_DMG_BONUS
+);
+if (allDmg != null) {
+    allDmg.setBaseValue(0.25);  // +25% damage to ALL elements
+}
+
+// Set global resistance shred (e.g. for an attacker buff)
+AttributeInstance allShred = entity.getAttribute(
+    AbloomModAttributes.ALL_RES_SHRED
+);
+if (allShred != null) {
+    allShred.setBaseValue(0.3);  // 30% resistance shred on ALL elements
+}</code></pre>
+
+            <div class="tip">
+                <strong>Use Case:</strong> Global attributes are perfect for effects that affect all elements at once. The Corruption effect uses <code>ALL_RESIST_MOD = -0.20</code> to reduce resistance to every element. A "Master Elementalist" buff could grant <code>ELEMENTAL_DMG_BONUS = 0.15</code> for +15% damage with any element.
             </div>
 
             <h3>Enchantment-Based Damage Type Override</h3>
