@@ -7,7 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 public class PrismEffect extends MobEffect {
     public PrismEffect(int color) {
-        super(MobEffectCategory.HARMFUL, color);
+        super(MobEffectCategory.BENEFICIAL, color);
     }
 
     @Override

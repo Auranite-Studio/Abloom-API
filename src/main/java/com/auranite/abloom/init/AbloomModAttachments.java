@@ -51,8 +51,8 @@ public class AbloomModAttachments {
 
     public static void resetPoints(LivingEntity entity, IElementalType type) {
         getAccumulator(entity).put(type, 0);
-        // Clear prism conversion type to prevent state leak between entity lifetimes
-        clearPrismConversionType(entity);
+        // Clear prism type to prevent state leak between entity lifetimes
+        clearAttackerPrismType(entity);
     }
 
     public static boolean hasReachedThreshold(LivingEntity entity, IElementalType type, int threshold) {
@@ -87,15 +87,15 @@ public class AbloomModAttachments {
         }
     }
 
-    public static void setPrismConversionType(LivingEntity entity, IElementalType type) {
+    public static void setAttackerPrismType(LivingEntity entity, IElementalType type) {
         if (entity != null && !entity.level().isClientSide && type != null) {
-            entity.getPersistentData().putString("Abloom_PrismConversionType", type.name());
+            entity.getPersistentData().putString("Abloom_AttackerPrismType", type.name());
         }
     }
 
-    public static IElementalType getPrismConversionType(LivingEntity entity) {
+    public static IElementalType getAttackerPrismType(LivingEntity entity) {
         if (entity != null) {
-            String typeName = entity.getPersistentData().getString("Abloom_PrismConversionType");
+            String typeName = entity.getPersistentData().getString("Abloom_AttackerPrismType");
             if (!typeName.isEmpty()) {
                 return IElementalType.byName(typeName).orElse(null);
             }
@@ -103,31 +103,9 @@ public class AbloomModAttachments {
         return null;
     }
 
-    public static void clearPrismConversionType(LivingEntity entity) {
+    public static void clearAttackerPrismType(LivingEntity entity) {
         if (entity != null) {
-            entity.getPersistentData().remove("Abloom_PrismConversionType");
-        }
-    }
-
-    public static void setFluorescenceType(LivingEntity entity, IElementalType type) {
-        if (entity != null && !entity.level().isClientSide && type != null) {
-            entity.getPersistentData().putString("Abloom_FluorescenceType", type.name());
-        }
-    }
-
-    public static IElementalType getFluorescenceType(LivingEntity entity) {
-        if (entity != null) {
-            String typeName = entity.getPersistentData().getString("Abloom_FluorescenceType");
-            if (!typeName.isEmpty()) {
-                return IElementalType.byName(typeName).orElse(null);
-            }
-        }
-        return null;
-    }
-
-    public static void clearFluorescenceType(LivingEntity entity) {
-        if (entity != null) {
-            entity.getPersistentData().remove("Abloom_FluorescenceType");
+            entity.getPersistentData().remove("Abloom_AttackerPrismType");
         }
     }
 }

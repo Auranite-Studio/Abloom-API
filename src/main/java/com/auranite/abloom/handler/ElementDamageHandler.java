@@ -53,7 +53,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.auranite.abloom.init.AbloomModAttachments.setPrismConversionType;
+
 /** Record for critical hit result containing modified damage and crit flag. */
 record CritResult(float damage, boolean isCrit, boolean isMultiCrit) {}
 
@@ -403,23 +403,6 @@ public class ElementDamageHandler {
         LivingEntity attacker = source.getEntity() instanceof LivingEntity e ? e : null;
         boolean erosionActive = target.hasEffect(AbloomModEffects.WINDSWEPT);
 
-        // Consume Fluorescence: apply Prism to target with stored type
-        if (attacker != null && attacker.hasEffect(AbloomModEffects.FLUORESCENCE)) {
-            IElementalType fluorescenceType = AbloomModAttachments.getFluorescenceType(attacker);
-            if (fluorescenceType != null) {
-                attacker.removeEffect(AbloomModEffects.FLUORESCENCE);
-                AbloomModAttachments.clearFluorescenceType(attacker);
-
-                setPrismConversionType(target, fluorescenceType);
-                target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
-
-                if (AbloomMod.LOGGER.isDebugEnabled()) {
-                    AbloomMod.LOGGER.debug("Fluorescence consumed: attacker {} applies Prism to {} with type {}",
-                            attacker.getName().getString(), target.getName().getString(), fluorescenceType);
-                }
-            }
-        }
-
         IElementalType type = getElementTypeFromSource(source);
         float currentAccumMultiplier = 1.0f;
         float stageDamageMultiplier = 1.0f;
@@ -515,41 +498,43 @@ public class ElementDamageHandler {
 
         // Handle Prism damage conversion (for PRISMATIC type, built-in or via base_element)
         IElementalType originalType = type;
-        if (type.isPrismatic()) {
-            if (target.hasEffect(AbloomModEffects.PRISM)) {
-                // PRISM is active: check if a new resonance has appeared
-                IElementalType storedType = getConvertedPrismType(target);
-                IElementalType currentResonance = getActiveResonanceType(target);
-                if (currentResonance != null && !currentResonance.name().equals(storedType != null ? storedType.name() : "")) {
-                    // New resonance appeared — switch conversion type and extend PRISM
-                    setPrismConversionType(target, currentResonance);
-                    target.removeEffect(AbloomModEffects.PRISM);
-                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
+        if (type.isPrismatic() && attacker != null) {
+            if (attacker.hasEffect(AbloomModEffects.PRISM)) {
+                // Attacker has Prism — check target's resonance for possible type update
+                IElementalType storedType = AbloomModAttachments.getAttackerPrismType(attacker);
+                IElementalType targetResonance = getActiveResonanceType(target);
+                if (targetResonance != null && (storedType == null || !targetResonance.name().equals(storedType.name()))) {
+                    // Different resonance on target — update Prism type and duration on attacker
+                    AbloomModAttachments.setAttackerPrismType(attacker, targetResonance);
+                    attacker.removeEffect(AbloomModEffects.PRISM);
+                    attacker.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
                     if (AbloomMod.LOGGER.isDebugEnabled()) {
-                        AbloomMod.LOGGER.debug("Prism conversion switched from {} to {} (new resonance), PRISM extended", storedType, currentResonance);
+                        AbloomMod.LOGGER.debug("Prism conversion switched from {} to {} (new resonance on target), PRISM extended on attacker", storedType, targetResonance);
                     }
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
-                    type = currentResonance;
-                } else if (currentResonance != null) {
-                    // Same resonance as stored — use it as-is
-                    type = currentResonance;
+                    type = targetResonance;
+                } else if (targetResonance != null && storedType != null) {
+                    // Same resonance as stored — just refresh duration on attacker
+                    attacker.removeEffect(AbloomModEffects.PRISM);
+                    attacker.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
+                    type = targetResonance;
                 } else {
-                    // No active resonance — use stored type from attachment
+                    // No resonance on target — use stored type
                     type = storedType;
                     if (type == null) {
                         type = com.auranite.abloom.util.ElementType.PRISMATIC; // Fallback
                     }
                 }
             } else {
-                // No Prism effect active — activate it from current resonance
-                IElementalType resonanceType = getActiveResonanceType(target);
-                if (resonanceType != null && !resonanceType.isPrismatic()) {
-                    target.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
-                    setPrismConversionType(target, resonanceType);
+                // Attacker has no Prism — activate from target's resonance
+                IElementalType targetResonance = getActiveResonanceType(target);
+                if (targetResonance != null && !targetResonance.isPrismatic()) {
+                    AbloomModAttachments.setAttackerPrismType(attacker, targetResonance);
+                    attacker.addEffect(new MobEffectInstance(AbloomModEffects.PRISM, 40 * 20, 0, false, true));
                     spawnStatusText(target, Component.translatable("elemental.tooltip.conversion"), 0xFFFFFF);
-                    type = resonanceType;
+                    type = targetResonance;
                 }
-                // Prism damage does NOT accumulate resonance points
+                // Pure PRISMATIC without resonance → no accumulation
             }
         }
 
@@ -765,31 +750,6 @@ public class ElementDamageHandler {
         // Clean up stage tracking and cooldown for dead entity
         STAGE_TRACKER.keySet().removeIf(key -> key.contains("_" + entity.getId() + "_"));
         ElementalWeaponRegistry.cleanupEntityCooldowns(entity);
-
-        // Clean up Fluorescence when entity dies
-        AbloomModAttachments.clearFluorescenceType(entity);
-
-        // If entity dies with PRISM_CONVERSION_TYPE, give Fluorescence to attacker
-        // Read BEFORE clearing to prevent state leak on DoT death
-        IElementalType fluorescenceType = AbloomModAttachments.getPrismConversionType(entity);
-        AbloomModAttachments.clearPrismConversionType(entity);
-
-        if (attacker != null && attacker.isAlive() && fluorescenceType != null) {
-            AbloomModAttachments.setFluorescenceType(attacker, fluorescenceType);
-            attacker.addEffect(new MobEffectInstance(AbloomModEffects.FLUORESCENCE, 1200, 0, false, true));
-            if (AbloomMod.LOGGER.isDebugEnabled()) {
-                AbloomMod.LOGGER.debug("Entity {} died, attacker {} gets Fluorescence with type {}",
-                        entity.getName().getString(), attacker.getName().getString(), fluorescenceType);
-            }
-        } else if (AbloomMod.LOGGER.isDebugEnabled()) {
-            if (attacker == null || !attacker.isAlive()) {
-                AbloomMod.LOGGER.debug("Entity {} died, no valid attacker found (attacker={}, alive={}), skipping Fluorescence",
-                        entity.getName().getString(), attacker != null ? attacker.getName().getString() : "null", attacker != null && attacker.isAlive());
-            } else if (fluorescenceType == null) {
-                AbloomMod.LOGGER.debug("Entity {} died, no PRISM_CONVERSION_TYPE found, skipping Fluorescence",
-                        entity.getName().getString());
-            }
-        }
     }
 
     @SubscribeEvent
@@ -2088,14 +2048,6 @@ public class ElementDamageHandler {
         float damageAfterMultiplier = baseDamage * totalMultiplier;
         CritResult critResult = applyResonanceCriticalHit(attacker, damageAfterMultiplier);
         return critResult.damage();
-    }
-
-    /**
-     * Gets the stored prism conversion type from the target's attachment.
-     * This is the element type that prism damage should be converted to.
-     */
-    private static IElementalType getConvertedPrismType(LivingEntity target) {
-        return AbloomModAttachments.getPrismConversionType(target);
     }
 
     /**
