@@ -569,7 +569,7 @@ public class ElementDamageHandler {
         // Modifiers from target
         if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
-            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+            damageMultiplier *= 1.0f + (amplifier + 1) * 0.40f;
         }
         if (target.hasEffect(AbloomModEffects.DISPERSION)) {
             float dispersionBonus = getDispersionBonus(type);
@@ -1761,7 +1761,7 @@ public class ElementDamageHandler {
 
         if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
             int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
-            damageMultiplier *= 1.0f + (amplifier + 1) * 0.20f;
+            damageMultiplier *= 1.0f + (amplifier + 1) * 0.40f;
         }
         if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
             int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
