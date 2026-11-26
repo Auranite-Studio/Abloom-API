@@ -558,19 +558,7 @@ public class ElementDamageHandler {
 
         float damageMultiplier = 1.0f;
 
-        // Modifiers from attacker
-        if (attacker != null && attacker.hasEffect(AbloomModEffects.SHOCK)) {
-            int amplifier = attacker.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-            float reduction = 1.0f - ((amplifier + 1) * 0.20f);
-            reduction = Math.max(0.1f, reduction);
-            damageMultiplier *= reduction;
-        }
-
         // Modifiers from target
-        if (target.hasEffect(AbloomModEffects.OVERLOAD)) {
-            int amplifier = target.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
-            damageMultiplier *= 1.0f + (amplifier + 1) * 0.40f;
-        }
         if (target.hasEffect(AbloomModEffects.DISPERSION)) {
             float dispersionBonus = getDispersionBonus(type);
             if (AbloomMod.LOGGER.isDebugEnabled()) {
@@ -689,6 +677,16 @@ public class ElementDamageHandler {
 
         // Apply effective resistance (already calculated above, includes armor)
         finalDamage = Math.max(0.001f, finalDamage * (1.0f - effectiveResist));
+
+        // Apply global incoming damage bonus (increases ALL damage taken by target)
+        if (target != null) {
+            ResourceKey<Attribute> incomingDmgBonusKey = AbloomModAttributes.INCOMING_DMG.getKey();
+            AttributeInstance incomingDmgBonusAttr = target.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(incomingDmgBonusKey));
+            double incomingDmgBonusValue = incomingDmgBonusAttr != null ? incomingDmgBonusAttr.getValue() : 0.0;
+            if (incomingDmgBonusValue != 0.0) {
+                finalDamage = Math.max(0.001f, finalDamage * (1.0f + (float) incomingDmgBonusValue));
+            }
+        }
 
         // Apply elemental damage bonus attributes
         if (attacker != null) {
@@ -1159,7 +1157,7 @@ public class ElementDamageHandler {
             var allResShred = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ALL_RES_SHRED.getKey()));
             baseValue += allResShred != null ? allResShred.getValue() : 0.0;
         } else if ("dmg_bonus".equals(suffix)) {
-            var allDmgBonus = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELEMENTAL_DMG_BONUS.getKey()));
+            var allDmgBonus = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.DMG_BONUS.getKey()));
             baseValue += allDmgBonus != null ? allDmgBonus.getValue() : 0.0;
         }
 
@@ -1380,7 +1378,7 @@ public class ElementDamageHandler {
             default -> 0.0;
         };
         // Add global elemental damage bonus (e.g. from items or effects)
-        var allDmgBonus = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.ELEMENTAL_DMG_BONUS.getKey()));
+        var allDmgBonus = attacker.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(AbloomModAttributes.DMG_BONUS.getKey()));
         bonusValue += allDmgBonus != null ? allDmgBonus.getValue() : 0.0;
 
         if (bonusValue == 0.0) return baseDamage;
@@ -1753,16 +1751,6 @@ public class ElementDamageHandler {
         float accumBonus = 1.0f;
         boolean isThresholdDamage = false;
 
-        if (attacker instanceof LivingEntity le && le.hasEffect(AbloomModEffects.SHOCK)) {
-            int amplifier = le.getEffect(AbloomModEffects.SHOCK).getAmplifier();
-            float reduction = 1.0f - ((amplifier + 1) * 0.20f);
-            damageMultiplier *= Math.max(0.1f, reduction);
-        }
-
-        if (livingTarget.hasEffect(AbloomModEffects.OVERLOAD)) {
-            int amplifier = livingTarget.getEffect(AbloomModEffects.OVERLOAD).getAmplifier();
-            damageMultiplier *= 1.0f + (amplifier + 1) * 0.40f;
-        }
         if (livingTarget.hasEffect(AbloomModEffects.WETNESS)) {
             int amplifier = livingTarget.getEffect(AbloomModEffects.WETNESS).getAmplifier();
             accumBonus *= 1.0f + (amplifier + 1) * 0.5f;
@@ -1783,6 +1771,16 @@ public class ElementDamageHandler {
         }
         effectiveResist = Math.max(-0.99f, Math.min(0.99f, effectiveResist));
         finalDamage = Math.max(0.001f, finalDamage * (1.0f - effectiveResist));
+
+        // Apply global incoming damage bonus (increases ALL damage taken by target)
+        if (livingTarget != null) {
+            ResourceKey<Attribute> incomingDmgBonusKey = AbloomModAttributes.INCOMING_DMG.getKey();
+            AttributeInstance incomingDmgBonusAttr = livingTarget.getAttribute(BuiltInRegistries.ATTRIBUTE.getHolderOrThrow(incomingDmgBonusKey));
+            double incomingDmgBonusValue = incomingDmgBonusAttr != null ? incomingDmgBonusAttr.getValue() : 0.0;
+            if (incomingDmgBonusValue != 0.0) {
+                finalDamage = Math.max(0.001f, finalDamage * (1.0f + (float) incomingDmgBonusValue));
+            }
+        }
 
         // Apply elemental damage bonus attributes (same as doProcessLivingHurt)
         if (attacker instanceof LivingEntity livingAttacker) {

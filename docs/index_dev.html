@@ -533,7 +533,7 @@
                     </tr>
                     <tr>
                         <td><span class="element-electric">ELECTRIC</span></td>
-                        <td>Electric resonance explosion, applies Shock effect (target inflicts 20% less damage and has 20% attack speed reduction)</td>
+                        <td>Electric resonance explosion, applies Shock effect (target inflicts 40% less damage and has 40% attack speed reduction)</td>
                         <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
@@ -631,7 +631,7 @@
                 <code>M_stage</code> = stage damage multiplier (per-stage percentage of base damage, e.g. 0.20 = 20%)<br>
                 <code>M_effect</code> = SHOCK × OVERLOAD × BLOOM × DISPERSION &nbsp;|&nbsp; <code>effectiveResist</code> = (R_resist + R_mod + R_armor) − P_shred<br>
                 <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD + ALL_RESIST_MOD (−1 to 1)<br>
-                <code>B_element</code> = {ELEMENT}_DMG_BONUS + ELEMENTAL_DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED + ALL_RES_SHRED (0 to 1)<br>
+                <code>B_element</code> = {ELEMENT}_DMG_BONUS + DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED + ALL_RES_SHRED (0 to 1)<br>
                 <code>R_armor</code> = sum of armor resistance components (−0.99 to 0.99) &nbsp;|&nbsp; <code>C_crit</code> = 1.0 or (1.0 + totalCritDamage) × 2.0 (multi-crit)<br>
                 <code>M_threshold</code> = baseMultiplier + resonanceFrequency × 0.01, where baseMultiplier = 2.00 / 2.25 / 2.50 (when triggered resonance explosion)<br><br>
                 <strong>Resonance Points:</strong> <code>pointsToAdd = round((baseAccum + effectiveAccumMultiplier) × (1 − effectiveResist))</code><br>
@@ -681,7 +681,7 @@
                     <tr>
                         <td>Shock</td>
                         <td><code>abloom:shock</code></td>
-                        <td>Target inflicts 20% less damage and has 20% attack speed reduction</td>
+                        <td>Target inflicts 40% less damage and has 40% attack speed reduction</td>
                         <td style="color: #FF19FF;">#FF19FF</td>
                     </tr>
                     <tr>
@@ -1572,11 +1572,18 @@ if (iceShred != null) {
                         <td>Global resistance shred applied to ALL elements. Subtracted from effective resistance for all elements.</td>
                     </tr>
                     <tr>
-                        <td><strong>ELEMENTAL_DMG_BONUS</strong></td>
-                        <td><code>abloom:all_dmg_bonus</code></td>
+                        <td><strong>DMG_BONUS</strong></td>
+                        <td><code>abloom:dmg_bonus</code></td>
                         <td>-1 to 1</td>
                         <td>0</td>
-                        <td>Global elemental damage bonus applied to ALL elements. Added to per-element DMG_BONUS. Positive values increase damage dealt.</td>
+                        <td>Global elemental damage bonus applied to ALL elements. Added to per-element DMG_BONUS. Positive values increase damage dealt. Used by Shock effect (−0.20 per amplifier on attacker).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>INCOMING_DMG</strong></td>
+                        <td><code>abloom:incoming_dmg</code></td>
+                        <td>-1 to 1</td>
+                        <td>0</td>
+                        <td>Global incoming damage bonus applied to ALL damage taken by the target. Positive values increase damage taken. Used by Overload effect (+0.40 per amplifier on target).</td>
                     </tr>
                 </tbody>
             </table>
@@ -1592,8 +1599,8 @@ effectiveResistShred = FIRE_RES_SHRED + ALL_RES_SHRED;
 // Example: FIRE_RES_SHRED = 0.3, ALL_RES_SHRED = 0.2 → effectiveResistShred = 0.5
 
 // Damage bonus: element-specific + global
-finalDamage *= (1.0f + FIRE_DMG_BONUS + ELEMENTAL_DMG_BONUS);
-// Example: FIRE_DMG_BONUS = 0.30, ELEMENTAL_DMG_BONUS = 0.20 → finalDamage *= 1.50 (+50%)</code></pre>
+finalDamage *= (1.0f + FIRE_DMG_BONUS + DMG_BONUS);
+// Example: FIRE_DMG_BONUS = 0.30, DMG_BONUS = 0.20 → finalDamage *= 1.50 (+50%)</code></pre>
 
             <h4>Setting the Attribute</h4>
             <pre><code>import com.auranite.abloom.init.AbloomModAttributes;
@@ -1609,10 +1616,18 @@ if (allResist != null) {
 
 // Set global damage bonus (e.g. for a buff)
 AttributeInstance allDmg = entity.getAttribute(
-    AbloomModAttributes.ELEMENTAL_DMG_BONUS
+    AbloomModAttributes.DMG_BONUS
 );
 if (allDmg != null) {
     allDmg.setBaseValue(0.25);  // +25% damage to ALL elements
+}
+
+// Set global incoming damage bonus (e.g. for a debuff)
+AttributeInstance incomingDmg = entity.getAttribute(
+    AbloomModAttributes.INCOMING_DMG
+);
+if (incomingDmg != null) {
+    incomingDmg.setBaseValue(0.30);  // +30% damage taken by target
 }
 
 // Set global resistance shred (e.g. for an attacker buff)

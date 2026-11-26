@@ -73,7 +73,9 @@ public class AbloomModAttributes {
     public static final DeferredHolder<Attribute, Attribute> ALL_RESIST_MOD = REGISTRY.register("all_resist_mod", () -> new RangedAttribute("attribute.power.all_resist_mod", 0, -1, 1).setSyncable(true));
     public static final DeferredHolder<Attribute, Attribute> ALL_RES_SHRED = REGISTRY.register("all_res_shred", () -> new RangedAttribute("attribute.power.all_res_shred", 0, 0, 1).setSyncable(true));
     // Global elemental damage bonus: applies to ALL elements (including custom)
-    public static final DeferredHolder<Attribute, Attribute> ELEMENTAL_DMG_BONUS = REGISTRY.register("all_dmg_bonus", () -> new RangedAttribute("attribute.power.all_dmg_bonus", 0, -1, 1).setSyncable(true));
+    public static final DeferredHolder<Attribute, Attribute> DMG_BONUS = REGISTRY.register("dmg_bonus", () -> new RangedAttribute("attribute.power.dmg_bonus", 0, -1, 1).setSyncable(true));
+    // Global incoming damage bonus: increases ALL damage taken by the target (applied on attacker hitting target)
+    public static final DeferredHolder<Attribute, Attribute> INCOMING_DMG = REGISTRY.register("incoming_dmg", () -> new RangedAttribute("attribute.power.incoming_dmg", 0, -1, 1).setSyncable(true));
 
     @SubscribeEvent
     public static void addAttributes(EntityAttributeModificationEvent event) {
@@ -124,6 +126,7 @@ public class AbloomModAttributes {
         event.getTypes().forEach(entity -> event.add(entity, SHADOW_RES_SHRED));
         event.getTypes().forEach(entity -> event.add(entity, ALL_RESIST_MOD));
         event.getTypes().forEach(entity -> event.add(entity, ALL_RES_SHRED));
-        event.getTypes().forEach(entity -> event.add(entity, ELEMENTAL_DMG_BONUS));
+        event.getTypes().forEach(entity -> event.add(entity, DMG_BONUS));
+        event.getTypes().forEach(entity -> event.add(entity, INCOMING_DMG));
     }
 }
