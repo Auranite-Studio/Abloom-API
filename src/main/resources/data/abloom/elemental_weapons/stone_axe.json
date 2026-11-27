@@ -1,8 +1,24 @@
 {
   "item": "minecraft:stone_axe",
-  "base_element": "PHYSICAL",
-  "crit_chance": 0.12,
-  "crit_damage": 0.75,
-  "accumulation_multiplier": 4.0,
-  "resonance_frequency": 25
+  "stages": {
+    "1": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.40,
+      "accumulation_multiplier": 1
+    },
+    "2": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.60,
+      "accumulation_multiplier": 1
+    },
+    "3": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 1.00,
+      "accumulation_multiplier": 1
+    },
+    "base_element": "PHYSICAL",
+    "crit_chance": 0.12,
+    "crit_damage": 0.75,
+    "resonance_frequency": 25
+  }
 }

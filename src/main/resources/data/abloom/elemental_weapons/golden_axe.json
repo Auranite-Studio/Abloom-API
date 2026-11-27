@@ -1,8 +1,24 @@
 {
   "item": "minecraft:golden_axe",
-  "base_element": "PHYSICAL",
-  "crit_chance": 0.16,
-  "crit_damage": 1.0,
-  "accumulation_multiplier": 6.0,
-  "resonance_frequency": 30
+  "stages": {
+    "1": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.35,
+      "accumulation_multiplier": 1
+    },
+    "2": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.60,
+      "accumulation_multiplier": 2
+    },
+    "3": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 1.00,
+      "accumulation_multiplier": 2
+    },
+    "base_element": "PHYSICAL",
+    "crit_chance": 0.16,
+    "crit_damage": 1.0,
+    "resonance_frequency": 30
+  }
 }

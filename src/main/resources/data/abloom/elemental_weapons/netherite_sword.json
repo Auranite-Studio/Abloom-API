@@ -1,8 +1,29 @@
 {
   "item": "minecraft:netherite_sword",
-  "base_element": "PHYSICAL",
-  "crit_chance": 0.33,
-  "crit_damage": 1.5,
-  "accumulation_multiplier": 5.0,
-  "resonance_frequency": 50
+  "stages": {
+    "1": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.25,
+      "accumulation_multiplier": 2
+    },
+    "2": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.35,
+      "accumulation_multiplier": 2
+    },
+    "3": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.60,
+      "accumulation_multiplier": 3
+    },
+    "4": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 1.00,
+      "accumulation_multiplier": 3
+    },
+    "base_element": "PHYSICAL",
+    "crit_chance": 0.33,
+    "crit_damage": 1.5,
+    "resonance_frequency": 50
+  }
 }

@@ -1,8 +1,24 @@
 {
   "item": "minecraft:mace",
-  "base_element": "PHYSICAL",
-  "crit_chance": 0.24,
-  "crit_damage": 1.5,
-  "accumulation_multiplier": 20.0,
-  "resonance_frequency": 75
+  "stages": {
+    "1": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.30,
+      "accumulation_multiplier": 5
+    },
+    "2": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 0.50,
+      "accumulation_multiplier": 7
+    },
+    "3": {
+      "element": "PHYSICAL",
+      "damage_multiplier": 1.00,
+      "accumulation_multiplier": 10
+    },
+    "base_element": "PHYSICAL",
+    "crit_chance": 0.24,
+    "crit_damage": 1.5,
+    "resonance_frequency": 75
+  }
 }
