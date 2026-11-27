@@ -1600,9 +1600,9 @@ public class ElementDamageHandler {
             case ELECTRIC -> 14 * 20;
             case ENERGY -> 14 * 20;
             case NATURAL -> 12 * 20;
-            case QUANTUM -> 8 * 20;
+            case QUANTUM -> 6 * 20;
             case ETHER -> 12 * 20;
-            case LIGHT -> 14 * 20;
+            case LIGHT -> 15 * 20;
             case SHADOW -> 14 * 20;
             default -> 12 * 20;
         };
