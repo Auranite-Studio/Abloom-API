@@ -31,23 +31,6 @@ public class FreezeEffect extends MobEffect {
         }
 
         int remainingDuration = effectInstance.getDuration();
-        int remainingSeconds = (remainingDuration + 19) / 20; // Округляем вверх до секунд
-
-        // Если цель горит - прерываем заморозку и наносим урон от льда (15% за каждую оставшуюся секунду)
-        if (entity.isOnFire()) {
-            float burnDamage = 1.0f + amplifier * 0.5f;
-            DamageSource burnSource = entity.damageSources().inFire();
-            entity.hurt(burnSource, burnDamage);
-
-            // Наносим урон от льда за оставшиеся секунды (15% за каждую)
-            float freezeDamage = remainingSeconds * 0.15f;
-            ElementDamageHandler.dealElementDamage(entity, ElementType.ICE, freezeDamage, 0);
-
-            // Явно снимаем эффект заморозки
-            entity.setTicksFrozen(0);
-            entity.removeEffect(AbloomModEffects.FREEZE);
-            return true;
-        }
 
         int currentFrozen = entity.getTicksFrozen();
         int required = entity.getTicksRequiredToFreeze();
@@ -58,7 +41,7 @@ public class FreezeEffect extends MobEffect {
 
         if (entity.isFullyFrozen()) {
             if (remainingDuration % 20 == 0) {
-                float damage = 1.0f + amplifier * 0.5f;
+                float damage = 3.0f;
                 entity.setDeltaMovement(entity.getDeltaMovement().multiply(0.85, 1.0, 0.85));
                 ElementDamageHandler.dealElementDamage(entity, ElementType.ICE, damage, 0,null, true);
             }

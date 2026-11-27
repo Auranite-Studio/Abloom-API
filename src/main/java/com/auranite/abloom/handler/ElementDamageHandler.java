@@ -1653,15 +1653,9 @@ public class ElementDamageHandler {
     }
 
     public static void dealElementDamage(Entity target, IElementalType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
-        if (IS_PROCESSING_DAMAGE.get()) return;
-
-        // Mark as processing to prevent infinite recursion
-        IS_PROCESSING_DAMAGE.set(true);
-        try {
-            processDealElementDamage(target, type, amount, accumMultiplier, attacker, bypassKnockback);
-        } finally {
-            IS_PROCESSING_DAMAGE.set(false);
-        }
+        // Recursion guard is handled in doProcessLivingHurt via entity.hurt() callback.
+        // Each DoT effect can process independently without blocking other DoT effects.
+        processDealElementDamage(target, type, amount, accumMultiplier, attacker, bypassKnockback);
     }
 
     // ==================== Backward-compatible overloads for ElementType ====================
@@ -1873,13 +1867,8 @@ public class ElementDamageHandler {
     }
 
     public static void applyElementalDamageInstant(Entity target, Entity source, IElementalType elementalType, float baseDamage, float accumPoints) {
-        if (IS_PROCESSING_DAMAGE.get()) return;
-        IS_PROCESSING_DAMAGE.set(true);
-        try {
-            processDealElementDamage(target, elementalType, baseDamage, accumPoints, source, false);
-        } finally {
-            IS_PROCESSING_DAMAGE.set(false);
-        }
+        // Recursion guard is handled in doProcessLivingHurt via entity.hurt() callback.
+        processDealElementDamage(target, elementalType, baseDamage, accumPoints, source, false);
     }
 
     /**
