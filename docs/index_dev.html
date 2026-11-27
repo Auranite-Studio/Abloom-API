@@ -476,7 +476,7 @@
             <ul>
                 <li><strong>14 Element Types:</strong> FIRE, PHYSICAL, WIND, WATER, EARTH, ICE, ELECTRIC, ENERGY, NATURAL, QUANTUM, ETHER, LIGHT, SHADOW, PRISMATIC</li>
                 <li><strong>Resonance System:</strong> Accumulate elemental points through attacks to trigger powerful resonance explosions at 100 points</li>
-                <li><strong>19 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Suppression, Bleeding, Reinforcement</li>
+                <li><strong>20 Status Effects:</strong> Burn, Wetness, Stun, Freeze, Shock, Break, Rupture, Bloom, Overload, Windswept, Corruption, Taunt, Dispersion, Eclipse, Critical Gain, Prism, Suppression, Bleeding, Reinforcement, Reflection</li>
                 <li><strong>Multi-Stage Weapons:</strong> Weapons can have up to 6 attack stages with different elements, accumulation multipliers, and damage percentages</li>
                 <li><strong>Critical Hit System:</strong> Custom CRIT_CHANCE and CRIT_DMG attributes with weapon-specific bonuses</li>
                 <li><strong>Armor Resistances:</strong> Armor pieces can provide resistance or weakness to specific elements (-0.99 to 0.99)</li>
@@ -558,7 +558,7 @@
                     </tr>
                     <tr>
                         <td><span class="element-light">LIGHT</span></td>
-                        <td>Light resonance explosion, applies Dispersion effect that increases damage taken based on incoming damage element type: Physical +15%, Fire +15%, Wind +30%, Water +30%, Earth +15%, Ice +15%, Electric +30%, Energy +15%, Natural +15%, Quantum +15%, Ether +15%, Light +30%, Shadow +20%, Prismatic +30%</td>
+                        <td>Light resonance explosion, applies Dispersion effect. Dispersion stacks on repeat application (max 3 levels): each level increases damage taken by target on +15% (max +45%). The attacker gains the Reflection buff (+10% resonance accumulation per level, max +30%) for 45 seconds. Duration refreshes on each application. At the 4th application, Dispersion keeps max level (3) and duration refreshes.</td>
                         <td>14 seconds (280 ticks)</td>
                     </tr>
                     <tr>
@@ -629,7 +629,7 @@
                 <code>finalDamage = baseDamage × M_stage × M_effect × (1 − effectiveResist) × (1 + B_element) × C_crit × M_threshold</code><br><br>
                 <strong>Where:</strong><br>
                 <code>M_stage</code> = stage damage multiplier (per-stage percentage of base damage, e.g. 0.20 = 20%)<br>
-                <code>M_effect</code> = SHOCK × OVERLOAD × BLOOM × DISPERSION &nbsp;|&nbsp; <code>effectiveResist</code> = (R_resist + R_mod + R_armor) − P_shred<br>
+                <code>M_effect</code> = SHOCK × OVERLOAD × BLOOM &nbsp;|&nbsp; <code>effectiveResist</code> = (R_resist + R_mod + R_armor) − P_shred<br>
                 <code>R_resist</code> = 0.0 / 0.5 / −0.5 (base tag: ZERO / RESIST / WEAKNESS) &nbsp;|&nbsp; <code>R_mod</code> = {ELEMENT}_RESIST_MOD + ALL_RESIST_MOD (−1 to 1)<br>
                 <code>B_element</code> = {ELEMENT}_DMG_BONUS + DMG_BONUS (−1 to 1) &nbsp;|&nbsp; <code>P_shred</code> = {ELEMENT}_RES_SHRED + ALL_RES_SHRED (0 to 1)<br>
                 <code>R_armor</code> = sum of armor resistance components (−0.99 to 0.99) &nbsp;|&nbsp; <code>C_crit</code> = 1.0 or (1.0 + totalCritDamage) × 2.0 (multi-crit)<br>
@@ -735,8 +735,14 @@
                     <tr>
                         <td>Dispersion</td>
                         <td><code>abloom:dispersion</code></td>
-                        <td>Damage taken by target increases damage taken based on incoming damage element type: Physical +15%, Fire +15%, Wind +30%, Water +30%, Earth +15%, Ice +15%, Electric +30%, Energy +15%, Natural +15%, Quantum +15%, Ether +15%, Light +30%, Shadow +20%, Prismatic +30%</td>
+                        <td>Dispersion effect stacks on repeat application (max 3 levels): each level increases damage taken by target on +15% (max +45%). The attacker gains the Reflection buff (+10% resonance accumulation per level, max +30%) for 45 seconds. Duration refreshes on each application. At the 4th application, Dispersion keeps max level (3) and duration refreshes.</td>
                         <td style="color: #FFF1A5;">#FFF1A5</td>
+                    </tr>
+                    <tr>
+                        <td>Reflection</td>
+                        <td><code>abloom:reflection_buff</code></td>
+                        <td>Reflection effect applied to the attacker when Dispersion is applied. Grants +10% resonance accumulation buildup per level (max +30% at level 3). Lasts 45 seconds (900 ticks). Duration refreshes on each Dispersion application. Amplifier matches Dispersion's current level.</td>
+                        <td style="color: #FFFFFF;">#FFFFFF</td>
                     </tr>
                     <tr>
                         <td>Eclipse</td>
@@ -1577,7 +1583,7 @@ if (iceShred != null) {
                         <td><code>abloom:incoming_dmg</code></td>
                         <td>-1 to 1</td>
                         <td>0</td>
-                        <td>Global incoming damage bonus applied to ALL damage taken by the target. Positive values increase damage taken. Used by Overload effect (+0.40 per amplifier on target).</td>
+                        <td>Global incoming damage bonus applied to ALL damage taken by the target. Positive values increase damage taken. Used by Overload effect (+0.40 per amplifier on target) and Dispersion effect (+0.15 per level, max +0.45 at level 3).</td>
                     </tr>
                 </tbody>
             </table>
@@ -2169,7 +2175,6 @@ public class MyModElements {
   "base_element": "FIRE",
   "can_resonance_accumulation": true,
   "resonance_dmg_multiplier": 2.0,
-  "dispersion_bonus": 0.25,
   "resonance_effect": {
     "effect": "yourmod:custom_resonance_effect",
     "config": {
@@ -2231,13 +2236,7 @@ public class MyModElements {
                         <td><code>resonance_dmg_multiplier</code></td>
                         <td>Double</td>
                         <td>No</td>
-                        <td>Multiplier for resonance explosion damage. Formula: <code>2.0 × resonance_dmg_multiplier + resonanceFrequency × 0.01</code>. Defaults to <code>1.0</code></td>
-                    </tr>
-                    <tr>
-                        <td><code>dispersion_bonus</code></td>
-                        <td>Float</td>
-                        <td>No</td>
-                        <td>Damage bonus multiplier when the target has the DISPERSION effect. Applied as <code>damageMultiplier *= 1.0f + dispersionBonus</code>. For example, <code>0.25</code> gives +25% damage. Defaults to <code>0.0</code> (no bonus)</td>
+                        <td>Multiplier for resonance explosion damage. Formula: <code>resonance_dmg_multiplier + resonanceFrequency × 0.01</code>. Defaults to <code>1.0</code> (or base element's threshold multiplier if base_element is set)</td>
                     </tr>
                     <tr>
                         <td><code>base_element</code></td>
@@ -2455,7 +2454,6 @@ if (data.isPresent()) {
   "resonance_translation_key": "resonance.yourmod.void",
   "can_resonance_accumulation": true,
   "resonance_dmg_multiplier": 2.5,
-  "dispersion_bonus": 0.30,
   "resonance_effect": {
     "effect": "yourmod:void_resonance",
     "config": {

@@ -124,8 +124,7 @@ public class CustomElementProvider {
                     elementData.getDisplayName(),
                     elementData.getRawElementTranslationKey(),
                     elementData.getRawResonanceTranslationKey(),
-                    elementData.baseElement(),
-                    elementData.dispersionBonus()
+                    elementData.baseElement()
             );
 
             if (!registered) {
@@ -148,13 +147,12 @@ public class CustomElementProvider {
             }
 
             // Log element configuration
-            AbloomMod.LOGGER.info("Loaded custom element '{}' (color: 0x{:06X}, base_element: {}, resonance: {}, multiplier: {:.1f}, dispersion: {:.0f}%) from mod {}",
+            AbloomMod.LOGGER.info("Loaded custom element '{}' (color: 0x{:06X}, base_element: {}, resonance: {}, multiplier: {:.1f}) from mod {}",
                     elementName,
                     elementData.color() & 0xFFFFFF,
                     elementData.baseElement() != null ? elementData.baseElement() : "none",
                     elementData.canResonanceAccumulation(),
                     elementData.resonanceDmgMultiplier(),
-                    elementData.dispersionBonus() * 100.0f,
                     modId);
 
             // Log resonance effect if present

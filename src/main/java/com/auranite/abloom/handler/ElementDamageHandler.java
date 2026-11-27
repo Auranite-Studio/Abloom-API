@@ -543,15 +543,6 @@ public class ElementDamageHandler {
 
         float damageMultiplier = 1.0f;
 
-        // Modifiers from target
-        if (target.hasEffect(AbloomModEffects.DISPERSION)) {
-            float dispersionBonus = getDispersionBonus(type);
-            if (AbloomMod.LOGGER.isDebugEnabled()) {
-                AbloomMod.LOGGER.debug("Applying dispersion bonus of {} for type {}", dispersionBonus, type);
-            }
-            damageMultiplier *= 1.0f + dispersionBonus;
-        }
-
         float damage = baseDamage * stageDamageMultiplier * damageMultiplier;
 
         float effectiveAccumMultiplier = 0.0f;
@@ -705,7 +696,7 @@ public class ElementDamageHandler {
             if (AbloomMod.LOGGER.isDebugEnabled()) {
                 AbloomMod.LOGGER.debug("Accumulation threshold reached for {} (type: {}). Applying effect.", target.getName().getString(), type);
             }
-            finalDamage = applyThresholdEffect(target, type, finalDamage, false, resonanceFrequency);
+            finalDamage = applyThresholdEffect(target, type, finalDamage, false, resonanceFrequency, attacker);
             AbloomModAttachments.resetPoints(target, type);
             syncAccumulationToClients(target);
             isThresholdDamage = true;
@@ -1346,14 +1337,18 @@ public class ElementDamageHandler {
     }
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage) {
-        return applyThresholdEffect(target, type, originalDamage, false, 0.0f);
+        return applyThresholdEffect(target, type, originalDamage, false, 0.0f, null);
     }
 
     private static float applyThresholdEffect(LivingEntity target, ElementType type, float originalDamage, boolean isErosionTrigger) {
-        return applyThresholdEffect(target, type, originalDamage, isErosionTrigger, 0.0f);
+        return applyThresholdEffect(target, type, originalDamage, isErosionTrigger, 0.0f, null);
     }
 
     private static float applyThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency) {
+        return applyThresholdEffect(target, type, originalDamage, isErosionTrigger, resonanceFrequency, null);
+    }
+
+    private static float applyThresholdEffect(LivingEntity target, IElementalType type, float originalDamage, boolean isErosionTrigger, float resonanceFrequency, LivingEntity attacker) {
         // Handle custom element types with CustomElementData
         if (type.isCustom()) {
             return applyCustomThresholdEffect(target, type, originalDamage, resonanceFrequency, isErosionTrigger);
@@ -1425,8 +1420,27 @@ public class ElementDamageHandler {
                 yield originalDamage * totalMultiplier;
             }
             case LIGHT -> {
-                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, duration, 0, false, true));
+                int currentAmplifier = 0;
+
+                if (target.hasEffect(AbloomModEffects.DISPERSION)) {
+                    currentAmplifier = target.getEffect(AbloomModEffects.DISPERSION).getAmplifier();
+
+                    if (currentAmplifier < 2) {
+                        currentAmplifier++;
+                    }
+
+                    target.removeEffect(AbloomModEffects.DISPERSION);
+                }
+
+                target.addEffect(new MobEffectInstance(AbloomModEffects.DISPERSION, duration, currentAmplifier, false, true));
                 spawnStatusText(target, Component.translatable("elemental.tooltip.light_dispersion"), 0xFFFFE0);
+
+                if (attacker != null) {
+                    int reflectionAmplifier = currentAmplifier;
+                    attacker.removeEffect(AbloomModEffects.REFLECTION_BUFF);
+                    attacker.addEffect(new MobEffectInstance(AbloomModEffects.REFLECTION_BUFF, 45 * 20, reflectionAmplifier, false, true));
+                }
+
                 yield originalDamage * totalMultiplier;
             }
             case SHADOW -> {
@@ -1545,30 +1559,6 @@ public class ElementDamageHandler {
             case SHADOW -> 0x4B0082;
             case PRISMATIC -> -1;
             default -> 0xFFFFFF;
-        };
-    }
-
-    private static float getDispersionBonus(IElementalType type) {
-        if (type.isCustom()) {
-            return CustomElementRegistry.getDispersionBonus(type);
-        }
-        com.auranite.abloom.util.ElementType et = (com.auranite.abloom.util.ElementType) type;
-        return switch (et) {
-            case PHYSICAL -> 0.15f;
-            case FIRE -> 0.15f;
-            case WIND -> 0.30f;
-            case WATER -> 0.30f;
-            case EARTH -> 0.15f;
-            case ICE -> 0.15f;
-            case ELECTRIC -> 0.30f;
-            case ENERGY -> 0.15f;
-            case NATURAL -> 0.15f;
-            case QUANTUM -> 0.15f;
-            case ETHER -> 0.15f;
-            case LIGHT -> 0.30f;
-            case SHADOW -> 0.20f;
-            case PRISMATIC -> 0.30f;
-            default -> 0.00f;
         };
     }
 
@@ -1701,6 +1691,8 @@ public class ElementDamageHandler {
     private static void processDealElementDamage(Entity target, IElementalType type, float amount, float accumMultiplier, Entity attacker, boolean bypassKnockback) {
         if (!(target instanceof LivingEntity livingTarget)) return;
 
+        LivingEntity livingAttacker = attacker instanceof LivingEntity le ? le : null;
+
         float damageMultiplier = 1.0f;
         float accumBonus = 1.0f;
         boolean isThresholdDamage = false;
@@ -1719,7 +1711,7 @@ public class ElementDamageHandler {
         float effectiveResist = ElementResistanceManager.getResistance(livingTarget, type).getValue();
         float armorResistanceBonus = getArmorResistanceBonus(livingTarget, type);
         effectiveResist += armorResistanceBonus;
-        if (attacker instanceof LivingEntity livingAttacker) {
+        if (livingAttacker != null) {
             effectiveResist += getElementResistMod(livingAttacker, type);
             effectiveResist -= (float) getElementResShred(livingAttacker, type);
         }
@@ -1737,7 +1729,7 @@ public class ElementDamageHandler {
         }
 
         // Apply elemental damage bonus attributes (same as doProcessLivingHurt)
-        if (attacker instanceof LivingEntity livingAttacker) {
+        if (livingAttacker != null) {
             finalDamage = applyElementalDamageBonus(livingAttacker, type, finalDamage);
         }
 
@@ -1757,7 +1749,7 @@ public class ElementDamageHandler {
             if (thresholdReached) {
                 // Get resonance frequency from attacker's weapon for threshold damage calculation
                 float resonanceFrequency = 0.0f;
-                if (attacker instanceof LivingEntity livingAttacker) {
+                if (livingAttacker != null) {
                     ItemStack weapon = livingAttacker.getMainHandItem();
                     resonanceFrequency = ElementalWeaponUtils.getResonanceFrequency(weapon);
                     // Apply resonance_frequency_bonus attribute
@@ -1767,7 +1759,7 @@ public class ElementDamageHandler {
                         resonanceFrequency += (float) rfBonusAttr.getValue();
                     }
                 }
-                finalDamage = applyThresholdEffect(livingTarget, type, finalDamage, false, resonanceFrequency);
+                finalDamage = applyThresholdEffect(livingTarget, type, finalDamage, false, resonanceFrequency, livingAttacker);
                 AbloomModAttachments.resetPoints(livingTarget, type);
                 syncAccumulationToClients(livingTarget);
                 isThresholdDamage = true;
@@ -1775,7 +1767,6 @@ public class ElementDamageHandler {
         }
 
         // Apply critical hit - threshold damage uses resonance-specific crit attributes
-        LivingEntity livingAttacker = attacker instanceof LivingEntity le ? le : null;
         CritResult critResult = isThresholdDamage
                 ? applyResonanceCriticalHit(livingAttacker, finalDamage)
                 : applyCriticalHit(livingAttacker, finalDamage);

@@ -32,6 +32,7 @@ public class AbloomModEffects {
     public static final DeferredHolder<MobEffect, MobEffect> CORRUPTION = REGISTRY.register("corruption", () -> new CorruptionEffect(0x24B3A7));
     public static final DeferredHolder<MobEffect, MobEffect> TAUNT = REGISTRY.register("taunt", () -> new TauntEffect(0x9B2D30));
     public static final DeferredHolder<MobEffect, MobEffect> DISPERSION = REGISTRY.register("dispersion", () -> new DispersionEffect(0xFFFFE0));
+    public static final DeferredHolder<MobEffect, MobEffect> REFLECTION_BUFF = REGISTRY.register("reflection_buff", () -> new ReflectionBuffEffect());
     public static final DeferredHolder<MobEffect, MobEffect> ECLIPSE = REGISTRY.register("eclipse", () -> new EclipseEffect(0x4B0082));
     public static final DeferredHolder<MobEffect, MobEffect> CRITICAL_GAIN = REGISTRY.register("critical_gain", () -> new CriticalGainEffect(0xFFD700));
     public static final DeferredHolder<MobEffect, MobEffect> RESONANCE_GAIN = REGISTRY.register("resonance_gain", () -> new ResonanceGainEffect(0xFFD700));

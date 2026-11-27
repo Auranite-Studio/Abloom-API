@@ -28,7 +28,6 @@ import java.lang.reflect.Type;
  *   "base_element": "FIRE",
  *   "can_resonance_accumulation": true,
  *   "resonance_dmg_multiplier": 2.0,
- *   "dispersion_bonus": 0.25,
  *   "resonance_effect": {
  *     "effect": "yourmod:custom_resonance_effect",
  *     "config": {
@@ -48,7 +47,6 @@ public record CustomElementData(
         @Nullable String baseElement,
         boolean canResonanceAccumulation,
         double resonanceDmgMultiplier,
-        float dispersionBonus,
         @Nullable ResonanceEffectConfig resonanceEffect,
         @Nullable ResourceLocation resonanceDisplayEffect
 ) {
@@ -221,12 +219,6 @@ public record CustomElementData(
             resonanceDmgMultiplier = 1.0;
         }
 
-        // Parse dispersion_bonus (optional, defaults to 0.0)
-        float dispersionBonus = 0.0f;
-        if (json.has("dispersion_bonus") && !json.get("dispersion_bonus").isJsonNull()) {
-            dispersionBonus = (float) json.get("dispersion_bonus").getAsDouble();
-        }
-
         // Parse resonance_effect (optional)
         ResonanceEffectConfig resonanceEffect = null;
         if (json.has("resonance_effect") && !json.get("resonance_effect").isJsonNull()) {
@@ -249,7 +241,6 @@ public record CustomElementData(
                 baseElement,
                 canResonanceAccumulation,
                 resonanceDmgMultiplier,
-                dispersionBonus,
                 resonanceEffect,
                 resonanceDisplayEffect
         );
@@ -317,7 +308,6 @@ public record CustomElementData(
         private String baseElement = null;
         private boolean canResonanceAccumulation = true;
         private double resonanceDmgMultiplier = 1.0;
-        private float dispersionBonus = 0.0f;
         private ResonanceEffectConfig resonanceEffect = null;
         private ResourceLocation resonanceDisplayEffect = null;
 
@@ -356,11 +346,6 @@ public record CustomElementData(
             return this;
         }
 
-        public Builder dispersionBonus(float dispersionBonus) {
-            this.dispersionBonus = dispersionBonus;
-            return this;
-        }
-
         public Builder baseElement(String baseElement) {
             this.baseElement = baseElement;
             return this;
@@ -389,7 +374,6 @@ public record CustomElementData(
                     baseElement,
                     canResonanceAccumulation,
                     resonanceDmgMultiplier,
-                    dispersionBonus,
                     resonanceEffect,
                     resonanceDisplayEffect
             );

@@ -64,8 +64,7 @@ public enum ElementType implements IElementalType {
     public record CustomElementType(String name, String damageTypeId, String displayName,
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
             @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
-            @org.jetbrains.annotations.Nullable String baseElement,
-            float dispersionBonus) implements IElementalType {
+            @org.jetbrains.annotations.Nullable String baseElement) implements IElementalType {
         public CustomElementType {
             if (name == null || name.isEmpty()) throw new IllegalArgumentException("Name must not be null or empty");
             if (damageTypeId == null || damageTypeId.isEmpty()) throw new IllegalArgumentException("Damage type ID must not be null or empty");
@@ -87,21 +86,6 @@ public enum ElementType implements IElementalType {
         @org.jetbrains.annotations.Nullable
         public String getRawElementTranslationKey() {
             return rawElementTranslationKey;
-        }
-
-        @Override
-        public float getDispersionBonus() {
-            return dispersionBonus;
-        }
-
-        /**
-         * Returns the base element name for this custom type.
-         * The base element is used for damage bonus attributes and threshold multipliers.
-         * @return the base element name (e.g., "FIRE", "ICE"), or null if not set
-         */
-        @org.jetbrains.annotations.Nullable
-        public String getBaseElement() {
-            return baseElement;
         }
 
         @Override
@@ -140,8 +124,7 @@ public enum ElementType implements IElementalType {
     public static boolean registerCustomElementType(String name, String damageTypeId, String displayName,
             @org.jetbrains.annotations.Nullable String rawElementTranslationKey,
             @org.jetbrains.annotations.Nullable String rawResonanceTranslationKey,
-            @org.jetbrains.annotations.Nullable String baseElement,
-            float dispersionBonus) {
+            @org.jetbrains.annotations.Nullable String baseElement) {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Element type name must not be null or empty");
         }
@@ -171,7 +154,7 @@ public enum ElementType implements IElementalType {
         }
 
         CustomElementType customType = new CustomElementType(normalizedName, damageTypeId, displayName,
-                rawElementTranslationKey, rawResonanceTranslationKey, baseElement, dispersionBonus);
+                rawElementTranslationKey, rawResonanceTranslationKey, baseElement);
         CUSTOM_TYPES_BY_NAME.put(normalizedName, customType);
         CUSTOM_TYPES_BY_DAMAGE_ID.put(damageTypeId, customType);
 
@@ -183,28 +166,14 @@ public enum ElementType implements IElementalType {
      * Convenience variant that uses the name as display name.
      */
     public static boolean registerCustomElementType(String name, String damageTypeId) {
-        return registerCustomElementType(name, damageTypeId, null, null, null, null, 0.0f);
-    }
-
-    /**
-     * Convenience variant that uses the name as display name with a custom dispersion bonus.
-     */
-    public static boolean registerCustomElementType(String name, String damageTypeId, float dispersionBonus) {
-        return registerCustomElementType(name, damageTypeId, null, null, null, null, dispersionBonus);
+        return registerCustomElementType(name, damageTypeId, null, null, null, null);
     }
 
     /**
      * Convenience variant that uses the name as display name with a base element.
      */
     public static boolean registerCustomElementType(String name, String damageTypeId, String baseElement) {
-        return registerCustomElementType(name, damageTypeId, null, null, null, baseElement, 0.0f);
-    }
-
-    /**
-     * Convenience variant that uses the name as display name with base element and dispersion bonus.
-     */
-    public static boolean registerCustomElementType(String name, String damageTypeId, String baseElement, float dispersionBonus) {
-        return registerCustomElementType(name, damageTypeId, null, null, null, baseElement, dispersionBonus);
+        return registerCustomElementType(name, damageTypeId, null, null, null, baseElement);
     }
 
     /** Looks up a custom element type by its name. */
